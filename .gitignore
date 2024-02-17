@@ -1,0 +1,15 @@
+*/*/__pycache__
+*/__pycache__
+__pycache__
+dist
+run.py
+*.rar
+*.zip
+*.pdf
+*.PDF
+*.cbz
+*.cbr
+rars
+cbzs
+zips
+
