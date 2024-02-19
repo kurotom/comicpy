@@ -48,6 +48,19 @@ class DirectoryPathNotExists(ErrorFileBase):
         super().__init__(message)
 
 
+class DirectoryFilterEmptyFiles(ErrorFileBase):
+    def __init__(
+        self,
+        dir_path: str,
+        filter: str,
+    ) -> None:
+        message = 'Files not found with filter "%s" over directory "%s".' % (
+                            filter,
+                            dir_path
+                        )
+        super().__init__(message)
+
+
 class DirectoryEmptyFilesValid(ErrorFileBase):
     def __init__(
         self,

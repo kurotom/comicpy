@@ -6,7 +6,7 @@ The `CBZ` and `CBR` archives have the same file signatures as `ZIP` and `RAR`
 respectively.
 """
 
-hexsingsDict = {
+hexSignsDict = {
     'pdf': {
         'hexsigns': [
             '25 50 44 46',
@@ -29,8 +29,8 @@ hexsingsDict = {
     },
     'rar': {
         'hexsigns': [
-            '52 61 72 21 1A 07 00',
-            '52 61 72 21 1A 07 01 00'
+            '52 61 72 21 1A 07 00',    # RAR version 4
+            '52 61 72 21 1A 07 01 00'  # RAR version 5
         ],
         'byteoffet': 0
     }

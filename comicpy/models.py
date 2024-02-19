@@ -5,6 +5,8 @@
 import io
 import os
 
+from typing import List
+
 
 SizeUnits = {
     'b': 10**1,
@@ -19,7 +21,8 @@ class FileBaseClass:
     def get_extention(
         self,
     ) -> None:
-        data = os.path.splitext(self.filename)
+        file_name = os.path.basename(self.filename)
+        data = os.path.splitext(file_name)
         self.name = data[0]
         self.extention = data[1].lower()
 
@@ -35,7 +38,10 @@ class FileBaseClass:
         return size_buffer
 
     def __str__(self) -> str:
-        return '<[Name: "%s", Size: "%.2f %s"]>' % (
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        return '<[Filename: "%s", Size: "%.2f %s"]>' % (
                         self.filename,
                         self.size,
                         self.unit.upper()
@@ -84,3 +90,54 @@ class CurrentFile(FileBaseClass):
 
     def __str__(self) -> str:
         return super().__str__()
+
+
+class CompressorFileData(FileBaseClass):
+    def __init__(
+        self,
+        filename: str,
+        list_data: List[ImageComicData],
+        type: str,
+        unit: str = 'mb'
+    ) -> None:
+        self.filename = filename
+        self.list_data = list_data
+        self.type = type
+        self.extention = None
+        self.unit = unit
+        self.size = self.get_size()
+
+    def setExtention(self) -> str:
+        if self.type[0] != '.':
+            self.extention = '.%s' % (self.type)
+        else:
+            self.extention = self.type
+
+    def get_extention(self) -> None:
+        pass
+
+    def get_size(
+        self
+    ) -> int:
+        try:
+            size_unit = SizeUnits[self.unit]
+        except KeyError:
+            self.unit = 'mb'
+            size_unit = SizeUnits[self.unit]
+
+        sizes = [
+            item.bytes_data.getbuffer().nbytes
+            for item in self.list_data
+        ]
+        return sum(sizes) / size_unit
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        return '<[Filename: "%s", Size: "%.2f %s", Items: "%s"]>' % (
+                        self.filename,
+                        self.size,
+                        self.unit.upper(),
+                        len(self.list_data)
+                )

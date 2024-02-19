@@ -4,7 +4,8 @@
 
 from comicpy.models import (
     ImageComicData,
-    CurrentFile
+    CurrentFile,
+    CompressorFileData
 )
 
 from pypdf import PdfReader, PdfWriter, PageObject
@@ -26,8 +27,8 @@ class PdfHandler:
         dataRaw = currentFilePDF.bytes_data
         reader = PdfReader(dataRaw)
         # print(reader.pdf_header, len(reader.pages), reader.metadata)
-        images_objs = self.getting_data(pages_pdf=reader.pages)
-        return images_objs
+        listImageComicData = self.getting_data(pages_pdf=reader.pages)
+        return listImageComicData
 
     def getting_data(
         self,
@@ -38,8 +39,7 @@ class PdfHandler:
             page = pages_pdf[i]
             name_image = 'image' + '%d'.zfill(4) % (i) + '.jpg'
             data_image = page.images[0].data
-            # page.images[0].name
-            # page.images[0].image
+            # page.images[0].name, page.images[0].image
             image_comic = ImageComicData(
                             filename=name_image,
                             bytes_data=io.BytesIO(data_image)

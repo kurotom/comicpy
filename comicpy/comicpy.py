@@ -5,15 +5,27 @@
 
 from comicpy.models import (
     ImageComicData,
-    CurrentFile
+    CurrentFile,
+    CompressorFileData
 )
+
 from comicpy.checkfile import CheckFile
+
 from comicpy.exceptionsClasses import (
     InvalidFile,
     EmptyFile,
     FileExtentionNotMatch,
     DirectoryPathNotExists,
-    DirectoryEmptyFilesValid
+    DirectoryEmptyFilesValid,
+    DirectoryFilterEmptyFiles
+)
+
+from comicpy.valid_extentions import (
+    pdfFileExtention,
+    comicFilesExtentions,
+    compressorsExtentions,
+    imagesExtentions,
+    validExtentionsList
 )
 
 from comicpy.handlers import (
@@ -26,7 +38,7 @@ import io
 import glob
 import os
 
-from typing import List, TypeVar, Union
+from typing import List, TypeVar, Union, NewType
 
 RAR = TypeVar('rar')
 ZIP = TypeVar('zip')
@@ -38,25 +50,34 @@ FileNameCBZ = TypeVar('FileNameCBZ')
 CurrentFileZip = TypeVar('CurrentFileZip')
 CurrentFileRar = TypeVar('CurrentFileRar')
 
+PDFEXT = TypeVar('pdf')
+CBZEXT = TypeVar('cbz')
+CBREXT = TypeVar('cbr')
+
 
 class ComicPy:
 
     def __init__(
         self,
-        pdf_path: str
+        file_path: str = None
     ) -> None:
-        self.filename = pdf_path
-        self.currentFile = self.read()
-        self.read()
+        self.directory_path = None
+        self.filename = file_path
+        self.currentFile = self.read(filename=self.filename)
         self.checker = CheckFile()
         self.ziphandler = ZipHandler()
         self.pdfphandler = PdfHandler()
         self.rarhandler = RarHandler()
 
-    def read(self) -> None:
+    def read(
+        self,
+        filename: str
+    ) -> None:
         """
         """
-        with open(self.filename, 'rb') as file:
+        if filename is None:
+            return None
+        with open(filename, 'rb') as file:
             file.seek(0)
             data = file.read()
             if len(data) == 0:
@@ -64,15 +85,18 @@ class ComicPy:
                 raise EmptyFile()
 
             currentFile = CurrentFile(
-                            filename=self.filename,
+                            filename=filename,
                             bytes_data=io.BytesIO(data),
                             chunk_bytes=data[:8]
                         )
         return currentFile
 
-    def check_file(self) -> bool:
-        is_valid = self.checker.check(currenf_file=self.currentFile)
-        print(is_valid)
+    def check_file(
+        self,
+        currentFile: CurrentFile
+    ) -> bool:
+        is_valid = self.checker.check(currenf_file=currentFile)
+        # print('-> check_file ', is_valid)
         if is_valid is False:
             raise FileExtentionNotMatch()
         elif is_valid is None:
@@ -82,9 +106,12 @@ class ComicPy:
 
     def raiser_error_compressor(
         self,
-        compressor_str: str
+        compressor_str: str,
     ) -> None:
-        compressors = 'zip', 'rar'
+        compressors = [
+                        i.replace('.', '')
+                        for i in list(compressorsExtentions.values())
+                    ]
         if compressor_str not in compressors:
             msg = 'Must be `rar` or `zip` for compressor parameter.'
             raise ValueError(msg)
@@ -93,27 +120,35 @@ class ComicPy:
         self,
         compressor: Union[RAR, ZIP] = 'zip',
     ) -> Union[RarBytesIO, ZipBytesIO]:
+        compressor = compressor.replace('.', '').lower().strip()
+
         self.raiser_error_compressor(compressor_str=compressor)
 
-        self.check_file()
+        self.check_file(currentFile=self.currentFile)
 
-        listImagesRawIO = self.pdfphandler.process_pdf(
+        listImagesPDF = self.pdfphandler.process_pdf(
                             currentFilePDF=self.currentFile
                         )
-        zipCurrentFileIO = self.to_compressor(
-                            dataRawFile=listImagesRawIO,
+        compressFileData = CompressorFileData(
+                    filename=self.currentFile.name.replace(' ', '_'),
+                    list_data=listImagesPDF,
+                    type=compressor
+                )
+        compressFileData.setExtention()
+
+        compressedCurrentFileIO = self.to_compressor(
+                            dataRawFile=compressFileData,
                             compressor=compressor
                         )
-        zipCurrentFileIO.filename = self.currentFile.name
-        return zipCurrentFileIO
+        compressedCurrentFileIO.name = self.currentFile.name
+
+        return compressedCurrentFileIO
 
     def process_zip(
         self,
-        compressor: Union[RAR, ZIP] = 'zip',
     ) -> Union[RarBytesIO, ZipBytesIO]:
-        self.raiser_error_compressor(compressor_str=compressor)
 
-        self.check_file()
+        self.check_file(currentFile=self.currentFile)
 
         dataZipIO = self.ziphandler.rename_zip_cbz(
                                 currentFileZip=self.currentFile
@@ -122,11 +157,9 @@ class ComicPy:
 
     def process_rar(
         self,
-        compressor: Union[RAR, ZIP] = 'zip',
     ) -> Union[RarBytesIO, ZipBytesIO]:
-        self.raiser_error_compressor(compressor_str=compressor)
 
-        self.check_file()
+        self.check_file(currentFile=self.currentFile)
 
         dataRarIO = self.rarhandler.rename_rar_cbr(
                                 currentFileRar=self.currentFile
@@ -134,51 +167,130 @@ class ComicPy:
         return dataRarIO
 
 
-
     def process_dir(
         self,
         directory_path: str,
+        extention_filter: Union[PDFEXT, CBZEXT, CBREXT],  # 'pdf', 'cbz', 'cbr'
+        filename: str = None,
         compressor: Union[RAR, ZIP] = 'zip',
-    ) -> Union[RarBytesIO, ZipBytesIO]:
-        self.raiser_error_compressor(compressor_str=compressor)
+    ) -> Union[CompressorFileData, None]:
+        compressor = compressor.replace('.', '').lower().strip()
 
-        # self.check_file()
+        if extention_filter not in validExtentionsList:
+            raise ValueError('Extention not valid!.')
+
+        self.raiser_error_compressor(compressor_str=compressor)
 
         dir_abs_path = os.path.abspath(directory_path)
         if not os.path.exists(dir_abs_path):
             raise DirectoryPathNotExists(dir_path=directory_path)
 
-        print(glob.glob('*.cbz', root_tid=dir_abs_path))
+        self.directory_path = directory_path
 
+        pattern = '*.%s' % (extention_filter)
+        filesMatch = glob.glob(pathname=pattern, root_dir=self.directory_path)
 
+        filesMatch.sort()
 
+        if len(filesMatch) == 0:
+            raise DirectoryFilterEmptyFiles(
+                            dir_path=self.directory_path,
+                            filter=extention_filter
+                        )
+        elif len(filesMatch) > 0:
+            list_filePaths = [
+                                os.path.join(self.directory_path, item)
+                                for item in filesMatch
+                            ]
 
+            # list_currentFiles = []
+            list_CompressorsModel = []
+            for item_path in list_filePaths:
+                if os.path.exists(item_path):
 
+                    fileCurrentData = self.read(filename=item_path)
+                    # print('-> ', fileCurrentData, fileCurrentData.extention)
 
+                    self.check_file(currentFile=fileCurrentData)
 
+                    extention = fileCurrentData.extention
+                    filenameCurrent = fileCurrentData.name.replace(' ', '_')
+                    # print(fileCurrentData.bytes_data.getbuffer().nbytes)
+
+                    if extention == '.pdf':
+                        # print('>> DIR PDF')
+                        listImagesPDF = self.pdfphandler.process_pdf(
+                                            currentFilePDF=fileCurrentData
+                                        )
+                        compressFileData = CompressorFileData(
+                                    filename=filenameCurrent,
+                                    list_data=listImagesPDF,
+                                    type=compressor
+                                )
+                        compressFileData.setExtention()
+                        list_CompressorsModel.append(compressFileData)
+
+                    elif extention == '.zip' or extention == '.cbz':
+                        # print('>> DIR ZIP')
+                        compressFileData = self.ziphandler.extract_images(
+                                            currentFileZip=fileCurrentData
+                                        )
+                        list_CompressorsModel.append(compressFileData)
+
+                    elif extention == '.rar' or extention == '.cbr':
+                        print('>> DIR RAR')
+                        listImageComicDataRar = self.rarhandler.extract_images(
+                                            currentFileRar=fileCurrentData
+                                        )
+                        list_CompressorsModel.append(listImageComicDataRar)
+
+            if filename is None:
+                filenameCompressor = os.path.basename(
+                                                self.directory_path
+                                            )
+            else:
+                filenameCompressor = filename
+
+            compressedCurrentFileIO = self.to_compressor(
+                                filename=filenameCompressor,
+                                dataRawFile=list_CompressorsModel,
+                                compressor=compressor
+                            )
+            return compressedCurrentFileIO
 
     def to_compressor(
         self,
-        dataRawFile: io.BytesIO,
+        filename: str,
+        dataRawFile: List[CompressorFileData],
         compressor: Union[RAR, ZIP] = 'zip',
-    ) -> CurrentFileZip:
-        if compressor == 'zip':
-            zip_file_compress = self.ziphandler.to_zip(
-                                listImageComicData=dataRawFile
-                            )
-            return zip_file_compress
+    ) -> Union[CompressorFileData, None]:
+        if type(dataRawFile) is not list:
+            dataRawFile = [dataRawFile]
 
-        elif compressor == 'rar':
-            rar_file_compress = self.rarhandler.to_rar(
-                                listImageComicData=dataRawFile
+        if compressor == 'zip':
+            compressorFile = self.ziphandler.to_zip(
+                                filenameZIP=filename,
+                                listZipFileCompress=dataRawFile
                             )
-            return rar_file_compress
+        elif compressor == 'rar':
+            compressorFile = self.rarhandler.to_rar(
+                                filenameRAR=filename,
+                                listRarFileCompress=dataRawFile
+                            )
+
+        if compressorFile is None:
+            return None
+
+        compressorFile.name = filename
+
+        return compressorFile
 
     def write_cbz(
         self,
         currentFileZip: CurrentFileZip
     ) -> dict:
-        currentFileZip.extention = '.cbz'
+        if currentFileZip.extention is None or currentFileZip.extention == '':
+            currentFileZip.extention = '.cbz'
         infoFileZip = self.ziphandler.to_write(
                             currentFileZip=currentFileZip
                         )
@@ -198,8 +310,12 @@ class ComicPy:
 
     def check_integrity(
         self,
-        filename: str
+        filename: str,
+        show: bool = True
     ) -> bool:
-        fileCompressed = self.read()
+        fileCompressed = self.read(filename=filename)
         is_valid = self.checker.check(currenf_file=fileCompressed)
+        if show:
+            string = 'File is valid?:  "%s"' % (is_valid)
+            print(string)
         return is_valid
