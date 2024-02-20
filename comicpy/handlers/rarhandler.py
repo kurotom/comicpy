@@ -2,9 +2,6 @@
 """
 """
 
-
-import tempfile
-
 from comicpy.models import (
     ImageComicData,
     CurrentFile,
@@ -54,7 +51,7 @@ class RarHandler:
                 if _extention in list(imagesExtentions.values()):
                     # print(_name, _extention, directory_name)
                     item_name = name_file.replace(' ', '_')
-                    file_name = '%s_%s' % (directory_name, item_name)
+                    file_name = os.path.join(directory_name, item_name)
 
                     dataImage = rar_file.read(item)
                     image_comic = ImageComicData(
@@ -70,7 +67,6 @@ class RarHandler:
                                 )
         return rarFileCompress
 
-
     def to_rar(
         self,
         filenameRAR: str,
@@ -81,10 +77,10 @@ class RarHandler:
 
         id_directory = uuid1().hex
         ROOT_DIRECTORY = '.RAR_TEMP'
-        ROOT_PATH = '%s/%s' % (ROOT_DIRECTORY, id_directory)
+        ROOT_PATH = os.path.join(ROOT_DIRECTORY, id_directory)
 
-        DIR_RAR_FILES = '%s/%s' % (ROOT_PATH, filenameRAR)
-        RAR_FILE_ = '%s.rar' % (DIR_RAR_FILES)
+        DIR_RAR_FILES = os.path.join(ROOT_PATH, filenameRAR)
+        RAR_FILE_ = os.path.join(DIR_RAR_FILES) + '.rar'
         # print(ROOT_PATH)
 
         # Make directory and save all data into `.RAR_TEMP`
@@ -93,13 +89,14 @@ class RarHandler:
 
         for item in listRarFileCompress:
             # print(item, len(item.list_data), item.filename)
-            directory_path = '%s/%s' % (DIR_RAR_FILES, item.filename)
+            directory_path = os.path.join(DIR_RAR_FILES, item.filename)
 
             if not os.path.exists(directory_path):
                 os.makedirs(directory_path)
 
             for image in item.list_data:
-                image_path = '%s/%s' % (directory_path, image.filename)
+                file_name = os.path.basename(image.filename)
+                image_path = os.path.join(directory_path, file_name)
                 data = image.bytes_data.getvalue()
                 with open(image_path, 'wb') as fileImage:
                     fileImage.write(data)

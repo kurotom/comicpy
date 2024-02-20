@@ -8,10 +8,10 @@ from comicpy.models import (
     CompressorFileData
 )
 
-from pypdf import PdfReader, PdfWriter, PageObject
+from pypdf import PdfReader
 
-from PIL import Image
 import io
+import os
 
 from typing import List, TypeVar
 
@@ -37,7 +37,8 @@ class PdfHandler:
         data = []
         for i in range(len(pages_pdf)):
             page = pages_pdf[i]
-            name_image = 'image' + '%d'.zfill(4) % (i) + '.jpg'
+            name_, extention_ = os.path.splitext(page.images[0].name)
+            name_image = 'image' + '%d'.zfill(4) % (i) + extention_
             data_image = page.images[0].data
             # page.images[0].name, page.images[0].image
             image_comic = ImageComicData(

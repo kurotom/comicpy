@@ -13,7 +13,7 @@ import zipfile
 import io
 import os
 
-from typing import List
+from typing import List, Union
 
 
 class ZipHandler:
@@ -48,7 +48,7 @@ class ZipHandler:
                 if _extention in list(imagesExtentions.values()):
                     # print(_name, _extention, directory_name)
                     item_name = name_file.replace(' ', '_')
-                    file_name = '%s_%s' % (directory_name, item_name)
+                    file_name = os.path.join(directory_name, item_name)
 
                     dataImage = zip_file.read(item)
                     image_comic = ImageComicData(
@@ -64,11 +64,13 @@ class ZipHandler:
                                 )
         return zipFileCompress
 
-
     def to_zip(
         self,
         listZipFileCompress: List[CompressorFileData]
-    ) -> CurrentFile:
+    ) -> Union[CurrentFile, None]:
+        if len(listZipFileCompress) == 0:
+            return None
+
         buffer_dataZip = io.BytesIO()
         with zipfile.ZipFile(
             file=buffer_dataZip, mode='a',
@@ -84,7 +86,7 @@ class ZipHandler:
                 info_archivo_zip.compress_type = zipfile.ZIP_DEFLATED
 
                 for image in item.list_data:
-                    image_path = '%s/%s' % (directory_path, image.filename)
+                    image_path = os.path.join(directory_path, image.filename)
                     zip_file.writestr(
                             zinfo_or_arcname=image_path,
                             data=image.bytes_data.getvalue()
