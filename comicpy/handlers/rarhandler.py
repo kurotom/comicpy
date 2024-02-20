@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 Handler related to files RAR.
+
+Temporary data written in TEMP directory.
 """
 
 from comicpy.models import (
@@ -12,6 +14,7 @@ from comicpy.valid_extentions import imagesExtentions
 
 from uuid import uuid1
 import subprocess
+import tempfile
 import shutil
 import rarfile
 import io
@@ -37,6 +40,7 @@ class RarHandler:
             unit: indicate unit of measure using to represent file size.
         """
         self.unit = unit
+        self.TEMPDIR = tempfile.gettempdir()
 
     def rename_rar_cbr(
         self,
@@ -129,8 +133,7 @@ class RarHandler:
         buffer_dataRar = io.BytesIO()
 
         id_directory = uuid1().hex
-        ROOT_DIRECTORY = '.RAR_TEMP'
-        ROOT_PATH = os.path.join(ROOT_DIRECTORY, id_directory)
+        ROOT_PATH = os.path.join(self.TEMPDIR, id_directory)
 
         DIR_RAR_FILES = os.path.join(ROOT_PATH, filenameRAR)
         RAR_FILE_ = os.path.join(DIR_RAR_FILES) + '.rar'
