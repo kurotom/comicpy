@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """
+Models
 """
 
 import io
@@ -7,7 +8,7 @@ import os
 
 from typing import List
 
-
+# Units of measurement for data.
 SizeUnits = {
     'b': 10**1,
     'kb': 10**3,
@@ -17,10 +18,17 @@ SizeUnits = {
 
 
 class FileBaseClass:
+    """
+    Base class
+    """
 
     def get_extention(
         self,
     ) -> None:
+        """
+        Gets name and extention from file name.
+        Sets attributes `name` and `extention`.
+        """
         file_name = os.path.basename(self.filename)
         data = os.path.splitext(file_name)
         self.name = data[0]
@@ -29,6 +37,12 @@ class FileBaseClass:
     def get_size(
         self,
     ) -> int:
+        """
+        Gets sise of data, and set `size` attribute.
+
+        Returns:
+            int: data size value.
+        """
         try:
             size_unit = SizeUnits[self.unit]
         except KeyError:
@@ -38,9 +52,19 @@ class FileBaseClass:
         return size_buffer
 
     def __str__(self) -> str:
+        """
+        Returns:
+            str: represents instance.
+        """
         return self.__repr__()
 
     def __repr__(self) -> str:
+        """
+        Representation of instance.
+
+        Returns:
+            str: represents instance.
+        """
         return '<[Filename: "%s", Size: "%.2f %s"]>' % (
                         self.filename,
                         self.size,
@@ -49,6 +73,9 @@ class FileBaseClass:
 
 
 class ImageComicData(FileBaseClass):
+    """
+    Class in charge of keep data of images.
+    """
 
     def __init__(
         self,
@@ -57,6 +84,15 @@ class ImageComicData(FileBaseClass):
         extention: str = None,
         unit: str = 'mb'
     ) -> None:
+        """
+        Constructor
+
+        Args:
+            filename: str, file name of image.
+            bytes_data: bytes, raw data of image.
+            extention: extention of image.
+            unit: unit measure of data.
+        """
         self.filename = filename
         self.extention = extention
         self.bytes_data = bytes_data
@@ -66,10 +102,19 @@ class ImageComicData(FileBaseClass):
         super().get_extention()
 
     def __str__(self) -> str:
+        """
+        Representation of instance.
+
+        Returns:
+            str: represents instance.
+        """
         return super().__str__()
 
 
 class CurrentFile(FileBaseClass):
+    """
+    Class in charge for saving data of file.
+    """
 
     def __init__(
         self,
@@ -79,6 +124,16 @@ class CurrentFile(FileBaseClass):
         extention: str = None,
         unit: str = 'mb'
     ) -> None:
+        """
+        Constructor
+
+        Args:
+            filename: name of a file.
+            bytes_data: raw data of a file.
+            chunk_bytes: first 16 bytes of file data.
+            extention: file extension.
+            unit: unit of measurement of data size.
+        """
         self.filename = filename
         self.extention = extention
         self.chunk_bytes = chunk_bytes
@@ -89,10 +144,19 @@ class CurrentFile(FileBaseClass):
         super().get_extention()
 
     def __str__(self) -> str:
+        """
+        Representation of instance.
+
+        Returns:
+            str: represents instance.
+        """
         return super().__str__()
 
 
 class CompressorFileData(FileBaseClass):
+    """
+    Class responsible for saving the data of a RAR or ZIP compressor.
+    """
     def __init__(
         self,
         filename: str,
@@ -100,6 +164,15 @@ class CompressorFileData(FileBaseClass):
         type: str,
         unit: str = 'mb'
     ) -> None:
+        """
+        Constructor
+
+        Args:
+            filename: filename of the file.
+            list_data: list of `ImageComicData` instances with the image data.
+            type: type of compressor used.
+            unit: unit of measure of the data size.
+        """
         self.filename = filename
         self.list_data = list_data
         self.type = type
@@ -108,17 +181,34 @@ class CompressorFileData(FileBaseClass):
         self.size = self.get_size()
 
     def setExtention(self) -> str:
+        """
+        Sets `extention` attribute.
+
+        Returns:
+            str: extention.
+        """
         if self.type[0] != '.':
             self.extention = '.%s' % (self.type)
         else:
             self.extention = self.type
 
     def get_extention(self) -> None:
+        """
+        Overwrites the parent method, does nothing.
+        """
         pass
 
-    def get_size(
-        self
-    ) -> int:
+    def get_size(self) -> int:
+        """
+        Calculates the size of the information based on the established unit of
+        measurement.
+
+        Returns:
+            int: size of file.
+
+        Raises:
+            KeyError: if unit measure is invalid.
+        """
         try:
             size_unit = SizeUnits[self.unit]
         except KeyError:
@@ -132,9 +222,19 @@ class CompressorFileData(FileBaseClass):
         return sum(sizes) / size_unit
 
     def __str__(self) -> str:
+        """
+        Returns:
+            str: represents instance.
+        """
         return self.__repr__()
 
     def __repr__(self) -> str:
+        """
+        Representation of instance.
+
+        Returns:
+            str: represents instance.
+        """
         return '<[Filename: "%s", Size: "%.2f %s", Items: "%s"]>' % (
                         self.filename,
                         self.size,

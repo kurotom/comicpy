@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """
+Handler related to files ZIP.
 """
 
 from comicpy.models import (
@@ -17,11 +18,36 @@ from typing import List, Union
 
 
 class ZipHandler:
+    """
+    Class in charge of extract images, rename file ZIP, create ZIP file, write
+    data into ZIP file.
+    """
+
+    def __init__(
+        self,
+        unit: str
+    ) -> None:
+        """
+        Constructor.
+
+        Args:
+            unit: indicate unit of measure using to represent file size.
+        """
+        self.unit = unit
 
     def rename_zip_cbz(
         self,
         currentFileZip: CurrentFile
     ) -> CurrentFile:
+        """
+        Add CBZ name and extention of `CurrentFile` instance.
+
+        Args:
+            CurrentFile: instance with data ZIP file.
+
+        Returns:
+            CurrentFile: same instance with new name and extention.
+        """
         currentFileZip.extention = '.cbz'
         currentFileZip.name = currentFileZip.name.replace(' ', '_')
         return currentFileZip
@@ -30,7 +56,17 @@ class ZipHandler:
         self,
         currentFileZip: CurrentFile
     ) -> CompressorFileData:
+        """
+        Extract images from ZIP file.
 
+        Args:
+            currentFile:
+
+        Returns:
+            CompressorFileData: instances contains name of directory of images,
+                                list of ImageComicData instances, type of
+                                compressor.
+        """
         listImageComicData = []
         directory_name = None
         dataBytesIO = currentFileZip.bytes_data
@@ -53,7 +89,8 @@ class ZipHandler:
                     dataImage = zip_file.read(item)
                     image_comic = ImageComicData(
                                     filename=file_name,
-                                    bytes_data=io.BytesIO(dataImage)
+                                    bytes_data=io.BytesIO(dataImage),
+                                    unit=self.unit
                                 )
                     listImageComicData.append(image_comic)
 
@@ -61,15 +98,31 @@ class ZipHandler:
                                     filename=directory_name,
                                     list_data=listImageComicData,
                                     type='zip',
+                                    unit=self.unit
                                 )
         return zipFileCompress
 
     def to_zip(
         self,
-        listZipFileCompress: List[CompressorFileData]
+        listZipFileCompress: List[CompressorFileData],
+        filenameZIP: str = None,
     ) -> Union[CurrentFile, None]:
+        """
+        Converts a list of CompressorFileData instances to a ZIP archive.
+
+        Args:
+            listZipFileCompress: list of CompressorFileData instances.
+            filenameZIP: name of the ZIP archive.
+
+        Returns:
+            CurrentFile: the instance contains bytes of the ZIP file.
+            None: if `subprocess.run` fails.
+        """
         if len(listZipFileCompress) == 0:
             return None
+
+        if filenameZIP is None:
+            filenameZIP = 'FileZip'
 
         buffer_dataZip = io.BytesIO()
         with zipfile.ZipFile(
@@ -93,8 +146,9 @@ class ZipHandler:
                         )
 
         zipFileCurrent = CurrentFile(
-                            filename='FileZip',
+                            filename=filenameZIP,
                             bytes_data=buffer_dataZip,
+                            unit=self.unit
                         )
         return zipFileCurrent
 
@@ -102,6 +156,15 @@ class ZipHandler:
         self,
         currentFileZip: CurrentFile
     ) -> dict:
+        """
+        Writes data to a CBZ file.
+
+        Args:
+            CurrentFile: instance with the data in the ZIP file.
+
+        Returns:
+            dict: ZIP file information. Keys `'name'`, `'size'`.
+        """
         fileZip = currentFileZip.name + currentFileZip.extention
         with open(fileZip, 'wb') as file:
             file.write(currentFileZip.bytes_data.getvalue())

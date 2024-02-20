@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """
+Handler related to files RAR.
 """
 
 from comicpy.models import (
@@ -20,11 +21,36 @@ from typing import List, Union
 
 
 class RarHandler:
+    """
+    Class in charge of extract images, rename file RAR, create RAR file, write
+    data into RAR file.
+    """
+
+    def __init__(
+        self,
+        unit: str
+    ) -> None:
+        """
+        Constructor.
+
+        Args:
+            unit: indicate unit of measure using to represent file size.
+        """
+        self.unit = unit
 
     def rename_rar_cbr(
         self,
         currentFileRar: CurrentFile
     ) -> CurrentFile:
+        """
+        Add CBR name and extention of `CurrentFile` instance.
+
+        Args:
+            CurrentFile: instance with data RAR file.
+
+        Returns:
+            CurrentFile: same instance with new name and extention.
+        """
         currentFileRar.extention = '.cbr'
         currentFileRar.name = currentFileRar.name.replace(' ', '_')
         return currentFileRar
@@ -32,7 +58,18 @@ class RarHandler:
     def extract_images(
         self,
         currentFileRar: CurrentFile
-    ) -> List[ImageComicData]:
+    ) -> CompressorFileData:
+        """
+        Extract images from RAR file.
+
+        Args:
+            currentFile:
+
+        Returns:
+            CompressorFileData: instances contains name of directory of images,
+                                list of ImageComicData instances, type of
+                                compressor.
+        """
         rawDataRar = currentFileRar.bytes_data
         listImageComicData = []
         with rarfile.RarFile(
@@ -56,7 +93,8 @@ class RarHandler:
                     dataImage = rar_file.read(item)
                     image_comic = ImageComicData(
                                     filename=file_name,
-                                    bytes_data=io.BytesIO(dataImage)
+                                    bytes_data=io.BytesIO(dataImage),
+                                    unit=self.unit
                                 )
                     listImageComicData.append(image_comic)
 
@@ -64,15 +102,30 @@ class RarHandler:
                                     filename=directory_name,
                                     list_data=listImageComicData,
                                     type='rar',
+                                    unit=self.unit
                                 )
         return rarFileCompress
 
     def to_rar(
         self,
-        filenameRAR: str,
-        listRarFileCompress: List[CompressorFileData]
+        listRarFileCompress: List[CompressorFileData],
+        filenameRAR: str = None,
     ) -> Union[CurrentFile, None]:
+        """
+        Converts a list of CompressorFileData instances to a RAR archive.
+
+        Args:
+            listRarFileCompress: list of CompressorFileData instances.
+            filenameRAR: name of the RAR archive.
+
+        Returns:
+            CurrentFile: the instance contains bytes of the RAR file.
+            None: if `subprocess.run` fails.
+        """
         # print(listRarFileCompress)
+        if filenameRAR is None:
+            filenameRAR = 'FileRar'
+
         buffer_dataRar = io.BytesIO()
 
         id_directory = uuid1().hex
@@ -127,8 +180,9 @@ class RarHandler:
             shutil.rmtree(path=ROOT_PATH)
 
             rarFileCurrent = CurrentFile(
-                                filename='FileRar',
+                                filename=filenameRAR,
                                 bytes_data=buffer_dataRar,
+                                unit=self.unit
                             )
             return rarFileCurrent
 
@@ -139,6 +193,15 @@ class RarHandler:
         self,
         currentFileRar: CurrentFile
     ) -> dict:
+        """
+        Writes data to a CBR file.
+
+        Args:
+            CurrentFile: instance with the data in the RAR file.
+
+        Returns:
+            dict: RAR file information. Keys `'name'`, `'size'`.
+        """
         fileRar = currentFileRar.name + currentFileRar.extention
         with open(fileRar, 'wb') as file:
             file.write(currentFileRar.bytes_data.getvalue())

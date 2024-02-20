@@ -4,6 +4,15 @@ Exceptions
 """
 
 
+class UnitFileSizeInvalid(Exception):
+    def __init__(
+        self,
+        message: str = 'Unit given is not valid.\n'
+    ) -> None:
+        message += 'Availables: "b", "kb", "mb", "gb".\n'
+        super().__init__(message)
+
+
 class ErrorFileBase(Exception):
     def __init__(
         self,

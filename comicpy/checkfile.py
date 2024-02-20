@@ -1,23 +1,39 @@
 # -*- coding: utf-8 -*-
 """
+Checks files looking theris file signatures.
 """
 
 
 from comicpy.filesigns import hexSignsDict
 
-import io
-
 from typing import Union, TypeVar
 
-CurrentFileClass = TypeVar('CurrentFileClass')
+CurrentFile = TypeVar('CurrentFile')
 
 
 class CheckFile:
+    """
+    Class in charge of checking if the given file is valid based on its
+    signature and extension.
+    """
 
     def check(
         self,
-        currenf_file: CurrentFileClass,
+        currenf_file: CurrentFile,
     ) -> Union[bool, None]:
+        """
+        Checks if file is valid.
+
+        Args:
+            currenf_file: `CurrentFile` instance contains data of file.
+
+        Returns:
+            bool: `True` if file is valid, otherwise `False`.
+
+        Raises:
+            KeyError: if the file extension is not valid with respect to its
+                      signature.
+        """
         try:
             extention = currenf_file.extention.replace('.', '')
             if extention == 'cbr':
@@ -30,7 +46,7 @@ class CheckFile:
         except KeyError:
             return None
 
-        match = False
+        match_bool = False
         list_hexsigns = data['hexsigns']
         byteoffet = data['byteoffet']
         hexsign_file = self.to_hexsign(raw_data=currenf_file.chunk_bytes)
@@ -44,16 +60,25 @@ class CheckFile:
             # print(string_hexsign_file, falses)
             if 0 <= falses < 2:
                 # print(hexsign, string_hexsign_file)
-                match = True
+                match_bool = True
                 break
             elif falses == 1:
                 print('---> ', hexsign, '--', string_hexsign_file)
-        return match
+        return match_bool
 
     def to_hexsign(
         self,
         raw_data: bytes
     ) -> list:
+        """
+        Builds the hexadecimal sign from a byte chunk of the file.
+
+        Args:
+            raw_data: bytes of file content.
+
+        Returns:
+            list: list of strings with the hexadecimal sign.
+        """
         hexsign = ''
         hex_signs_list = []
         for i_byte in raw_data:
