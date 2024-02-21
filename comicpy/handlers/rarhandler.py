@@ -10,6 +10,9 @@ from comicpy.models import (
     CurrentFile,
     CompressorFileData
 )
+
+from comicpy.handlers.baseziprar import BaseZipRarHandler
+
 from comicpy.valid_extentions import imagesExtentions
 
 from uuid import uuid1
@@ -23,7 +26,7 @@ import os
 from typing import List, Union
 
 
-class RarHandler:
+class RarHandler(BaseZipRarHandler):
     """
     Class in charge of extract images, rename file RAR, create RAR file, write
     data into RAR file.
@@ -45,7 +48,7 @@ class RarHandler:
     def rename_rar_cbr(
         self,
         currentFileRar: CurrentFile
-    ) -> CurrentFile:
+    ) -> CompressorFileData:
         """
         Add CBR name and extention of `CurrentFile` instance.
 
@@ -57,7 +60,14 @@ class RarHandler:
         """
         currentFileRar.extention = '.cbr'
         currentFileRar.name = currentFileRar.name.replace(' ', '_')
-        return currentFileRar
+        rarFileCompress = CompressorFileData(
+                                    filename=currentFileRar.name,
+                                    list_data=[currentFileRar],
+                                    type='rar',
+                                    unit=self.unit,
+                                    join=False,
+                                )
+        return rarFileCompress
 
     def extract_images(
         self,
@@ -113,10 +123,11 @@ class RarHandler:
     def to_rar(
         self,
         listRarFileCompress: List[CompressorFileData],
+        join: bool,
         filenameRAR: str = None,
-    ) -> Union[CurrentFile, None]:
+    ) -> Union[CompressorFileData, None]:
         """
-        Converts a list of CompressorFileData instances to a RAR archive.
+        Handles how the data in the RAR file(s) should be written.
 
         Args:
             listRarFileCompress: list of CompressorFileData instances.
@@ -130,12 +141,52 @@ class RarHandler:
         if filenameRAR is None:
             filenameRAR = 'FileRar'
 
+        data_of_rars = []
+        if join is True:
+            currentFileRar = self.__to_rar_data(
+                    listRarFileCompress=listRarFileCompress,
+                    filenameRar=filenameRAR
+                )
+            data_of_rars.append(currentFileRar)
+        elif join is False:
+            for file in listRarFileCompress:
+                current_file_list = [file]
+                currentFileRar = self.__to_rar_data(
+                        listRarFileCompress=current_file_list,
+                        filenameRar=file.filename
+                    )
+                data_of_rars.append(currentFileRar)
+
+        rarCompressorData = CompressorFileData(
+                filename=filenameRAR,
+                list_data=data_of_rars,
+                type='rar',
+                join=join
+            )
+        return rarCompressorData
+
+    def __to_rar_data(
+        self,
+        listRarFileCompress: List[CompressorFileData],
+        filenameRar: str = None,
+    ) -> CurrentFile:
+        """
+        Write data of `CompressorFileData` into RAR file.
+
+        Args:
+            listRarFileCompress: list of `CompressorFileData` instances with
+                                 RAR compressor data.
+            filenameRar: name of file RAR.
+
+        Returns:
+            CurrentFile: with data of RAR file.
+        """
         buffer_dataRar = io.BytesIO()
 
         id_directory = uuid1().hex
         ROOT_PATH = os.path.join(self.TEMPDIR, id_directory)
 
-        DIR_RAR_FILES = os.path.join(ROOT_PATH, filenameRAR)
+        DIR_RAR_FILES = os.path.join(ROOT_PATH, filenameRar)
         RAR_FILE_ = os.path.join(DIR_RAR_FILES) + '.rar'
         # print(ROOT_PATH)
 
@@ -176,16 +227,14 @@ class RarHandler:
             with open(RAR_FILE_, 'rb') as file_rar:
                 shutil.copyfileobj(fsrc=file_rar, fdst=buffer_dataRar)
 
-            # print(buffer_dataRar.getbuffer().nbytes)
-            # print(type(obj), buffer_dataRar.getbuffer().nbytes)
-
             # Clear Temp Directory and RAR File.
             shutil.rmtree(path=ROOT_PATH)
 
             rarFileCurrent = CurrentFile(
-                                filename=filenameRAR,
+                                filename=filenameRar,
                                 bytes_data=buffer_dataRar,
-                                unit=self.unit
+                                unit=self.unit,
+                                extention='.cbr'
                             )
             return rarFileCurrent
 
@@ -194,22 +243,6 @@ class RarHandler:
 
     def to_write(
         self,
-        currentFileRar: CurrentFile
-    ) -> dict:
-        """
-        Writes data to a CBR file.
-
-        Args:
-            CurrentFile: instance with the data in the RAR file.
-
-        Returns:
-            dict: RAR file information. Keys `'name'`, `'size'`.
-        """
-        fileRar = currentFileRar.name + currentFileRar.extention
-        with open(fileRar, 'wb') as file:
-            file.write(currentFileRar.bytes_data.getvalue())
-
-        return {
-            'name': fileRar,
-            'size': currentFileRar.size
-        }
+        currentFileRar: CompressorFileData
+    ) -> List[dict]:
+        return super().to_write(currentCompressorFile=currentFileRar)

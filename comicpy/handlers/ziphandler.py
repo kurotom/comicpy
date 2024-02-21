@@ -8,6 +8,9 @@ from comicpy.models import (
     CurrentFile,
     CompressorFileData
 )
+
+from comicpy.handlers.baseziprar import BaseZipRarHandler
+
 from comicpy.valid_extentions import imagesExtentions
 
 import zipfile
@@ -17,7 +20,7 @@ import os
 from typing import List, Union
 
 
-class ZipHandler:
+class ZipHandler(BaseZipRarHandler):
     """
     Class in charge of extract images, rename file ZIP, create ZIP file, write
     data into ZIP file.
@@ -38,7 +41,7 @@ class ZipHandler:
     def rename_zip_cbz(
         self,
         currentFileZip: CurrentFile
-    ) -> CurrentFile:
+    ) -> CompressorFileData:
         """
         Add CBZ name and extention of `CurrentFile` instance.
 
@@ -50,7 +53,14 @@ class ZipHandler:
         """
         currentFileZip.extention = '.cbz'
         currentFileZip.name = currentFileZip.name.replace(' ', '_')
-        return currentFileZip
+        zipFileCompress = CompressorFileData(
+                                    filename=currentFileZip.name,
+                                    list_data=[currentFileZip],
+                                    type='zip',
+                                    unit=self.unit,
+                                    join=False,
+                                )
+        return zipFileCompress
 
     def extract_images(
         self,
@@ -105,10 +115,11 @@ class ZipHandler:
     def to_zip(
         self,
         listZipFileCompress: List[CompressorFileData],
+        join: bool,
         filenameZIP: str = None,
-    ) -> Union[CurrentFile, None]:
+    ) -> Union[List[CurrentFile], None]:
         """
-        Converts a list of CompressorFileData instances to a ZIP archive.
+        Handles how the data in the ZIP file(s) should be written.
 
         Args:
             listZipFileCompress: list of CompressorFileData instances.
@@ -116,10 +127,53 @@ class ZipHandler:
 
         Returns:
             CurrentFile: the instance contains bytes of the ZIP file.
+            List[CurrentFile]: list of instances contains bytes of the ZIP
+                               file.
             None: if `subprocess.run` fails.
         """
         if len(listZipFileCompress) == 0:
             return None
+
+        data_of_zips = []
+        if join is True:
+            currentFileZip = self.__to_zip_data(
+                    listZipFileCompress=listZipFileCompress,
+                    filenameZIP=filenameZIP
+                )
+            data_of_zips.append(currentFileZip)
+        elif join is False:
+            for file in listZipFileCompress:
+                current_file_list = [file]
+                currentFileZip = self.__to_zip_data(
+                        listZipFileCompress=current_file_list,
+                        filenameZIP=file.filename
+                    )
+                data_of_zips.append(currentFileZip)
+
+        zipCompressorData = CompressorFileData(
+                filename=filenameZIP,
+                list_data=data_of_zips,
+                type='zip',
+                join=join
+            )
+        return zipCompressorData
+
+    def __to_zip_data(
+        self,
+        listZipFileCompress: List[CompressorFileData],
+        filenameZIP: str = None,
+    ) -> CurrentFile:
+        """
+        Write data of `CompressorFileData` into ZIP file.
+
+        Args:
+            listZipFileCompress: list of `CompressorFileData` instances with
+                                 ZIP compressor data.
+            filenameZIP: name of file ZIP.
+
+        Returns:
+            CurrentFile: with data of ZIP file.
+        """
 
         if filenameZIP is None:
             filenameZIP = 'FileZip'
@@ -148,31 +202,13 @@ class ZipHandler:
         zipFileCurrent = CurrentFile(
                             filename=filenameZIP,
                             bytes_data=buffer_dataZip,
-                            unit=self.unit
+                            unit=self.unit,
+                            extention='.cbz'
                         )
         return zipFileCurrent
 
     def to_write(
         self,
-        currentFileZip: CurrentFile
-    ) -> dict:
-        """
-        Writes data to a CBZ file.
-
-        Args:
-            CurrentFile: instance with the data in the ZIP file.
-
-        Returns:
-            dict: ZIP file information. Keys `'name'`, `'size'`.
-        """
-        fileZip = currentFileZip.name + currentFileZip.extention
-        with open(fileZip, 'wb') as file:
-            file.write(currentFileZip.bytes_data.getvalue())
-
-        return {
-            'name': fileZip,
-            'size': '%.2f %s' % (
-                            currentFileZip.size,
-                            currentFileZip.unit.upper()
-                        )
-        }
+        currentFileZip: CompressorFileData
+    ) -> List[dict]:
+        return super().to_write(currentCompressorFile=currentFileZip)

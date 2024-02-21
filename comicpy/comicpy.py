@@ -45,9 +45,6 @@ from typing import List, TypeVar, Union
 RAR = TypeVar('rar')
 ZIP = TypeVar('zip')
 
-CurrentFileZip = TypeVar('CurrentFileZip')
-CurrentFileRar = TypeVar('CurrentFileRar')
-
 PDFEXT = TypeVar('pdf')
 CBZEXT = TypeVar('cbz')
 CBREXT = TypeVar('cbr')
@@ -229,7 +226,8 @@ class ComicPy:
         compressedCurrentFileIO = self.to_compressor(
                             filename=compressFileData.filename,
                             dataRawFile=compressFileData,
-                            compressor=compressor
+                            compressor=compressor,
+                            join_files=False
                         )
         compressedCurrentFileIO.name = self.currentFile.name
 
@@ -254,10 +252,10 @@ class ComicPy:
 
         self.check_file(currentFile=self.currentFile)
 
-        dataZipIO = self.ziphandler.rename_zip_cbz(
+        zipCompressorFileData = self.ziphandler.rename_zip_cbz(
                                 currentFileZip=self.currentFile
                             )
-        return dataZipIO
+        return zipCompressorFileData
 
     def process_rar(
         self,
@@ -278,10 +276,10 @@ class ComicPy:
 
         self.check_file(currentFile=self.currentFile)
 
-        dataRarIO = self.rarhandler.rename_rar_cbr(
+        rarCompressorFileData = self.rarhandler.rename_rar_cbr(
                                 currentFileRar=self.currentFile
                             )
-        return dataRarIO
+        return rarCompressorFileData
 
     def process_dir(
         self,
@@ -289,6 +287,7 @@ class ComicPy:
         extention_filter: Union[PDFEXT, CBZEXT, CBREXT],  # 'pdf', 'cbz', 'cbr'
         filename: str = None,
         compressor: Union[RAR, ZIP] = 'zip',
+        join: bool = False
     ) -> Union[CompressorFileData, None]:
         """
         Searches files in the given directory, searches only PDF, CBZ, CBR
@@ -301,6 +300,8 @@ class ComicPy:
                                                        search in the directory.
             filename: output file name.
             compressor: ['zip', 'rar'] -> extension of the compressor used.
+            join: boolean, if `True` all files are consolidated into one,
+                  otherwise, if `False` they are kept in individual files.
 
         Returns:
             CompressorFileData: the instance represents the data of the RAR or
@@ -394,13 +395,15 @@ class ComicPy:
             compressedCurrentFileIO = self.to_compressor(
                                 filename=filenameCompressor,
                                 dataRawFile=list_CompressorsModel,
-                                compressor=compressor
+                                compressor=compressor,
+                                join_files=join
                             )
             return compressedCurrentFileIO
 
     def to_compressor(
         self,
         dataRawFile: List[CompressorFileData],
+        join_files: bool,
         filename: str = None,
         compressor: Union[RAR, ZIP] = 'zip',
     ) -> Union[CompressorFileData, None]:
@@ -424,36 +427,34 @@ class ComicPy:
         if compressor == 'zip':
             compressorFile = self.ziphandler.to_zip(
                                 filenameZIP=filename,
-                                listZipFileCompress=dataRawFile
+                                listZipFileCompress=dataRawFile,
+                                join=join_files
                             )
         elif compressor == 'rar':
             compressorFile = self.rarhandler.to_rar(
                                 filenameRAR=filename,
-                                listRarFileCompress=dataRawFile
+                                listRarFileCompress=dataRawFile,
+                                join=join_files
                             )
 
         if compressorFile is None:
             return None
 
-        compressorFile.name = filename
-
         return compressorFile
 
     def write_cbz(
         self,
-        currentFileZip: CurrentFileZip
+        currentFileZip: CompressorFileData
     ) -> dict:
         """
-        Write data of CurrentFileZip instance.
+        Write data of currentFileZip instance.
 
         Args:
-            CurrentFileZip: instance with the data to create and save in a ZIP
+            currentFileZip: instance with the data to create and save in a ZIP
                             file.
         Returns:
             dict: ZIP file information.
         """
-        if currentFileZip.extention is None or currentFileZip.extention == '':
-            currentFileZip.extention = '.cbz'
         infoFileZip = self.ziphandler.to_write(
                             currentFileZip=currentFileZip
                         )
@@ -462,28 +463,27 @@ class ComicPy:
 
     def write_cbr(
         self,
-        currentFileRar: CurrentFileRar
+        currentFileRar: CompressorFileData
     ) -> dict:
         """
-        Write data of CurrentFileZip instance.
+        Write data of currentFileRar instance.
 
         Args:
-            CurrentFileRar: instance with the data to create and save in a RAR
+            currentFileRar: instance with the data to create and save in a RAR
                             file.
         Returns:
             dict: RAR file information, keys: "name", "size".
         """
-        currentFileRar.extention = '.cbr'
         infoFileRar = self.rarhandler.to_write(
                             currentFileRar=currentFileRar
                         )
-        # print(infoFileZip)
+        # print(infoFileRar)
         return infoFileRar
 
     def check_integrity(
         self,
         filename: str,
-        show: bool = True
+        show: bool = True,
     ) -> bool:
         """
         Checks if the output archive (RAR or ZIP) is valid, looking for its

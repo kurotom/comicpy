@@ -6,7 +6,7 @@ Models
 import io
 import os
 
-from typing import List
+from typing import List, Union
 
 # Units of measurement for data.
 SizeUnits = {
@@ -30,9 +30,10 @@ class FileBaseClass:
         Sets attributes `name` and `extention`.
         """
         file_name = os.path.basename(self.filename)
-        data = os.path.splitext(file_name)
-        self.name = data[0]
-        self.extention = data[1].lower()
+        name_, extention_ = os.path.splitext(file_name)
+        self.name = name_
+        if self.extention is None:
+            self.extention = extention_.lower()
 
     def get_size(
         self,
@@ -160,8 +161,9 @@ class CompressorFileData(FileBaseClass):
     def __init__(
         self,
         filename: str,
-        list_data: List[ImageComicData],
+        list_data: Union[List[ImageComicData], List[CurrentFile]],
         type: str,
+        join: bool = False,
         unit: str = 'mb'
     ) -> None:
         """
@@ -169,13 +171,16 @@ class CompressorFileData(FileBaseClass):
 
         Args:
             filename: filename of the file.
-            list_data: list of `ImageComicData` instances with the image data.
+            list_data: list of `ImageComicData` instances with the image data
+                       or list of `CurrentFile` instances with data from
+                       individual RAR or ZIP archives.
             type: type of compressor used.
             unit: unit of measure of the data size.
         """
         self.filename = filename
         self.list_data = list_data
         self.type = type
+        self.join = join
         self.extention = None
         self.unit = unit
         self.size = self.get_size()
@@ -220,6 +225,9 @@ class CompressorFileData(FileBaseClass):
             for item in self.list_data
         ]
         return sum(sizes) / size_unit
+
+    def __len__(self) -> int:
+        return len(self.list_data)
 
     def __str__(self) -> str:
         """
