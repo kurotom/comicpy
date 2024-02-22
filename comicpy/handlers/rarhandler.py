@@ -243,6 +243,10 @@ class RarHandler(BaseZipRarHandler):
 
     def to_write(
         self,
-        currentFileRar: CompressorFileData
+        currentFileRar: CompressorFileData,
+        path_dest: str
     ) -> List[dict]:
-        return super().to_write(currentCompressorFile=currentFileRar)
+        return super().to_write(
+                    currentCompressorFile=currentFileRar,
+                    path=path_dest
+                )

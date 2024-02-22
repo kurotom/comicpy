@@ -14,6 +14,7 @@ from comicpy.models import (
 )
 
 from comicpy.checkfile import CheckFile
+from comicpy.utils import Paths
 
 from comicpy.exceptionsClasses import (
     InvalidFile,
@@ -74,6 +75,7 @@ class ComicPy:
         self.ziphandler = ZipHandler(unit=self.unit)
         self.pdfphandler = PdfHandler(unit=self.unit)
         self.rarhandler = RarHandler(unit=self.unit)
+        self.paths = Paths()
 
     def __validating_unit(
         self,
@@ -444,7 +446,8 @@ class ComicPy:
 
     def write_cbz(
         self,
-        currentFileZip: CompressorFileData
+        currentFileZip: CompressorFileData,
+        path: str = '.'
     ) -> dict:
         """
         Write data of currentFileZip instance.
@@ -455,15 +458,18 @@ class ComicPy:
         Returns:
             dict: ZIP file information.
         """
+        save_path = self.paths.build(path, currentFileZip.filename)
         infoFileZip = self.ziphandler.to_write(
-                            currentFileZip=currentFileZip
+                            currentFileZip=currentFileZip,
+                            path_dest=save_path
                         )
         # print(infoFileZip)
         return infoFileZip
 
     def write_cbr(
         self,
-        currentFileRar: CompressorFileData
+        currentFileRar: CompressorFileData,
+        path: str = '.'
     ) -> dict:
         """
         Write data of currentFileRar instance.
@@ -474,8 +480,10 @@ class ComicPy:
         Returns:
             dict: RAR file information, keys: "name", "size".
         """
+        save_path = self.paths.build(path, currentFileRar.filename)
         infoFileRar = self.rarhandler.to_write(
-                            currentFileRar=currentFileRar
+                            currentFileRar=currentFileRar,
+                            path_dest=save_path
                         )
         # print(infoFileRar)
         return infoFileRar
