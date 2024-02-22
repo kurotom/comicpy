@@ -71,13 +71,15 @@ class RarHandler(BaseZipRarHandler):
 
     def extract_images(
         self,
-        currentFileRar: CurrentFile
+        currentFileRar: CurrentFile,
+        password: str = None
     ) -> CompressorFileData:
         """
         Extract images from RAR file.
 
         Args:
-            currentFile:
+            currentFile: `CurrentFile` instance with data of original RAR file.
+            password: password string of file, default is `None`.
 
         Returns:
             CompressorFileData: instances contains name of directory of images,
@@ -104,7 +106,10 @@ class RarHandler(BaseZipRarHandler):
                     item_name = name_file.replace(' ', '_')
                     file_name = os.path.join(directory_name, item_name)
 
-                    dataImage = rar_file.read(item)
+                    dataImage = rar_file.read(
+                                        item,
+                                        pwd=password
+                                    )
                     image_comic = ImageComicData(
                                     filename=file_name,
                                     bytes_data=io.BytesIO(dataImage),
@@ -246,6 +251,19 @@ class RarHandler(BaseZipRarHandler):
         currentFileRar: CompressorFileData,
         path_dest: str
     ) -> List[dict]:
+        """
+        Send data to `BaseZipRarHandler.to_write()` to save the RAR file data.
+
+        Args:
+            currentFileRar: `CompressorFileData` instance, contains data of
+                            RAR file.
+            path_dest: location where the CBR file will be stored.
+
+        Returns:
+            List[dict]: list of dicts with information of all files saved.
+                        'name': path to the file.
+                        'size': size of file.
+        """
         return super().to_write(
                     currentCompressorFile=currentFileRar,
                     path=path_dest

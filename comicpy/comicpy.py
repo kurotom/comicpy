@@ -288,6 +288,7 @@ class ComicPy:
         directory_path: str,
         extention_filter: Union[PDFEXT, CBZEXT, CBREXT],  # 'pdf', 'cbz', 'cbr'
         filename: str = None,
+        password: str = None,
         compressor: Union[RAR, ZIP] = 'zip',
         join: bool = False
     ) -> Union[CompressorFileData, None]:
@@ -304,6 +305,7 @@ class ComicPy:
             compressor: ['zip', 'rar'] -> extension of the compressor used.
             join: boolean, if `True` all files are consolidated into one,
                   otherwise, if `False` they are kept in individual files.
+            password: password string of file, default is `None`.
 
         Returns:
             CompressorFileData: the instance represents the data of the RAR or
@@ -376,14 +378,16 @@ class ComicPy:
                     elif extention == '.zip' or extention == '.cbz':
                         # print('>> DIR ZIP')
                         compressFileData = self.ziphandler.extract_images(
-                                            currentFileZip=fileCurrentData
+                                            currentFileZip=fileCurrentData,
+                                            password=password
                                         )
                         list_CompressorsModel.append(compressFileData)
 
                     elif extention == '.rar' or extention == '.cbr':
                         # print('>> DIR RAR')
                         compressorFileData = self.rarhandler.extract_images(
-                                            currentFileRar=fileCurrentData
+                                            currentFileRar=fileCurrentData,
+                                            password=password
                                         )
                         list_CompressorsModel.append(compressorFileData)
 
@@ -455,6 +459,7 @@ class ComicPy:
         Args:
             currentFileZip: instance with the data to create and save in a ZIP
                             file.
+            path: location where the CBZ file will be stored. Default `'.'`.
         Returns:
             dict: ZIP file information.
         """
@@ -477,6 +482,7 @@ class ComicPy:
         Args:
             currentFileRar: instance with the data to create and save in a RAR
                             file.
+            path: location where the CBR file will be stored. Default `'.'`.
         Returns:
             dict: RAR file information, keys: "name", "size".
         """

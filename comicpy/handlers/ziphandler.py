@@ -64,13 +64,15 @@ class ZipHandler(BaseZipRarHandler):
 
     def extract_images(
         self,
-        currentFileZip: CurrentFile
+        currentFileZip: CurrentFile,
+        password: str = None
     ) -> CompressorFileData:
         """
         Extract images from ZIP file.
 
         Args:
-            currentFile:
+            currentFile: `CurrentFile` instance with data of original ZIP file.
+            password: password string of file, default is `None`.
 
         Returns:
             CompressorFileData: instances contains name of directory of images,
@@ -82,7 +84,8 @@ class ZipHandler(BaseZipRarHandler):
         dataBytesIO = currentFileZip.bytes_data
 
         with zipfile.ZipFile(
-            file=dataBytesIO, mode='r'
+            file=dataBytesIO,
+            mode='r'
         ) as zip_file:
 
             for item in zip_file.namelist():
@@ -96,7 +99,11 @@ class ZipHandler(BaseZipRarHandler):
                     item_name = name_file.replace(' ', '_')
                     file_name = os.path.join(directory_name, item_name)
 
-                    dataImage = zip_file.read(item)
+                    dataImage = zip_file.read(
+                                        item,
+                                        pwd=password
+                                    )
+
                     image_comic = ImageComicData(
                                     filename=file_name,
                                     bytes_data=io.BytesIO(dataImage),
@@ -212,6 +219,19 @@ class ZipHandler(BaseZipRarHandler):
         currentFileZip: CompressorFileData,
         path_dest: str
     ) -> List[dict]:
+        """
+        Send data to `BaseZipRarHandler.to_write()` to save the ZIP file data.
+
+        Args:
+            currentFileRar: `CompressorFileData` instance, contains data of
+                            ZIP file.
+            path_dest: location where the CBZ file will be stored.
+
+        Returns:
+            List[dict]: list of dicts with information of all files saved.
+                        'name': path to the file.
+                        'size': size of file.
+        """
         return super().to_write(
                             currentCompressorFile=currentFileZip,
                             path=path_dest

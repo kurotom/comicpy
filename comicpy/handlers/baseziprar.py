@@ -27,6 +27,8 @@ class BaseZipRarHandler:
         Args:
             currentCompressorFile: `CompressorFileData` instance with the of
                                    list of ZIP or RAR files.
+            path: location where the CBR or CBZ file will be stored.
+                  Default `'.'`.
 
         Returns:
             dict: ZIP or RAR file information. Keys `'name'`, `'size'`.
@@ -61,6 +63,8 @@ class BaseZipRarHandler:
 
         Args:
             currentFile: `CurrentFile` instance with data of ZIP or RAR file.
+            path: location where the CBR or CBZ file will be stored.
+                  Default `'.'`.
 
         Returns:
             dict: compressor file information. Keys `'name'`, `'size'`.
