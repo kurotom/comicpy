@@ -25,6 +25,57 @@ pip install comicpy
 
 # Usage
 
+
+
+## CLI - usage
+
+Command help.
+
+```bash
+$ comicpy -h
+```
+
+### File usage
+
+| Command | Description |
+|-|-|
+| --type f | File. |
+| -p PATH, --path PATH | Path of file. |
+| -d DEST, --dest DEST | Path to save output files. Default is "." |
+| -c {rar,zip}, --compress {rar,zip} | Type of compress to use. |
+| -o OUTPUT, --output OUTPUT | Prefix of output file. Default is "Converted_". |
+| --check | Check the CBR or CBZ files created. |
+| -u {b,kb,mb,gb}, --unit {b,kb,mb,gb} | Unit of measure of data size. Default is "mb". |
+
+```bash
+$ comicpy --type f -p file.PDF --check -u kb
+$ comicpy --type f -p file.rar --check
+$ comicpy --type f -p file.zip --check
+```
+
+### Directory usage
+
+| Command | Description |
+|-|-|
+| --type d | Directory. |
+| -p PATH, --path PATH | Path of directory. |
+| --filter {pdf,rar,zip,cbr,cbz} | Filter files on directory. Default is "zip". |
+| -c {rar,zip}, --compress {rar,zip} | Type of compress to use. Default is "zip".|
+| -d DEST, --dest DEST | Path to save output files. Default is ".".
+| -o OUTPUT, --output OUTPUT | Prefix of output file. Default is "Converted_". |
+| --check | Check the CBR or CBZ files created. |
+| --join | Join or does not files thath are in the directory. Default is "False". |
+| -u {b,kb,mb,gb}, --unit {b,kb,mb,gb} | Unit of measure of data size. Default is "mb". |
+
+
+```bash
+$ comicpy --type d -p rars_dir --filter rar -c rar --check --join -o prefix_final_
+```
+
+
+
+## Development - usage
+
 > `path` parameter of `ComicPy.write_cbr(path='.')`, indicates that files will be written by default to the current directory. It can be changed.
 
 ## Single PDF, RAR, ZIP file -> CBZ or CBR

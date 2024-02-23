@@ -34,3 +34,5 @@ from comicpy.handlers import (
     ZipHandler,
     RarHandler
 )
+
+from comicpy.cli import CliComicPy
