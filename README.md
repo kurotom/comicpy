@@ -70,6 +70,7 @@ $ comicpy --type f -p file.zip --check
 
 ```bash
 $ comicpy --type d -p rars_dir --filter rar -c rar --check --join -o prefix_final_
+$ for i in $(ls -d Zip_Dir_*/); do comicpy --type d -p $i --filter zip -c zip --check -o ${i: 0:-1} --join ; done
 ```
 
 
