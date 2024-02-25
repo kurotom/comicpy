@@ -359,6 +359,30 @@ class ComicPy:
                                 )
             return rarCompressorFileData
 
+    def get_file_glob(
+        self,
+        extention: str
+    ) -> list:
+        """
+        Search by extention.
+
+        Args:
+            extension: string of extention of file.
+
+        Returns
+            list: list of file names matched.
+        """
+        for extention_ in [extention.lower(), extention.upper()]:
+            pattern = '*.%s' % (extention_)
+            filesMatch = glob.glob(
+                                    pathname=pattern,
+                                    root_dir=self.directory_path
+                                )
+            if len(filesMatch) > 0:
+                return filesMatch
+        else:
+            return []
+
     def process_dir(
         self,
         directory_path: str,
@@ -407,8 +431,7 @@ class ComicPy:
 
         self.directory_path = directory_path
 
-        pattern = '*.%s' % (extention_filter)
-        filesMatch = glob.glob(pathname=pattern, root_dir=self.directory_path)
+        filesMatch = self.get_file_glob(extention=extention_filter)
 
         if len(filesMatch) == 0:
             raise DirectoryFilterEmptyFiles(
