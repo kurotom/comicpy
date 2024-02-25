@@ -3,6 +3,8 @@
 Handler related to files ZIP.
 """
 
+from comicpy.handlers.imageshandler import ImagesHandler
+
 from comicpy.models import (
     ImageComicData,
     CurrentFile,
@@ -13,6 +15,8 @@ from comicpy.handlers.baseziprar import BaseZipRarHandler
 
 from comicpy.valid_extentions import imagesExtentions
 
+import tempfile
+import pyzipper
 import zipfile
 import io
 import os
@@ -37,6 +41,32 @@ class ZipHandler(BaseZipRarHandler):
             unit: indicate unit of measure using to represent file size.
         """
         self.unit = unit
+        self.TEMPDIR = tempfile.gettempdir()
+        self.type = 'zip'
+        self.imageshandler = ImagesHandler()
+
+    def testZip(
+        self,
+        currentFileZip: CurrentFile
+    ) -> bool:
+        """
+        Checks if ZIP file is password protected.
+
+        Args:
+            currentFileZip: `CurrentFile` instance with raw data of file ZIP.
+
+        Returns:
+            bool: `True` if password protected, otherwise, retuns `False`.
+        """
+        try:
+            with zipfile.ZipFile(
+                currentFileZip.bytes_data,
+                mode='r'
+            ) as fileZip:
+                fileZip.testzip()
+            return False
+        except RuntimeError:
+            return True
 
     def rename_zip_cbz(
         self,
@@ -65,7 +95,7 @@ class ZipHandler(BaseZipRarHandler):
     def extract_images(
         self,
         currentFileZip: CurrentFile,
-        password: str = None
+        password: str
     ) -> CompressorFileData:
         """
         Extract images from ZIP file.
@@ -79,45 +109,52 @@ class ZipHandler(BaseZipRarHandler):
                                 list of ImageComicData instances, type of
                                 compressor.
         """
+        bytesZipFile = currentFileZip.bytes_data
         listImageComicData = []
         directory_name = None
-        dataBytesIO = currentFileZip.bytes_data
 
-        with zipfile.ZipFile(
-            file=dataBytesIO,
-            mode='r'
+        with pyzipper.AESZipFile(
+            bytesZipFile,
+            mode='r',
+            compression=pyzipper.ZIP_DEFLATED,
+            encryption=pyzipper.WZ_AES
         ) as zip_file:
+            if password is not None:
+                zip_file.pwd = password.encode('utf-8')
 
             for item in zip_file.namelist():
-
                 directory_name = os.path.dirname(item).replace(' ', '_')
                 name_file = os.path.basename(item)
                 _name, _extention = os.path.splitext(name_file)
 
                 if _extention in list(imagesExtentions.values()):
                     # print(_name, _extention, directory_name)
+
                     item_name = name_file.replace(' ', '_')
                     file_name = os.path.join(directory_name, item_name)
 
-                    dataImage = zip_file.read(
-                                        item,
-                                        pwd=password
-                                    )
+                    dataImage = zip_file.read(item)
+
+                    imageIO = self.imageshandler.new_size_image(
+                                            currentImage=dataImage,
+                                            extention=_extention.upper(),
+                                            sizeImage='small'
+                                        )
 
                     image_comic = ImageComicData(
                                     filename=file_name,
-                                    bytes_data=io.BytesIO(dataImage),
+                                    bytes_data=imageIO,
                                     unit=self.unit
                                 )
                     listImageComicData.append(image_comic)
 
-        zipFileCompress = CompressorFileData(
+            zipFileCompress = CompressorFileData(
                                     filename=directory_name,
                                     list_data=listImageComicData,
                                     type='zip',
                                     unit=self.unit
                                 )
-        return zipFileCompress
+            return zipFileCompress
 
     def to_zip(
         self,

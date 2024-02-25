@@ -22,7 +22,8 @@ from comicpy.exceptionsClasses import (
     FileExtentionNotMatch,
     DirectoryPathNotExists,
     DirectoryFilterEmptyFiles,
-    UnitFileSizeInvalid
+    UnitFileSizeInvalid,
+    FilePasswordProtected
 )
 
 from comicpy.valid_extentions import (
@@ -189,6 +190,41 @@ class ComicPy:
         self.filename = filename
         self.currentFile = self.read(filename=self.filename)
 
+    def check_protectedFile(
+        self,
+        handler: Union[RarHandler, ZipHandler],
+        compressCurrentFile: CurrentFile,
+        password: str = None
+    ) -> bool:
+        """
+        Checks if file Rar or Zip is protected with password. If `True` and
+        `password` is `None` raises `ZipFilePasswordProtected`.
+
+        Args:
+            handler: handler instance of `RarHandler` or `ZipHandler`.
+            compressCurrentFile: `CurrentFile` instance.
+            password: password of file ZIP or RAR.
+
+        Returns
+            bool: `True` if is protected, otherwise, `False`.
+
+        Raises
+            FilePasswordProtected: if `password` parameters and `is_protected`
+                                   are `True`s.
+        """
+        if handler.type == 'zip':
+            is_protected = handler.testZip(currentFileZip=compressCurrentFile)
+        if handler.type == 'rar':
+            is_protected = handler.testRar(currentFileRar=compressCurrentFile)
+        if is_protected and password is None:
+            msg = 'File %s is protected with password.\n' % (
+                                handler.type.upper()
+                            )
+            raise FilePasswordProtected(message=msg)
+        elif is_protected and password is not None:
+            return True
+        return False
+
     def process_pdf(
         self,
         filename: str,
@@ -237,8 +273,9 @@ class ComicPy:
 
     def process_zip(
         self,
-        filename: str
-    ) -> CurrentFile:
+        filename: str,
+        password: str = None
+    ) -> CompressorFileData:
         """
         Process ZIP files.
 
@@ -254,15 +291,35 @@ class ComicPy:
 
         self.check_file(currentFile=self.currentFile)
 
-        zipCompressorFileData = self.ziphandler.rename_zip_cbz(
-                                currentFileZip=self.currentFile
+        is_protected = self.check_protectedFile(
+                handler=self.ziphandler,
+                compressCurrentFile=self.currentFile,
+                password=password
+            )
+        if is_protected:
+            zipCompressorFileData = self.ziphandler.extract_images(
+                                        currentFileZip=self.currentFile,
+                                        password=password
+                                    )
+            compressedCurrentFileIO = self.to_compressor(
+                                filename=zipCompressorFileData.filename,
+                                dataRawFile=[zipCompressorFileData],
+                                compressor='zip',
+                                join_files=False
                             )
-        return zipCompressorFileData
+            return compressedCurrentFileIO
+
+        else:
+            zipCompressorFileData = self.ziphandler.rename_zip_cbz(
+                                    currentFileZip=self.currentFile
+                                )
+            return zipCompressorFileData
 
     def process_rar(
         self,
-        filename: str
-    ) -> CurrentFile:
+        filename: str,
+        password: str = None
+    ) -> CompressorFileData:
         """
         Process RAR files.
 
@@ -278,10 +335,29 @@ class ComicPy:
 
         self.check_file(currentFile=self.currentFile)
 
-        rarCompressorFileData = self.rarhandler.rename_rar_cbr(
-                                currentFileRar=self.currentFile
+        is_protected = self.check_protectedFile(
+                handler=self.ziphandler,
+                compressCurrentFile=self.currentFile,
+                password=password
+            )
+        if is_protected:
+            rarCompressorFileData = self.rarhandler.extract_images(
+                                        currentFileRar=self.currentFile,
+                                        password=password
+                                    )
+            compressedCurrentFileIO = self.to_compressor(
+                                filename=rarCompressorFileData.filename,
+                                dataRawFile=[rarCompressorFileData],
+                                compressor='rar',
+                                join_files=False
                             )
-        return rarCompressorFileData
+            return compressedCurrentFileIO
+
+        else:
+            rarCompressorFileData = self.rarhandler.rename_rar_cbr(
+                                    currentFileRar=self.currentFile
+                                )
+            return rarCompressorFileData
 
     def process_dir(
         self,
@@ -334,20 +410,19 @@ class ComicPy:
         pattern = '*.%s' % (extention_filter)
         filesMatch = glob.glob(pathname=pattern, root_dir=self.directory_path)
 
-        filesMatch.sort()
-
         if len(filesMatch) == 0:
             raise DirectoryFilterEmptyFiles(
                             dir_path=self.directory_path,
                             filter=extention_filter
                         )
         elif len(filesMatch) > 0:
+            filesMatch.sort()    # sort file names alphanumerically.
+
             list_filePaths = [
                                 os.path.join(self.directory_path, item)
                                 for item in filesMatch
                             ]
 
-            # list_currentFiles = []
             list_CompressorsModel = []
             for item_path in list_filePaths:
                 if os.path.exists(item_path):
@@ -377,6 +452,11 @@ class ComicPy:
 
                     elif extention == '.zip' or extention == '.cbz':
                         # print('>> DIR ZIP')
+                        self.check_protectedFile(
+                                handler=self.ziphandler,
+                                compressCurrentFile=fileCurrentData,
+                                password=password
+                            )
                         compressFileData = self.ziphandler.extract_images(
                                             currentFileZip=fileCurrentData,
                                             password=password
@@ -385,6 +465,11 @@ class ComicPy:
 
                     elif extention == '.rar' or extention == '.cbr':
                         # print('>> DIR RAR')
+                        self.check_protectedFile(
+                                handler=self.rarhandler,
+                                compressCurrentFile=fileCurrentData,
+                                password=password
+                            )
                         compressorFileData = self.rarhandler.extract_images(
                                             currentFileRar=fileCurrentData,
                                             password=password

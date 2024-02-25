@@ -21,6 +21,15 @@ class ErrorFileBase(Exception):
         super().__init__(message)
 
 
+class FilePasswordProtected(ErrorFileBase):
+    def __init__(
+        self,
+        message: str
+    ) -> None:
+        message += '--> \t`password` parameter is required.'
+        super().__init__(message)
+
+
 class InvalidFile(ErrorFileBase):
     def __init__(
         self,

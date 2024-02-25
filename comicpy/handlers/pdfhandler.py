@@ -3,6 +3,8 @@
 Handler related to files ZIP.
 """
 
+from comicpy.handlers.imageshandler import ImagesHandler
+
 from comicpy.models import (
     ImageComicData,
     CurrentFile
@@ -13,10 +15,11 @@ from pypdf import (
     PageObject
 )
 
-import io
 import os
 
-from typing import List
+from typing import List, TypeVar
+
+ImageInstancePIL = TypeVar("ImageInstancePIL")
 
 
 class PdfHandler:
@@ -35,6 +38,7 @@ class PdfHandler:
             unit: indicate unit of measure using to represent file size.
         """
         self.unit = unit
+        self.imageshandler = ImagesHandler()
 
     def process_pdf(
         self,
@@ -54,6 +58,7 @@ class PdfHandler:
         dataRaw = currentFilePDF.bytes_data
         reader = PdfReader(dataRaw)
         # print(reader.pdf_header, len(reader.pages), reader.metadata)
+        # print(len(reader.pages))
         listImageComicData = self.getting_data(pages_pdf=reader.pages)
         return listImageComicData
 
@@ -72,16 +77,32 @@ class PdfHandler:
                                   page image data.
         """
         data = []
-        for i in range(len(pages_pdf)):
-            page = pages_pdf[i]
-            name_, extention_ = os.path.splitext(page.images[0].name)
-            name_image = 'image' + '%d'.zfill(4) % (i) + extention_
-            data_image = page.images[0].data
-            # page.images[0].name, page.images[0].image
+        n_pages = len(pages_pdf)
+        i = 0
+        while i < n_pages:
+            # print(i, len(pages_pdf[i].images))
+            if len(pages_pdf[i].images) == 1:
+                current_image = pages_pdf[i].images[0]
+            elif len(pages_pdf[i].images) > 1:
+                current_image = pages_pdf[i].images[i]
+
+            name_, extention_ = os.path.splitext(current_image.name)
+            name_image = 'Image' + '%d'.zfill(4) % (i) + extention_.lower()
+
+            imageIO = self.imageshandler.new_size_image(
+                                    currentImage=current_image.image,
+                                    extention=extention_.upper(),
+                                    sizeImage='small'
+                                )
+
+            # print(images[i].name, name_image)
             image_comic = ImageComicData(
                             filename=name_image,
-                            bytes_data=io.BytesIO(data_image),
+                            bytes_data=imageIO,
                             unit=self.unit
                         )
             data.append(image_comic)
+
+            i += 1
+
         return data

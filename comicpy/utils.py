@@ -5,7 +5,9 @@ Utils
 
 import os
 
-from typing import Union, Tuple
+from typing import Union, Tuple, TypeVar
+
+CurrentFile = TypeVar('CurrentFile')
 
 
 class Paths:

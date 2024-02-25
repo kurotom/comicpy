@@ -37,10 +37,16 @@ def rar(
     filename: str,
     dest: str,
     check: bool,
+    password: str
 ) -> None:
+    print(password)
     # RAR
     print(filename, dest, check)
-    data = comicInstance.process_rar(filename=filename)
+    data = comicInstance.process_rar(
+                    filename=filename,
+                    password=password
+                )
+    print(type(data))
     metaFileCompress = comicInstance.write_cbr(
                                 currentFileRar=data,
                                 path=dest
@@ -58,9 +64,13 @@ def zip(
     filename: str,
     dest: str,
     check: bool,
+    password: str
 ) -> None:
     # ZIP
-    data = comicInstance.process_zip(filename=filename)
+    data = comicInstance.process_zip(
+                    filename=filename,
+                    password=password
+                )
     metaFileCompress = comicInstance.write_cbz(
                                 currentFileZip=data,
                                 path=dest
@@ -141,6 +151,10 @@ def CliComicPy() -> None:
             default='mb',
             help='Unit of measure of data size. Default is "mb"',
         )
+    main_parser.add_argument(
+            '--password',
+            help='Unit of measure of data size. Default is "mb"'
+        )
 
     args = main_parser.parse_args()
     typeFile = args.type
@@ -152,6 +166,7 @@ def CliComicPy() -> None:
     checkFile = args.check
     unitFile = args.unit
     joinFile = args.join
+    password = args.password
 
     # Instance
     comic = ComicPy(unit=unitFile)
@@ -173,6 +188,7 @@ def CliComicPy() -> None:
                 filename=pathFile,
                 dest=destFile,
                 check=checkFile,
+                password=password
             )
 
         if extention_.lower() == '.zip':
@@ -180,7 +196,8 @@ def CliComicPy() -> None:
                 comicInstance=comic,
                 filename=pathFile,
                 dest=destFile,
-                check=checkFile
+                check=checkFile,
+                password=password
             )
 
     elif typeFile == 'd':
@@ -192,7 +209,8 @@ def CliComicPy() -> None:
                         directory_path=pathFile,
                         extention_filter=filterFile,
                         compressor=compressFile,
-                        join=joinFile
+                        join=joinFile,
+                        password=password
                     )
         if compressFile == 'rar':
             metaFileCompress = comic.write_cbr(

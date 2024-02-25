@@ -5,6 +5,8 @@ Handler related to files RAR.
 Temporary data written in TEMP directory.
 """
 
+from comicpy.handlers.imageshandler import ImagesHandler
+
 from comicpy.models import (
     ImageComicData,
     CurrentFile,
@@ -20,6 +22,7 @@ import subprocess
 import tempfile
 import shutil
 import rarfile
+from rarfile import PasswordRequired
 import io
 import os
 
@@ -44,6 +47,31 @@ class RarHandler(BaseZipRarHandler):
         """
         self.unit = unit
         self.TEMPDIR = tempfile.gettempdir()
+        self.type = 'rar'
+        self.imageshandler = ImagesHandler()
+
+    def testRar(
+        self,
+        currentFileRar: CurrentFile
+    ) -> None:
+        """
+        Checks if RAR file is password protected.
+
+        Args:
+            currentFileRar: `CurrentFile` instance with raw data of file RAR.
+
+        Returns:
+            bool: `True` if password protected, otherwise, retuns `False`.
+        """
+        try:
+            with rarfile.RarFile(
+                file=currentFileRar.bytes_data,
+                mode='r'
+            ) as rarFile:
+                rarFile.testrar()
+            return False
+        except PasswordRequired:
+            return True
 
     def rename_rar_cbr(
         self,
@@ -106,13 +134,21 @@ class RarHandler(BaseZipRarHandler):
                     item_name = name_file.replace(' ', '_')
                     file_name = os.path.join(directory_name, item_name)
 
+                    # print(file_name)
                     dataImage = rar_file.read(
                                         item,
                                         pwd=password
                                     )
+
+                    imageIO = self.imageshandler.new_size_image(
+                                            currentImage=dataImage,
+                                            extention=_extention.upper(),
+                                            sizeImage='small'
+                                        )
+
                     image_comic = ImageComicData(
                                     filename=file_name,
-                                    bytes_data=io.BytesIO(dataImage),
+                                    bytes_data=imageIO,
                                     unit=self.unit
                                 )
                     listImageComicData.append(image_comic)
