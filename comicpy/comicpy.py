@@ -497,6 +497,7 @@ class ComicPy:
                                             currentFileRar=fileCurrentData,
                                             password=password
                                         )
+
                         list_CompressorsModel.append(compressorFileData)
 
             if filename is None:

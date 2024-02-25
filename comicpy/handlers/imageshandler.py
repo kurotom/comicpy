@@ -47,6 +47,7 @@ class ImagesHandler:
         Returns:
             io.BytesIO: `BytesIO` instance with data of new resized image.
         """
+        # print(type(currentImage))
         newImageIO = io.BytesIO()
         if type(currentImage) is bytes:
             currentImage = Image.open(io.BytesIO(currentImage))

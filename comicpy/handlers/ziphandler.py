@@ -15,6 +15,7 @@ from comicpy.handlers.baseziprar import BaseZipRarHandler
 
 from comicpy.valid_extentions import imagesExtentions
 
+from pathlib import Path
 import tempfile
 import pyzipper
 import zipfile
@@ -148,13 +149,19 @@ class ZipHandler(BaseZipRarHandler):
                                 )
                     listImageComicData.append(image_comic)
 
-            zipFileCompress = CompressorFileData(
-                                    filename=directory_name,
-                                    list_data=listImageComicData,
-                                    type='zip',
-                                    unit=self.unit
-                                )
-            return zipFileCompress
+        if len(listImageComicData) == 0:
+            msg = 'Files not found with valid extensions.\n'
+            exts = list(self.imageshandler.extentionsImage.values())
+            msg += 'Valid Extentions:  ' + ', '.join(exts) + '\n'
+            raise TypeError(msg)
+
+        zipFileCompress = CompressorFileData(
+                                filename=directory_name,
+                                list_data=listImageComicData,
+                                type='zip',
+                                unit=self.unit
+                            )
+        return zipFileCompress
 
     def to_zip(
         self,

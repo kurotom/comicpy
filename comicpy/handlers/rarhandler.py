@@ -153,6 +153,12 @@ class RarHandler(BaseZipRarHandler):
                                 )
                     listImageComicData.append(image_comic)
 
+        if len(listImageComicData) == 0:
+            msg = 'Files not found with valid extensions.\n'
+            exts = list(self.imageshandler.extentionsImage.values())
+            msg += 'Valid Extentions:  ' + ', '.join(exts) + '\n'
+            raise TypeError(msg)
+
         rarFileCompress = CompressorFileData(
                                     filename=directory_name,
                                     list_data=listImageComicData,
