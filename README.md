@@ -138,10 +138,16 @@ True
 ...           )
 >>> metaFileCompress = comic.to_write(listCurrentFiles=data)
 >>> print(metaFileCompress)
-[{'name': './final_CBR_file/chapter_1.cbr', 'size': '0.02 GB'}, {'name': './final_CBR_file/chapter_2.cbr', 'size': '0.01 GB'}, {'name': './final_CBR_file/chapter_3.cbr', 'size': '0.01 GB'}, {'name': './final_CBR_file/chapter_4.cbr', 'size': '0.01 GB'}]
+[
+  {'name': './final_CBR_file/chapter_1.cbr', 'size': '0.02 GB'},
+  {'name': './final_CBR_file/chapter_2.cbr', 'size': '0.01 GB'}
+]
 >>>>
 >>> for item in metaFileCompress:
-...   comic.check_integrity(filename=item['name'], show=True)
+...   comic.check_integrity(
+...      filename=item['name'],
+...      show=True
+...   )
 ...
 File is valid?:  "True"
 True
@@ -177,7 +183,10 @@ True
 [{'name': 'result/final_CBR_file/final_CBR_file.cbr', 'size': '0.05 GB'}]
 >>>
 >>> for item in metaFileCompress:
-...   comic.check_integrity(filename=item['name'], show=True)
+...   comic.check_integrity(
+...      filename=item['name'],
+...      show=True
+...   )
 ...
 File is valid?:  "True"
 True
