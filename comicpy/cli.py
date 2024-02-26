@@ -4,9 +4,9 @@ CLI comicpy
 """
 
 import argparse
-import os
 
 from comicpy.comicpy import ComicPy
+from comicpy.utils import Paths
 
 
 def pdf(
@@ -16,12 +16,15 @@ def pdf(
     dest: str,
     check: bool,
 ) -> None:
+    """
+    Function for PDF file.
+    """
     data = comicInstance.process_pdf(
                     filename=filename,
                     compressor=compressor
                 )
-    metaFileCompress = comicInstance.write_cbz(
-                    currentFileZip=data,
+    metaFileCompress = comicInstance.to_write(
+                    listCurrentFiles=data,
                     path=dest
                 )
     if check:
@@ -39,16 +42,15 @@ def rar(
     check: bool,
     password: str
 ) -> None:
-    print(password)
-    # RAR
-    print(filename, dest, check)
+    """
+    Function for RAR file.
+    """
     data = comicInstance.process_rar(
                     filename=filename,
                     password=password
                 )
-    print(type(data))
-    metaFileCompress = comicInstance.write_cbr(
-                                currentFileRar=data,
+    metaFileCompress = comicInstance.to_write(
+                                listCurrentFiles=data,
                                 path=dest
                             )
     if check:
@@ -66,13 +68,49 @@ def zip(
     check: bool,
     password: str
 ) -> None:
-    # ZIP
+    """
+    Function for ZIP file.
+    """
     data = comicInstance.process_zip(
                     filename=filename,
                     password=password
                 )
-    metaFileCompress = comicInstance.write_cbz(
-                                currentFileZip=data,
+    metaFileCompress = comicInstance.to_write(
+                                listCurrentFiles=data,
+                                path=dest
+                            )
+    if check:
+        for item in metaFileCompress:
+            comicInstance.check_integrity(
+                        filename=item['name'],
+                        show=True
+                    )
+
+
+def dir(
+    comicInstance: ComicPy,
+    directory_path: str,
+    extention_filter: str,
+    dest: str,
+    filename: str = None,
+    password: str = None,
+    compressor: str = 'zip',
+    join: bool = False,
+    check: bool = False
+) -> None:
+    """
+    Function for directories.
+    """
+    data = comicInstance.process_dir(
+                    filename=filename,
+                    directory_path=directory_path,
+                    extention_filter=extention_filter,
+                    compressor=compressor,
+                    join=join,
+                    password=password
+                )
+    metaFileCompress = comicInstance.to_write(
+                                listCurrentFiles=data,
                                 path=dest
                             )
     if check:
@@ -87,6 +125,7 @@ def CliComicPy() -> None:
     """
     Main CLI function.
     """
+    paths = Paths()
 
     main_parser = argparse.ArgumentParser(
                 prog='ComicPy',
@@ -114,10 +153,10 @@ def CliComicPy() -> None:
         )
     main_parser.add_argument(
             '-c',
-            '--compress',
+            '--compressor',
             default='zip',
             choices=['rar', 'zip'],
-            help='Type of compress to use.',
+            help='Type of compressor to use.',
         )
     main_parser.add_argument(
             '-d',
@@ -125,12 +164,14 @@ def CliComicPy() -> None:
             default='.',
             help='Path to save output files. Default is "."',
         )
+    ##########################################
+    # TODO: delete?
     main_parser.add_argument(
             '-o',
             '--output',
-            default='Converted_',
             help='Prefix of output file.',
         )
+    ##########################################
     main_parser.add_argument(
             '--check',
             action='store_true',
@@ -141,8 +182,8 @@ def CliComicPy() -> None:
             '--join',
             default=False,
             action='store_true',
-            help='Join or does not files thath are in the directory.\
-            Default is "False".',
+            help='Join or not the files found in the directory. Default is \
+            "False".',
         )
     main_parser.add_argument(
             '-u',
@@ -153,14 +194,14 @@ def CliComicPy() -> None:
         )
     main_parser.add_argument(
             '--password',
-            help='Unit of measure of data size. Default is "mb"'
+            help='Password of file protected.'
         )
 
     args = main_parser.parse_args()
     typeFile = args.type
     pathFile = args.path
     filterFile = args.filter
-    compressFile = args.compress
+    compressorFile = args.compressor
     destFile = args.dest
     outputFile = args.output
     checkFile = args.check
@@ -171,14 +212,14 @@ def CliComicPy() -> None:
     # Instance
     comic = ComicPy(unit=unitFile)
 
+    # FILE
     if typeFile == 'f':
-        name_, extention_ = os.path.splitext(pathFile)
-        # FILE
+        name_, extention_ = paths.splitext(pathFile)
         if extention_.lower() == '.pdf':
             pdf(
                 comicInstance=comic,
                 filename=pathFile,
-                compressor=compressFile,
+                compressor=compressorFile,
                 dest=destFile,
                 check=checkFile
             )
@@ -200,31 +241,24 @@ def CliComicPy() -> None:
                 password=password
             )
 
+    # DIRECOTRY
     elif typeFile == 'd':
-        # DIRECOTRY
-        dir_name = os.path.basename(pathFile)
-        name = '%s%s' % (outputFile, dir_name)
-        data = comic.process_dir(
-                        filename=name,
-                        directory_path=pathFile,
-                        extention_filter=filterFile,
-                        compressor=compressFile,
-                        join=joinFile,
-                        password=password
-                    )
-        if compressFile == 'rar':
-            metaFileCompress = comic.write_cbr(
-                                    currentFileRar=data,
-                                    path=destFile
-                                )
-        elif compressFile == 'zip':
-            metaFileCompress = comic.write_cbz(
-                                    currentFileZip=data,
-                                    path=destFile
-                                )
-        if checkFile:
-            for item in metaFileCompress:
-                comic.check_integrity(filename=item['name'], show=True)
+        dir_name = paths.get_basename(pathFile)
+        if dir_name == '':
+            name = None
+        else:
+            name = '%s%s' % (outputFile, dir_name)
+        dir(
+                comicInstance=comic,
+                directory_path=pathFile,
+                extention_filter=filterFile,
+                dest=destFile,
+                filename=name,
+                password=password,
+                compressor=compressorFile,
+                join=joinFile,
+                check=checkFile
+            )
 
 
 if __name__ == '__main__':

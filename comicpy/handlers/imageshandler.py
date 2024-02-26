@@ -4,6 +4,7 @@
 the future, formatting, and other related issues, if required.
 """
 
+
 from PIL import Image
 import io
 
@@ -16,18 +17,28 @@ class ImagesHandler:
     """
     Class dealing with image issues, such as resizing.
     """
-
-    extentionsImage = {
-        '.PNG': 'PNG',
-        '.JPEG': 'JPEG',
-        '.JPG': 'JPEG'
+    validFormats = {
+        'JPEG': 'jpeg',
+        'PNG': 'png',
+        'JPG': 'jpeg'
     }
-
     sizeImageDict = {
         'small': (800, 1200),
         'medium': (1000, 1500),
         'large': (1200, 1800),
     }
+
+    def get_size(
+        self,
+        size: str = 'small'
+    ) -> tuple:
+        """
+        Returns tupe of size.
+        """
+        try:
+            return ImagesHandler.sizeImageDict[size]
+        except KeyError:
+            return ImagesHandler.sizeImageDict['small']
 
     def new_size_image(
         self,
@@ -47,15 +58,15 @@ class ImagesHandler:
         Returns:
             io.BytesIO: `BytesIO` instance with data of new resized image.
         """
-        # print(type(currentImage))
+        size_tuple = self.get_size(size=sizeImage)
         newImageIO = io.BytesIO()
         if type(currentImage) is bytes:
             currentImage = Image.open(io.BytesIO(currentImage))
 
-        size_tuple = ImagesHandler.sizeImageDict[sizeImage]
         imageResized = currentImage.resize(size_tuple)
+
         imageResized.save(
                 newImageIO,
-                format=ImagesHandler.extentionsImage[extention]
+                format=ImagesHandler.validFormats[extention]
             )
         return newImageIO

@@ -1,14 +1,29 @@
 # -*- coding: utf-8 -*-
 """
-Base class for Hander ZIP and RAR.
+Base class for ZIP and RAR handlers.
 """
+
+from comicpy.handlers.imageshandler import ImagesHandler
+from comicpy.valid_extentions import ValidExtentions
+from comicpy.utils import Paths
 
 from comicpy.models import (
     CurrentFile,
+    ImageComicData,
     CompressorFileData
 )
 
-import os
+from rarfile import RarFile
+from pyzipper import AESZipFile
+import io
+
+from typing import (
+    Union,
+    TypeVar
+)
+
+ZIP = TypeVar('zip')
+RAR = TypeVar('rar')
 
 
 class BaseZipRarHandler:
@@ -16,72 +31,162 @@ class BaseZipRarHandler:
     Base class for handler ZIP and RAR.
     """
 
+    def __init__(self) -> None:
+        self.paths = Paths()
+        self.imageshandler = ImagesHandler()
+
+    def read_file(
+        self,
+        instanceCompress: Union[RarFile, AESZipFile],
+        itemFile: bytes,
+        password: str = None,
+    ) -> None:
+        """
+        Read data of file, using password for protected files.
+
+        Args
+            instanceCompress: `RarFile` or `AESZipFile` instance.
+            item: file to read.
+            password: password string to unlock the archive data.
+
+        Returns
+        """
+        if isinstance(instanceCompress, AESZipFile):
+            return instanceCompress.read(itemFile)
+        elif isinstance(instanceCompress, RarFile):
+            return instanceCompress.read(
+                                    itemFile,
+                                    pwd=password
+                                )
+
+    def iterateFiles(
+        self,
+        instanceCompress: Union[RarFile, AESZipFile],
+        password: str = None
+    ) -> list:
+        """
+        Iterates over files of RAR or ZIP files, read their data.
+
+        Args
+            instanceCompress: `RarFile` or `AESZipFile` instance.
+            password: password string to unlock the archive data.
+
+        Returns
+            list: list of content of file RAR or ZIP.
+        """
+        images_Extentions = self.validextentions.get_images_extentions()
+        listContentData = []
+        directory_name = None
+
+        for item in instanceCompress.namelist():
+            directory_name = self.paths.get_dirname(item).replace(' ', '_')
+            name_file = self.paths.get_basename(item)
+            _name, _extention = self.paths.splitext(name_file)
+
+            # print(_extention, images_Extentions)
+
+            if _extention.lower() == ValidExtentions.CBR:
+
+                rawDataFile = self.read_file(
+                                    instanceCompress=instanceCompress,
+                                    itemFile=item,
+                                    password=password
+                                )
+
+                currentFileCBR = CurrentFile(
+                                filename=name_file.replace(' ', '_'),
+                                bytes_data=io.BytesIO(rawDataFile),
+                                is_comic=True,
+                                unit=self.unit
+                            )
+                listContentData.append(currentFileCBR)
+
+            elif _extention.lower() == ValidExtentions.CBZ:
+
+                rawDataFile = self.read_file(
+                                    instanceCompress=instanceCompress,
+                                    itemFile=item,
+                                    password=password
+                                )
+
+                currentFileCBZ = CurrentFile(
+                                filename=name_file.replace(' ', '_'),
+                                bytes_data=io.BytesIO(rawDataFile),
+                                is_comic=True,
+                                chunk_bytes=None,
+                                unit=self.unit
+                            )
+                listContentData.append(currentFileCBZ)
+
+            elif _extention.lower() in images_Extentions:
+
+                item_name = name_file.replace(' ', '_')
+                file_name = self.paths.build(directory_name, item_name)
+
+                rawDataFile = self.read_file(
+                                    instanceCompress=instanceCompress,
+                                    itemFile=item,
+                                    password=password
+                                )
+
+                imageIO = self.imageshandler.new_size_image(
+                                        currentImage=rawDataFile,
+                                        extention=_extention[1:].upper(),
+                                        sizeImage='small'
+                                    )
+
+                image_comic = ImageComicData(
+                                filename=file_name,
+                                bytes_data=imageIO,
+                                unit=self.unit
+                            )
+
+                listContentData.append(image_comic)
+
+        if len(listContentData) == 0:
+            msg = 'Files not found with valid extensions.\n'
+            exts = self.validextentions.get_container_valid_extentions()
+            msg += 'Valid Extentions:  ' + ', '.join(exts) + '\n'
+            raise TypeError(msg)
+
+        zipFileCompress = CompressorFileData(
+                                filename=directory_name,
+                                list_data=listContentData,
+                                type='zip',
+                                unit=self.unit
+                            )
+        return zipFileCompress
+
+    def extract_content(
+        currentFileZip: CurrentFile,
+        password: str = None
+    ) -> CurrentFile:
+        """
+        Must be implemented!.
+        """
+        pass
+
     def to_write(
         self,
-        currentCompressorFile: CompressorFileData,
-        path: str
-    ) -> dict:
-        """
-        Writes data to a CBR or CBZ file.
-
-        Args:
-            currentCompressorFile: `CompressorFileData` instance with the of
-                                   list of ZIP or RAR files.
-            path: location where the CBR or CBZ file will be stored.
-                  Default `'.'`.
-
-        Returns:
-            dict: ZIP or RAR file information. Keys `'name'`, `'size'`.
-        """
-        info_compress = []
-        data_to_write = currentCompressorFile.list_data
-
-        if currentCompressorFile.join is False:
-            for item in data_to_write:
-                # print(type(item), item.name, item.extention)
-                info = self.__write_data(
-                            currentFile=item,
-                            path=path
-                        )
-                info_compress.append(info)
-        elif currentCompressorFile.join is True:
-            data = currentCompressorFile.list_data[0]
-            info = self.__write_data(
-                            currentFile=data,
-                            path=path
-                        )
-            info_compress.append(info)
-        return info_compress
-
-    def __write_data(
-        self,
-        currentFile: CurrentFile,
-        path: str
+        currentFileInstance: CurrentFile
     ) -> dict:
         """
         Write data into file.
 
         Args:
             currentFile: `CurrentFile` instance with data of ZIP or RAR file.
-            path: location where the CBR or CBZ file will be stored.
-                  Default `'.'`.
 
         Returns:
             dict: compressor file information. Keys `'name'`, `'size'`.
         """
-        file_output = '%s%s' % (
-                        currentFile.name,
-                        currentFile.extention
-                    )
-        path_output = os.path.join(path, file_output)
-
-        with open(path_output, 'wb') as file:
-            file.write(currentFile.bytes_data.getvalue())
+        path_file = currentFileInstance.path
+        with open(path_file, 'wb') as file:
+            file.write(currentFileInstance.bytes_data.getvalue())
 
         return {
-                'name': path_output,
+                'name': path_file,
                 'size': '%.2f %s' % (
-                                currentFile.size,
-                                currentFile.unit.upper()
+                                currentFileInstance.size,
+                                currentFileInstance.unit.upper()
                             )
             }

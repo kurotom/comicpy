@@ -4,25 +4,26 @@ Handler related to files ZIP.
 """
 
 from comicpy.handlers.imageshandler import ImagesHandler
+from comicpy.utils import Paths
 
 from comicpy.models import (
-    ImageComicData,
     CurrentFile,
     CompressorFileData
 )
-
 from comicpy.handlers.baseziprar import BaseZipRarHandler
 
-from comicpy.valid_extentions import imagesExtentions
+from comicpy.valid_extentions import ValidExtentions
 
-from pathlib import Path
 import tempfile
 import pyzipper
 import zipfile
 import io
-import os
 
-from typing import List, Union
+from typing import List, Union, TypeVar
+
+SMALL = TypeVar('small')
+MEDIUM = TypeVar('medium')
+LARGE = TypeVar('large')
 
 
 class ZipHandler(BaseZipRarHandler):
@@ -45,6 +46,8 @@ class ZipHandler(BaseZipRarHandler):
         self.TEMPDIR = tempfile.gettempdir()
         self.type = 'zip'
         self.imageshandler = ImagesHandler()
+        self.validextentions = ValidExtentions()
+        self.paths = Paths()
 
     def testZip(
         self,
@@ -93,10 +96,11 @@ class ZipHandler(BaseZipRarHandler):
                                 )
         return zipFileCompress
 
-    def extract_images(
+    def extract_content(
         self,
         currentFileZip: CurrentFile,
-        password: str
+        password: str = None,
+        imageSize: Union[SMALL, MEDIUM, LARGE] = 'small',
     ) -> CompressorFileData:
         """
         Extract images from ZIP file.
@@ -104,6 +108,7 @@ class ZipHandler(BaseZipRarHandler):
         Args:
             currentFile: `CurrentFile` instance with data of original ZIP file.
             password: password string of file, default is `None`.
+            imageSize: string of size image. Default is `'small'`.
 
         Returns:
             CompressorFileData: instances contains name of directory of images,
@@ -111,8 +116,6 @@ class ZipHandler(BaseZipRarHandler):
                                 compressor.
         """
         bytesZipFile = currentFileZip.bytes_data
-        listImageComicData = []
-        directory_name = None
 
         with pyzipper.AESZipFile(
             bytesZipFile,
@@ -120,70 +123,36 @@ class ZipHandler(BaseZipRarHandler):
             compression=pyzipper.ZIP_DEFLATED,
             encryption=pyzipper.WZ_AES
         ) as zip_file:
-            if password is not None:
-                zip_file.pwd = password.encode('utf-8')
 
-            for item in zip_file.namelist():
-                directory_name = os.path.dirname(item).replace(' ', '_')
-                name_file = os.path.basename(item)
-                _name, _extention = os.path.splitext(name_file)
-
-                if _extention in list(imagesExtentions.values()):
-                    # print(_name, _extention, directory_name)
-
-                    item_name = name_file.replace(' ', '_')
-                    file_name = os.path.join(directory_name, item_name)
-
-                    dataImage = zip_file.read(item)
-
-                    imageIO = self.imageshandler.new_size_image(
-                                            currentImage=dataImage,
-                                            extention=_extention.upper(),
-                                            sizeImage='small'
-                                        )
-
-                    image_comic = ImageComicData(
-                                    filename=file_name,
-                                    bytes_data=imageIO,
-                                    unit=self.unit
-                                )
-                    listImageComicData.append(image_comic)
-
-        if len(listImageComicData) == 0:
-            msg = 'Files not found with valid extensions.\n'
-            exts = list(self.imageshandler.extentionsImage.values())
-            msg += 'Valid Extentions:  ' + ', '.join(exts) + '\n'
-            raise TypeError(msg)
-
-        zipFileCompress = CompressorFileData(
-                                filename=directory_name,
-                                list_data=listImageComicData,
-                                type='zip',
-                                unit=self.unit
-                            )
-        return zipFileCompress
+            return super().iterateFiles(
+                instanceCompress=zip_file,
+                password=password
+            )
 
     def to_zip(
         self,
         listZipFileCompress: List[CompressorFileData],
         join: bool,
-        filenameZIP: str = None,
+        filenameZIP: str = None
     ) -> Union[List[CurrentFile], None]:
         """
         Handles how the data in the ZIP file(s) should be written.
 
         Args:
-            listZipFileCompress: list of CompressorFileData instances.
+            listZipFileCompress: list of `CompressorFileData` instances.
             filenameZIP: name of the ZIP archive.
+            join: if `True` merge all files, otherwise, no.
 
         Returns:
-            CurrentFile: the instance contains bytes of the ZIP file.
-            List[CurrentFile]: list of instances contains bytes of the ZIP
-                               file.
-            None: if `subprocess.run` fails.
+            List[CurrentFile]: list of `CurrentFile` instances contains bytes
+                               of the ZIP files.
+            None: if this process fail.
         """
         if len(listZipFileCompress) == 0:
             return None
+
+        # print(listZipFileCompress, type(listZipFileCompress))
+        # print(len(listZipFileCompress), join)
 
         data_of_zips = []
         if join is True:
@@ -196,18 +165,12 @@ class ZipHandler(BaseZipRarHandler):
             for file in listZipFileCompress:
                 current_file_list = [file]
                 currentFileZip = self.__to_zip_data(
-                        listZipFileCompress=current_file_list,
-                        filenameZIP=file.filename
-                    )
+                            listZipFileCompress=current_file_list,
+                            filenameZIP=file.filename
+                        )
                 data_of_zips.append(currentFileZip)
 
-        zipCompressorData = CompressorFileData(
-                filename=filenameZIP,
-                list_data=data_of_zips,
-                type='zip',
-                join=join
-            )
-        return zipCompressorData
+        return data_of_zips
 
     def __to_zip_data(
         self,
@@ -244,7 +207,10 @@ class ZipHandler(BaseZipRarHandler):
                 info_archivo_zip.compress_type = zipfile.ZIP_DEFLATED
 
                 for image in item.list_data:
-                    image_path = os.path.join(directory_path, image.filename)
+                    image_path = self.paths.build(
+                                            directory_path,
+                                            image.filename
+                                        )
                     zip_file.writestr(
                             zinfo_or_arcname=image_path,
                             data=image.bytes_data.getvalue()
@@ -260,8 +226,7 @@ class ZipHandler(BaseZipRarHandler):
 
     def to_write(
         self,
-        currentFileZip: CompressorFileData,
-        path_dest: str
+        currentFileZip: CurrentFile
     ) -> List[dict]:
         """
         Send data to `BaseZipRarHandler.to_write()` to save the ZIP file data.
@@ -269,14 +234,10 @@ class ZipHandler(BaseZipRarHandler):
         Args:
             currentFileRar: `CompressorFileData` instance, contains data of
                             ZIP file.
-            path_dest: location where the CBZ file will be stored.
 
         Returns:
             List[dict]: list of dicts with information of all files saved.
                         'name': path to the file.
                         'size': size of file.
         """
-        return super().to_write(
-                            currentCompressorFile=currentFileZip,
-                            path=path_dest
-                        )
+        return super().to_write(currentFileInstance=currentFileZip)

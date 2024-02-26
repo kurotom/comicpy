@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "comicpy"
-version = "0.1.7"
+version = "0.1.8"
 description = "Tool to create CBR or CBZ files, supports PDF, ZIP, RAR files."
 authors = ["kurotom <55354389+kurotom@users.noreply.github.com>"]
 readme = "README.md"

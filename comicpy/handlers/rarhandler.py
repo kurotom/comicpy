@@ -6,16 +6,16 @@ Temporary data written in TEMP directory.
 """
 
 from comicpy.handlers.imageshandler import ImagesHandler
+from comicpy.utils import Paths
 
 from comicpy.models import (
-    ImageComicData,
     CurrentFile,
     CompressorFileData
 )
 
 from comicpy.handlers.baseziprar import BaseZipRarHandler
 
-from comicpy.valid_extentions import imagesExtentions
+from comicpy.valid_extentions import ValidExtentions
 
 from uuid import uuid1
 import subprocess
@@ -24,9 +24,12 @@ import shutil
 import rarfile
 from rarfile import PasswordRequired
 import io
-import os
 
-from typing import List, Union
+from typing import List, Union, TypeVar
+
+SMALL = TypeVar('small')
+MEDIUM = TypeVar('medium')
+LARGE = TypeVar('large')
 
 
 class RarHandler(BaseZipRarHandler):
@@ -49,6 +52,8 @@ class RarHandler(BaseZipRarHandler):
         self.TEMPDIR = tempfile.gettempdir()
         self.type = 'rar'
         self.imageshandler = ImagesHandler()
+        self.validextentions = ValidExtentions()
+        self.paths = Paths()
 
     def testRar(
         self,
@@ -97,10 +102,11 @@ class RarHandler(BaseZipRarHandler):
                                 )
         return rarFileCompress
 
-    def extract_images(
+    def extract_content(
         self,
         currentFileRar: CurrentFile,
-        password: str = None
+        password: str = None,
+        imageSize: Union[SMALL, MEDIUM, LARGE] = 'small'
     ) -> CompressorFileData:
         """
         Extract images from RAR file.
@@ -108,6 +114,7 @@ class RarHandler(BaseZipRarHandler):
         Args:
             currentFile: `CurrentFile` instance with data of original RAR file.
             password: password string of file, default is `None`.
+            imageSize: string of size image. Default is `'small'`.
 
         Returns:
             CompressorFileData: instances contains name of directory of images,
@@ -115,78 +122,39 @@ class RarHandler(BaseZipRarHandler):
                                 compressor.
         """
         rawDataRar = currentFileRar.bytes_data
-        listImageComicData = []
+
         with rarfile.RarFile(
             file=rawDataRar,
             mode='r'
         ) as rar_file:
 
-            directory_name = None
-
-            for item in rar_file.namelist():
-
-                directory_name = os.path.dirname(item).replace(' ', '_')
-                name_file = os.path.basename(item)
-                _name, _extention = os.path.splitext(name_file)
-
-                if _extention in list(imagesExtentions.values()):
-                    # print(_name, _extention, directory_name)
-                    item_name = name_file.replace(' ', '_')
-                    file_name = os.path.join(directory_name, item_name)
-
-                    # print(file_name)
-                    dataImage = rar_file.read(
-                                        item,
-                                        pwd=password
-                                    )
-
-                    imageIO = self.imageshandler.new_size_image(
-                                            currentImage=dataImage,
-                                            extention=_extention.upper(),
-                                            sizeImage='small'
-                                        )
-
-                    image_comic = ImageComicData(
-                                    filename=file_name,
-                                    bytes_data=imageIO,
-                                    unit=self.unit
-                                )
-                    listImageComicData.append(image_comic)
-
-        if len(listImageComicData) == 0:
-            msg = 'Files not found with valid extensions.\n'
-            exts = list(self.imageshandler.extentionsImage.values())
-            msg += 'Valid Extentions:  ' + ', '.join(exts) + '\n'
-            raise TypeError(msg)
-
-        rarFileCompress = CompressorFileData(
-                                    filename=directory_name,
-                                    list_data=listImageComicData,
-                                    type='rar',
-                                    unit=self.unit
-                                )
-        return rarFileCompress
+            return super().iterateFiles(
+                instanceCompress=rar_file,
+                password=password
+            )
 
     def to_rar(
         self,
         listRarFileCompress: List[CompressorFileData],
         join: bool,
         filenameRAR: str = None,
-    ) -> Union[CompressorFileData, None]:
+    ) -> Union[List[CurrentFile], None]:
         """
         Handles how the data in the RAR file(s) should be written.
 
         Args:
-            listRarFileCompress: list of CompressorFileData instances.
+            listRarFileCompress: list of `CompressorFileData` instances.
             filenameRAR: name of the RAR archive.
+            join: if `True` merge all files, otherwise, no.
 
         Returns:
-            CurrentFile: the instance contains bytes of the RAR file.
+            List[CurrentFile]: list of `CurrentFile` instances contains bytes
+                               of the RAR files.
             None: if `subprocess.run` fails.
         """
         # print(listRarFileCompress)
-        if filenameRAR is None:
-            filenameRAR = 'FileRar'
+        if len(listRarFileCompress) == 0:
+            return None
 
         data_of_rars = []
         if join is True:
@@ -204,13 +172,7 @@ class RarHandler(BaseZipRarHandler):
                     )
                 data_of_rars.append(currentFileRar)
 
-        rarCompressorData = CompressorFileData(
-                filename=filenameRAR,
-                list_data=data_of_rars,
-                type='rar',
-                join=join
-            )
-        return rarCompressorData
+        return data_of_rars
 
     def __to_rar_data(
         self,
@@ -228,29 +190,33 @@ class RarHandler(BaseZipRarHandler):
         Returns:
             CurrentFile: with data of RAR file.
         """
+        if filenameRar is None:
+            filenameRar = 'FileRar'
+
         buffer_dataRar = io.BytesIO()
 
         id_directory = uuid1().hex
-        ROOT_PATH = os.path.join(self.TEMPDIR, id_directory)
 
-        DIR_RAR_FILES = os.path.join(ROOT_PATH, filenameRar)
-        RAR_FILE_ = os.path.join(DIR_RAR_FILES) + '.rar'
+        # Make directory and save all data into `TEMP` `.RAR_TEMP`
+        ROOT_PATH = self.paths.build(self.TEMPDIR, id_directory)
+        DIR_RAR_FILES = self.paths.build(
+                            ROOT_PATH, filenameRar,
+                            make=True
+                        )
+        RAR_FILE_ = self.paths.build(DIR_RAR_FILES) + '.rar'
         # print(ROOT_PATH)
-
-        # Make directory and save all data into `.RAR_TEMP`
-        if not os.path.exists(DIR_RAR_FILES):
-            os.makedirs(DIR_RAR_FILES)
 
         for item in listRarFileCompress:
             # print(item, len(item.list_data), item.filename)
-            directory_path = os.path.join(DIR_RAR_FILES, item.filename)
-
-            if not os.path.exists(directory_path):
-                os.makedirs(directory_path)
+            directory_path = self.paths.build(
+                                    DIR_RAR_FILES, item.filename,
+                                    make=True
+                                )
 
             for image in item.list_data:
-                file_name = os.path.basename(image.filename)
-                image_path = os.path.join(directory_path, file_name)
+                file_name = self.paths.get_basename(image.filename)
+                image_path = self.paths.build(directory_path, file_name)
+
                 data = image.bytes_data.getvalue()
                 with open(image_path, 'wb') as fileImage:
                     fileImage.write(data)
@@ -290,8 +256,7 @@ class RarHandler(BaseZipRarHandler):
 
     def to_write(
         self,
-        currentFileRar: CompressorFileData,
-        path_dest: str
+        currentFileRar: CurrentFile
     ) -> List[dict]:
         """
         Send data to `BaseZipRarHandler.to_write()` to save the RAR file data.
@@ -299,14 +264,10 @@ class RarHandler(BaseZipRarHandler):
         Args:
             currentFileRar: `CompressorFileData` instance, contains data of
                             RAR file.
-            path_dest: location where the CBR file will be stored.
 
         Returns:
             List[dict]: list of dicts with information of all files saved.
                         'name': path to the file.
                         'size': size of file.
         """
-        return super().to_write(
-                    currentCompressorFile=currentFileRar,
-                    path=path_dest
-                )
+        return super().to_write(currentFileInstance=currentFileRar)

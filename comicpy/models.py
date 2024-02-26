@@ -123,6 +123,7 @@ class CurrentFile(FileBaseClass):
         bytes_data: io.BytesIO,
         chunk_bytes: bytes = None,
         extention: str = None,
+        is_comic: bool = False,
         unit: str = 'mb'
     ) -> None:
         """
@@ -137,9 +138,11 @@ class CurrentFile(FileBaseClass):
         """
         self.filename = filename
         self.extention = extention
+        self.is_comic = is_comic
         self.chunk_bytes = chunk_bytes
         self.bytes_data = bytes_data
         self.name = None
+        self.path = None
         self.unit = unit
         self.size = super().get_size()
         super().get_extention()
@@ -181,9 +184,14 @@ class CompressorFileData(FileBaseClass):
         self.list_data = list_data
         self.type = type
         self.join = join
+        self.items = 0
         self.extention = None
         self.unit = unit
         self.size = self.get_size()
+        self.set_items()
+
+    def set_items(self) -> None:
+        self.items = len(self.list_data)
 
     def setExtention(self) -> str:
         """
@@ -247,5 +255,5 @@ class CompressorFileData(FileBaseClass):
                         self.filename,
                         self.size,
                         self.unit.upper(),
-                        len(self.list_data)
+                        self.items
                 )

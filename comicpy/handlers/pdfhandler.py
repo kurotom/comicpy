@@ -4,18 +4,18 @@ Handler related to files ZIP.
 """
 
 from comicpy.handlers.imageshandler import ImagesHandler
+from comicpy.utils import Paths
 
 from comicpy.models import (
     ImageComicData,
-    CurrentFile
+    CurrentFile,
+    CompressorFileData
 )
 
 from pypdf import (
     PdfReader,
     PageObject
 )
-
-import os
 
 from typing import List, TypeVar
 
@@ -39,11 +39,13 @@ class PdfHandler:
         """
         self.unit = unit
         self.imageshandler = ImagesHandler()
+        self.paths = Paths()
 
     def process_pdf(
         self,
-        currentFilePDF: CurrentFile
-    ) -> List[ImageComicData]:
+        currentFilePDF: CurrentFile,
+        compressor: str
+    ) -> CompressorFileData:
         """
         Takes the bytes from a PDF file and gets the images.
 
@@ -60,7 +62,14 @@ class PdfHandler:
         # print(reader.pdf_header, len(reader.pages), reader.metadata)
         # print(len(reader.pages))
         listImageComicData = self.getting_data(pages_pdf=reader.pages)
-        return listImageComicData
+
+        pdfFileCompressor = CompressorFileData(
+                                filename=currentFilePDF.name.replace(' ', '_'),
+                                list_data=listImageComicData,
+                                type=compressor,
+                                unit=self.unit
+                            )
+        return pdfFileCompressor
 
     def getting_data(
         self,
@@ -86,12 +95,12 @@ class PdfHandler:
             elif len(pages_pdf[i].images) > 1:
                 current_image = pages_pdf[i].images[i]
 
-            name_, extention_ = os.path.splitext(current_image.name)
+            name_, extention_ = self.paths.splitext(current_image.name)
             name_image = 'Image' + '%d'.zfill(4) % (i) + extention_.lower()
 
             imageIO = self.imageshandler.new_size_image(
                                     currentImage=current_image.image,
-                                    extention=extention_.upper(),
+                                    extention=extention_[1:].upper(),
                                     sizeImage='small'
                                 )
 

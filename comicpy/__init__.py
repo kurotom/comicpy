@@ -21,13 +21,7 @@ from comicpy.exceptionsClasses import (
     DirectoryFilterEmptyFiles
 )
 
-from comicpy.valid_extentions import (
-    pdfFileExtention,
-    comicFilesExtentions,
-    compressorsExtentions,
-    imagesExtentions,
-    validExtentionsList
-)
+from comicpy.valid_extentions import ValidExtentions
 
 from comicpy.handlers import (
     PdfHandler,
