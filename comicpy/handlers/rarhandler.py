@@ -81,7 +81,7 @@ class RarHandler(BaseZipRarHandler):
     def rename_rar_cbr(
         self,
         currentFileRar: CurrentFile
-    ) -> CompressorFileData:
+    ) -> CurrentFile:
         """
         Add CBR name and extention of `CurrentFile` instance.
 
@@ -93,14 +93,7 @@ class RarHandler(BaseZipRarHandler):
         """
         currentFileRar.extention = '.cbr'
         currentFileRar.name = currentFileRar.name.replace(' ', '_')
-        rarFileCompress = CompressorFileData(
-                                    filename=currentFileRar.name,
-                                    list_data=[currentFileRar],
-                                    type='rar',
-                                    unit=self.unit,
-                                    join=False,
-                                )
-        return rarFileCompress
+        return currentFileRar
 
     def extract_content(
         self,

@@ -187,8 +187,9 @@ class CompressorFileData(FileBaseClass):
         self.items = 0
         self.extention = None
         self.unit = unit
-        self.size = self.get_size()
+        self.size = 0
         self.set_items()
+        self.get_size()
 
     def set_items(self) -> None:
         self.items = len(self.list_data)
@@ -232,7 +233,8 @@ class CompressorFileData(FileBaseClass):
             item.bytes_data.getbuffer().nbytes
             for item in self.list_data
         ]
-        return sum(sizes) / size_unit
+
+        self.size = sum(sizes) / size_unit
 
     def __len__(self) -> int:
         return len(self.list_data)

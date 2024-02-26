@@ -229,7 +229,7 @@ class ComicPy:
         self,
         filename: str,
         compressor: Union[RAR, ZIP] = 'zip',
-    ) -> CompressorFileData:
+    ) -> List[CurrentFile]:
         """
         Process PDF file, load content, extract images.
 
@@ -250,32 +250,24 @@ class ComicPy:
 
         self.check_file(currentFile=self.currentFile)
 
-        listImagesPDF = self.pdfphandler.process_pdf(
-                            currentFilePDF=self.currentFile
+        compressFileData = self.pdfphandler.process_pdf(
+                            currentFilePDF=self.currentFile,
+                            compressor=compressor
                         )
-        compressFileData = CompressorFileData(
-                    filename=self.currentFile.name.replace(' ', '_'),
-                    list_data=listImagesPDF,
-                    type=compressor,
-                    unit=self.unit
-                )
-        compressFileData.setExtention()
 
         compressedCurrentFileIO = self.to_compressor(
                             filename=compressFileData.filename,
-                            dataRawFile=compressFileData,
+                            listCompressorData=compressFileData,
                             compressor=compressor,
                             join_files=False
                         )
-        compressedCurrentFileIO.name = self.currentFile.name
-
         return compressedCurrentFileIO
 
     def process_zip(
         self,
         filename: str,
         password: str = None
-    ) -> CompressorFileData:
+    ) -> List[CurrentFile]:
         """
         Process ZIP files.
 
@@ -297,14 +289,14 @@ class ComicPy:
                 password=password
             )
         if is_protected:
-            # zipCompressorFileData = self.ziphandler.extract_images(
             zipCompressorFileData = self.ziphandler.extract_content(
                                         currentFileZip=self.currentFile,
                                         password=password
                                     )
+
             compressedCurrentFileIO = self.to_compressor(
                                 filename=zipCompressorFileData.filename,
-                                dataRawFile=[zipCompressorFileData],
+                                listCompressorData=[zipCompressorFileData],
                                 compressor='zip',
                                 join_files=False
                             )
@@ -314,13 +306,13 @@ class ComicPy:
             zipCompressorFileData = self.ziphandler.rename_zip_cbz(
                                     currentFileZip=self.currentFile
                                 )
-            return zipCompressorFileData
+            return [zipCompressorFileData]
 
     def process_rar(
         self,
         filename: str,
         password: str = None
-    ) -> CompressorFileData:
+    ) -> List[CurrentFile]:
         """
         Process RAR files.
 
@@ -337,18 +329,18 @@ class ComicPy:
         self.check_file(currentFile=self.currentFile)
 
         is_protected = self.check_protectedFile(
-                handler=self.ziphandler,
+                handler=self.rarhandler,
                 compressCurrentFile=self.currentFile,
                 password=password
             )
         if is_protected:
-            rarCompressorFileData = self.rarhandler.extract_images(
+            rarCompressorFileData = self.rarhandler.extract_content(
                                         currentFileRar=self.currentFile,
                                         password=password
                                     )
             compressedCurrentFileIO = self.to_compressor(
                                 filename=rarCompressorFileData.filename,
-                                dataRawFile=[rarCompressorFileData],
+                                listCompressorData=[rarCompressorFileData],
                                 compressor='rar',
                                 join_files=False
                             )
@@ -358,7 +350,7 @@ class ComicPy:
             rarCompressorFileData = self.rarhandler.rename_rar_cbr(
                                     currentFileRar=self.currentFile
                                 )
-            return rarCompressorFileData
+            return [rarCompressorFileData]
 
     def get_file_glob(
         self,

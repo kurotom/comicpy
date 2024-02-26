@@ -75,7 +75,7 @@ class ZipHandler(BaseZipRarHandler):
     def rename_zip_cbz(
         self,
         currentFileZip: CurrentFile
-    ) -> CompressorFileData:
+    ) -> CurrentFile:
         """
         Add CBZ name and extention of `CurrentFile` instance.
 
@@ -87,14 +87,7 @@ class ZipHandler(BaseZipRarHandler):
         """
         currentFileZip.extention = '.cbz'
         currentFileZip.name = currentFileZip.name.replace(' ', '_')
-        zipFileCompress = CompressorFileData(
-                                    filename=currentFileZip.name,
-                                    list_data=[currentFileZip],
-                                    type='zip',
-                                    unit=self.unit,
-                                    join=False,
-                                )
-        return zipFileCompress
+        return currentFileZip
 
     def extract_content(
         self,
@@ -123,6 +116,9 @@ class ZipHandler(BaseZipRarHandler):
             compression=pyzipper.ZIP_DEFLATED,
             encryption=pyzipper.WZ_AES
         ) as zip_file:
+
+            if password is not None:
+                zip_file.pwd = password.encode('utf-8')
 
             return super().iterateFiles(
                 instanceCompress=zip_file,

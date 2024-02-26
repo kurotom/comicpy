@@ -67,6 +67,7 @@ class ImagesHandler:
 
         imageResized.save(
                 newImageIO,
-                format=ImagesHandler.validFormats[extention]
+                format=ImagesHandler.validFormats[extention],
+                quality=90
             )
         return newImageIO

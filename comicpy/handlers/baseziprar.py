@@ -40,7 +40,7 @@ class BaseZipRarHandler:
         instanceCompress: Union[RarFile, AESZipFile],
         itemFile: bytes,
         password: str = None,
-    ) -> None:
+    ) -> bytes:
         """
         Read data of file, using password for protected files.
 
@@ -50,6 +50,7 @@ class BaseZipRarHandler:
             password: password string to unlock the archive data.
 
         Returns
+            bytes: data of file.
         """
         if isinstance(instanceCompress, AESZipFile):
             return instanceCompress.read(itemFile)
@@ -63,7 +64,7 @@ class BaseZipRarHandler:
         self,
         instanceCompress: Union[RarFile, AESZipFile],
         password: str = None
-    ) -> list:
+    ) -> CompressorFileData:
         """
         Iterates over files of RAR or ZIP files, read their data.
 
@@ -71,8 +72,10 @@ class BaseZipRarHandler:
             instanceCompress: `RarFile` or `AESZipFile` instance.
             password: password string to unlock the archive data.
 
-        Returns
-            list: list of content of file RAR or ZIP.
+        Returns:
+            CompressorFileData: instances contains name of directory of images,
+                                list of ImageComicData instances, type of
+                                compressor.
         """
         images_Extentions = self.validextentions.get_images_extentions()
         listContentData = []
