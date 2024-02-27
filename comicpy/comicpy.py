@@ -49,6 +49,11 @@ PDF = TypeVar('pdf')
 CBZ = TypeVar('cbz')
 CBR = TypeVar('cbr')
 
+PRESERVE = TypeVar('preserve')
+SMALL = TypeVar('small')
+MEDIUM = TypeVar('medium')
+LARGE = TypeVar('large')
+
 
 class ComicPy:
     """
@@ -229,6 +234,7 @@ class ComicPy:
         self,
         filename: str,
         compressor: Union[RAR, ZIP] = 'zip',
+        resize: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve'
     ) -> List[CurrentFile]:
         """
         Process PDF file, load content, extract images.
@@ -252,7 +258,8 @@ class ComicPy:
 
         compressFileData = self.pdfphandler.process_pdf(
                             currentFilePDF=self.currentFile,
-                            compressor=compressor
+                            compressor=compressor,
+                            resizeImage=resize
                         )
 
         compressedCurrentFileIO = self.to_compressor(
@@ -266,7 +273,8 @@ class ComicPy:
     def process_zip(
         self,
         filename: str,
-        password: str = None
+        password: str = None,
+        resize: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve'
     ) -> List[CurrentFile]:
         """
         Process ZIP files.
@@ -291,7 +299,8 @@ class ComicPy:
         if is_protected:
             zipCompressorFileData = self.ziphandler.extract_content(
                                         currentFileZip=self.currentFile,
-                                        password=password
+                                        password=password,
+                                        resizeImage=resize
                                     )
 
             compressedCurrentFileIO = self.to_compressor(
@@ -311,7 +320,8 @@ class ComicPy:
     def process_rar(
         self,
         filename: str,
-        password: str = None
+        password: str = None,
+        resize: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve'
     ) -> List[CurrentFile]:
         """
         Process RAR files.
@@ -336,7 +346,8 @@ class ComicPy:
         if is_protected:
             rarCompressorFileData = self.rarhandler.extract_content(
                                         currentFileRar=self.currentFile,
-                                        password=password
+                                        password=password,
+                                        resizeImage=resize
                                     )
             compressedCurrentFileIO = self.to_compressor(
                                 filename=rarCompressorFileData.filename,
@@ -383,7 +394,8 @@ class ComicPy:
         filename: str = None,
         password: str = None,
         compressor: Union[RAR, ZIP] = 'zip',
-        join: bool = False
+        join: bool = False,
+        resize: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve'
     ) -> Union[CompressorFileData, None]:
         """
         Searches files in the given directory, searches only PDF, CBZ, CBR
@@ -466,7 +478,8 @@ class ComicPy:
                         # print('>> DIR PDF')
                         compressFileData = self.pdfphandler.process_pdf(
                                             currentFilePDF=fileCurrentData,
-                                            compressor=compressor
+                                            compressor=compressor,
+                                            resizeImage=resize
                                         )
 
                     elif extention == '.zip' or extention == '.cbz':
@@ -478,7 +491,8 @@ class ComicPy:
                             )
                         compressFileData = self.ziphandler.extract_content(
                                             currentFileZip=fileCurrentData,
-                                            password=password
+                                            password=password,
+                                            resizeImage=resize
                                         )
 
                     elif extention == '.rar' or extention == '.cbr':
@@ -490,7 +504,8 @@ class ComicPy:
                             )
                         compressFileData = self.rarhandler.extract_content(
                                             currentFileRar=fileCurrentData,
-                                            password=password
+                                            password=password,
+                                            resizeImage=resize
                                         )
                     # print(compressFileData.items)
                     if compressFileData.items == 1:

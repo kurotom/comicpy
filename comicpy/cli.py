@@ -15,13 +15,15 @@ def pdf(
     compressor: str,
     dest: str,
     check: bool,
+    resize: str = 'preserve'
 ) -> None:
     """
     Function for PDF file.
     """
     data = comicInstance.process_pdf(
                     filename=filename,
-                    compressor=compressor
+                    compressor=compressor,
+                    resize=resize
                 )
     metaFileCompress = comicInstance.to_write(
                     listCurrentFiles=data,
@@ -40,14 +42,16 @@ def rar(
     filename: str,
     dest: str,
     check: bool,
-    password: str
+    password: str,
+    resize: str = 'preserve'
 ) -> None:
     """
     Function for RAR file.
     """
     data = comicInstance.process_rar(
                     filename=filename,
-                    password=password
+                    password=password,
+                    resize=resize
                 )
     metaFileCompress = comicInstance.to_write(
                                 listCurrentFiles=data,
@@ -66,14 +70,16 @@ def zip(
     filename: str,
     dest: str,
     check: bool,
-    password: str
+    password: str,
+    resize: str = 'preserve'
 ) -> None:
     """
     Function for ZIP file.
     """
     data = comicInstance.process_zip(
                     filename=filename,
-                    password=password
+                    password=password,
+                    resize=resize
                 )
     metaFileCompress = comicInstance.to_write(
                                 listCurrentFiles=data,
@@ -96,7 +102,8 @@ def dir(
     password: str = None,
     compressor: str = 'zip',
     join: bool = False,
-    check: bool = False
+    check: bool = False,
+    resize: str = 'preserve'
 ) -> None:
     """
     Function for directories.
@@ -107,7 +114,8 @@ def dir(
                     extention_filter=extention_filter,
                     compressor=compressor,
                     join=join,
-                    password=password
+                    password=password,
+                    resize=resize
                 )
     metaFileCompress = comicInstance.to_write(
                                 listCurrentFiles=data,
@@ -196,6 +204,12 @@ def CliComicPy() -> None:
             '--password',
             help='Password of file protected.'
         )
+    main_parser.add_argument(
+            '--resize',
+            choices=['preserve', 'small', 'medium', 'large'],
+            default='preserve',
+            help='Password of file protected.'
+        )
 
     args = main_parser.parse_args()
     typeFile = args.type
@@ -208,6 +222,7 @@ def CliComicPy() -> None:
     unitFile = args.unit
     joinFile = args.join
     password = args.password
+    resizeImage = args.resize
 
     # Instance
     comic = ComicPy(unit=unitFile)
@@ -221,7 +236,8 @@ def CliComicPy() -> None:
                 filename=pathFile,
                 compressor=compressorFile,
                 dest=destFile,
-                check=checkFile
+                check=checkFile,
+                resize=resizeImage
             )
         if extention_.lower() == '.rar':
             rar(
@@ -229,7 +245,8 @@ def CliComicPy() -> None:
                 filename=pathFile,
                 dest=destFile,
                 check=checkFile,
-                password=password
+                password=password,
+                resize=resizeImage
             )
 
         if extention_.lower() == '.zip':
@@ -238,7 +255,8 @@ def CliComicPy() -> None:
                 filename=pathFile,
                 dest=destFile,
                 check=checkFile,
-                password=password
+                password=password,
+                resize=resizeImage
             )
 
     # DIRECOTRY
@@ -257,7 +275,8 @@ def CliComicPy() -> None:
                 password=password,
                 compressor=compressorFile,
                 join=joinFile,
-                check=checkFile
+                check=checkFile,
+                resize=resizeImage
             )
 
 

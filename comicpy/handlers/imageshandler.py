@@ -23,6 +23,7 @@ class ImagesHandler:
         'JPG': 'jpeg'
     }
     sizeImageDict = {
+        'sizeImage': None,
         'small': (800, 1200),
         'medium': (1000, 1500),
         'large': (1200, 1800),
@@ -30,7 +31,7 @@ class ImagesHandler:
 
     def get_size(
         self,
-        size: str = 'small'
+        size: str = 'preserve'
     ) -> tuple:
         """
         Returns tupe of size.
@@ -44,7 +45,7 @@ class ImagesHandler:
         self,
         currentImage: Union[bytes, ImageInstancePIL],
         extention: str,
-        sizeImage: str = 'small'
+        sizeImage: str = 'preserve'
     ) -> io.BytesIO:
         """
         Resize image.
@@ -60,11 +61,15 @@ class ImagesHandler:
         """
         size_tuple = self.get_size(size=sizeImage)
         newImageIO = io.BytesIO()
+
         if type(currentImage) is bytes:
             currentImage = Image.open(io.BytesIO(currentImage))
 
-        imageResized = currentImage.resize(size_tuple)
-
+        if size_tuple is not None:
+            imageResized = currentImage.resize(
+                                    size_tuple,
+                                    resample=Image.Resampling.LANCZOS
+                                )
         imageResized.save(
                 newImageIO,
                 format=ImagesHandler.validFormats[extention],

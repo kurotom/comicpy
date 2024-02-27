@@ -17,8 +17,17 @@ from pypdf import (
     PageObject
 )
 
-from typing import List, TypeVar
+from typing import (
+    List,
+    TypeVar,
+    Union
+)
 
+
+PRESERVE = TypeVar('preserve')
+SMALL = TypeVar('small')
+MEDIUM = TypeVar('medium')
+LARGE = TypeVar('large')
 ImageInstancePIL = TypeVar("ImageInstancePIL")
 
 
@@ -44,7 +53,8 @@ class PdfHandler:
     def process_pdf(
         self,
         currentFilePDF: CurrentFile,
-        compressor: str
+        compressor: str,
+        resizeImage: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve'
     ) -> CompressorFileData:
         """
         Takes the bytes from a PDF file and gets the images.
@@ -61,8 +71,10 @@ class PdfHandler:
         reader = PdfReader(dataRaw)
         # print(reader.pdf_header, len(reader.pages), reader.metadata)
         # print(len(reader.pages))
-        listImageComicData = self.getting_data(pages_pdf=reader.pages)
-
+        listImageComicData = self.getting_data(
+                                    pages_pdf=reader.pages,
+                                    resize=resizeImage
+                                )
         pdfFileCompressor = CompressorFileData(
                                 filename=currentFilePDF.name.replace(' ', '_'),
                                 list_data=listImageComicData,
@@ -73,7 +85,8 @@ class PdfHandler:
 
     def getting_data(
         self,
-        pages_pdf: List[PageObject]
+        pages_pdf: List[PageObject],
+        resize: str
     ) -> List[ImageComicData]:
         """
         Gets images of the pages of a PDF file.
@@ -101,7 +114,7 @@ class PdfHandler:
             imageIO = self.imageshandler.new_size_image(
                                     currentImage=current_image.image,
                                     extention=extention_[1:].upper(),
-                                    sizeImage='small'
+                                    sizeImage=resize
                                 )
 
             # print(images[i].name, name_image)

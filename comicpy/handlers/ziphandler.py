@@ -21,6 +21,7 @@ import io
 
 from typing import List, Union, TypeVar
 
+PRESERVE = TypeVar('preserve')
 SMALL = TypeVar('small')
 MEDIUM = TypeVar('medium')
 LARGE = TypeVar('large')
@@ -93,7 +94,7 @@ class ZipHandler(BaseZipRarHandler):
         self,
         currentFileZip: CurrentFile,
         password: str = None,
-        imageSize: Union[SMALL, MEDIUM, LARGE] = 'small',
+        resizeImage: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve'
     ) -> CompressorFileData:
         """
         Extract images from ZIP file.
@@ -122,7 +123,8 @@ class ZipHandler(BaseZipRarHandler):
 
             return super().iterateFiles(
                 instanceCompress=zip_file,
-                password=password
+                password=password,
+                resize=resizeImage
             )
 
     def to_zip(

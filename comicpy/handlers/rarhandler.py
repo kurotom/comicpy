@@ -27,6 +27,7 @@ import io
 
 from typing import List, Union, TypeVar
 
+PRESERVE = TypeVar('preserve')
 SMALL = TypeVar('small')
 MEDIUM = TypeVar('medium')
 LARGE = TypeVar('large')
@@ -99,7 +100,7 @@ class RarHandler(BaseZipRarHandler):
         self,
         currentFileRar: CurrentFile,
         password: str = None,
-        imageSize: Union[SMALL, MEDIUM, LARGE] = 'small'
+        resizeImage: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve'
     ) -> CompressorFileData:
         """
         Extract images from RAR file.
@@ -123,7 +124,8 @@ class RarHandler(BaseZipRarHandler):
 
             return super().iterateFiles(
                 instanceCompress=rar_file,
-                password=password
+                password=password,
+                resize=resizeImage
             )
 
     def to_rar(

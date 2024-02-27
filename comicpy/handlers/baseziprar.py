@@ -24,6 +24,10 @@ from typing import (
 
 ZIP = TypeVar('zip')
 RAR = TypeVar('rar')
+PRESERVE = TypeVar('preserve')
+SMALL = TypeVar('small')
+MEDIUM = TypeVar('medium')
+LARGE = TypeVar('large')
 
 
 class BaseZipRarHandler:
@@ -63,7 +67,8 @@ class BaseZipRarHandler:
     def iterateFiles(
         self,
         instanceCompress: Union[RarFile, AESZipFile],
-        password: str = None
+        password: str = None,
+        resize: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve'
     ) -> CompressorFileData:
         """
         Iterates over files of RAR or ZIP files, read their data.
@@ -132,11 +137,14 @@ class BaseZipRarHandler:
                                     password=password
                                 )
 
+# TODO: add unique names for all images
+# WARNING: duplicated filenames.
                 imageIO = self.imageshandler.new_size_image(
                                         currentImage=rawDataFile,
                                         extention=_extention[1:].upper(),
-                                        sizeImage='small'
+                                        sizeImage=resize
                                     )
+##############################################
 
                 image_comic = ImageComicData(
                                 filename=file_name,
