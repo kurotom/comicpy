@@ -1,6 +1,3 @@
-!tests
-tests/__pycache__
-tests/*/__pycache__
 */*/__pycache__
 */__pycache__
 __pycache__
@@ -20,3 +17,8 @@ protected_*
 notes.md
 .RAR_TEMP
 Converted_*
+
+!tests/files/*
+
+tests/__pycache__
+tests/*/__pycache__
