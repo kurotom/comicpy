@@ -5,6 +5,7 @@ Tests Base
 
 
 from comicpy.comicpy import ComicPy
+from comicpy.utils import Paths
 
 from comicpy.models import (
     CurrentFile,
@@ -62,12 +63,18 @@ class BaseTestCase(unittest.TestCase):
         self.cbr_cbz_dir = BaseTestCase.DIRS['cbr_cbz']
         self.rars_protected = BaseTestCase.DIRS['rars_protected']
         self.zips_protected = BaseTestCase.DIRS['zips_protected']
+        self.paths = Paths()
+        self.temp_dir = self.make_temp_dir()
         self.comicpy = ComicPy
         self.comicpy_init = ComicPy()
         self.files = BaseTestCase.FILES
         self.dirs = BaseTestCase.DIRS
         self.data = {}
         self.loadContent()
+
+    def make_temp_dir(self):
+        path = self.paths.build('tests', 'TEMP_DIR', make=True)
+        return path
 
     def loadContent(self) -> dict:
         keys = list(BaseTestCase.FILES.keys())

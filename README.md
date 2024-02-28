@@ -37,11 +37,11 @@ git clone https://github.com/kurotom/comicpy.git
 
 cd comicpy
 
-poetry install
-
 poetry shell
 
-. run_tests.sh 
+poetry install
+
+. run_tests.sh
 ```
 
 # Usage
@@ -66,6 +66,7 @@ $ comicpy -h
 | --check | Check the CBR or CBZ files created. |
 | -u {b,kb,mb,gb}, --unit {b,kb,mb,gb} | Unit of measure of data size. Default is "mb". |
 | --password PASSWORD | Password of file protected. |
+| --resize {preserve,small,medium,large} | Password of file protected. |
 
 ```bash
 $ comicpy --type f -p file.PDF --check -u kb
@@ -73,6 +74,8 @@ $
 $ comicpy --type f -p file.rar --check
 $
 $ comicpy --type f -p file.zip --check --password PASS
+$
+$ comicpy --type f -p file.rar --check --resize small
 ```
 
 ### Directory usage
@@ -89,6 +92,7 @@ $ comicpy --type f -p file.zip --check --password PASS
 | --join | Join or does not files thath are in the directory. Default is "False". |
 | -u {b,kb,mb,gb}, --unit {b,kb,mb,gb} | Unit of measure of data size. Default is "mb". |
 | --password PASSWORD | Password of file protected. |
+| --resize {preserve,small,medium,large} | Password of file protected. |
 
 
 ```bash
@@ -96,7 +100,7 @@ $ comicpy --type d -p rars_dir --filter rar -c rar --check --join -o prefix_fina
 $ for i in $(ls -d Zip_Dir_*/); do
 > comicpy --type d -p "$i" --filter zip -c zip --check -o ${i: 0:-1} --join
 > done
-$
+$ comicpy --type d -p rars_dir --filter rar -c rar --check --join -o prefix_final_ --password PASS --resize preserve
 ```
 
 

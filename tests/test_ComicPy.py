@@ -28,8 +28,6 @@ import shutil
 
 class ComicPyTestCase(BaseTestCase):
 
-    TEST_DIR = 'tests/TEMP_DIR'
-
     def test_comicpy_invalid_unit(self):
         with self.assertRaises(UnitFileSizeInvalid):
             self.comicpy('XX')
@@ -420,7 +418,7 @@ class ComicPyTestCase(BaseTestCase):
             )
         info_data = self.comicpy_init.to_write(
             listCurrentFiles=list_Currentfiles,
-            path=ComicPyTestCase.TEST_DIR
+            path=self.temp_dir
         )
 
         results = [
@@ -441,7 +439,7 @@ class ComicPyTestCase(BaseTestCase):
             )
         info_data = self.comicpy_init.to_write(
             listCurrentFiles=list_Currentfiles,
-            path=ComicPyTestCase.TEST_DIR
+            path=self.temp_dir
         )
 
         results = [
@@ -462,7 +460,7 @@ class ComicPyTestCase(BaseTestCase):
             )
         info_data = self.comicpy_init.to_write(
             listCurrentFiles=list_Currentfiles,
-            path=ComicPyTestCase.TEST_DIR
+            path=self.temp_dir
         )
 
         results = [
@@ -483,7 +481,7 @@ class ComicPyTestCase(BaseTestCase):
             )
         info_data = self.comicpy_init.to_write(
             listCurrentFiles=list_Currentfiles,
-            path=ComicPyTestCase.TEST_DIR
+            path=self.temp_dir
         )
 
         results = [
@@ -494,4 +492,5 @@ class ComicPyTestCase(BaseTestCase):
 
     @classmethod
     def tearDownClass(cls):
-        shutil.rmtree(path=ComicPyTestCase.TEST_DIR)
+        path = os.path.join('tests', 'TEMP_DIR')
+        shutil.rmtree(path)

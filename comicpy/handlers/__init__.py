@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """
+handlers
 """
 
 from comicpy.handlers.pdfhandler import PdfHandler

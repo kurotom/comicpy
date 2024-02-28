@@ -2,6 +2,12 @@
 """
 `ImageComicData` handles image-related issues, such as resizing, resizing in
 the future, formatting, and other related issues, if required.
+
+Options for resize images.
+* 'preserve' :  original size.
+* 'small'     :  800 x 1200.
+* 'medium'    :  1000 x 1500.
+* 'large'     :  1200 x 1800.
 """
 
 
@@ -25,7 +31,7 @@ class ImagesHandler:
         'JPG': 'jpeg'
     }
     sizeImageDict = {
-        'sizeImage': None,
+        'preserve': None,
         'small': (800, 1200),
         'medium': (1000, 1500),
         'large': (1200, 1800),
@@ -76,6 +82,9 @@ class ImagesHandler:
                                     size_tuple,
                                     resample=Image.Resampling.LANCZOS
                                 )
+        else:
+            imageResized = currentImage
+
         imageResized.save(
                 newImageIO,
                 format=ImagesHandler.validFormats[extention],
