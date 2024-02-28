@@ -75,6 +75,7 @@ class PdfHandler:
                                     pages_pdf=reader.pages,
                                     resize=resizeImage
                                 )
+        # print(len(listImageComicData))
         pdfFileCompressor = CompressorFileData(
                                 filename=currentFilePDF.name.replace(' ', '_'),
                                 list_data=listImageComicData,
@@ -111,18 +112,14 @@ class PdfHandler:
             name_, extention_ = self.paths.splitext(current_image.name)
             name_image = 'Image' + '%d'.zfill(4) % (i) + extention_.lower()
 
-            imageIO = self.imageshandler.new_size_image(
+            image_comic = self.imageshandler.new_image(
+                                    name_image=name_image,
                                     currentImage=current_image.image,
                                     extention=extention_[1:].upper(),
-                                    sizeImage=resize
+                                    sizeImage=resize,
+                                    unit=self.unit
                                 )
-
             # print(images[i].name, name_image)
-            image_comic = ImageComicData(
-                            filename=name_image,
-                            bytes_data=imageIO,
-                            unit=self.unit
-                        )
             data.append(image_comic)
 
             i += 1

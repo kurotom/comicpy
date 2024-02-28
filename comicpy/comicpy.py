@@ -396,7 +396,7 @@ class ComicPy:
         compressor: Union[RAR, ZIP] = 'zip',
         join: bool = False,
         resize: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve'
-    ) -> Union[CompressorFileData, None]:
+    ) -> List[CurrentFile]:
         """
         Searches files in the given directory, searches only PDF, CBZ, CBR
         files.
@@ -507,13 +507,13 @@ class ComicPy:
                                             password=password,
                                             resizeImage=resize
                                         )
-                    # print(compressFileData.items)
+                    # print(compressFileData.items, type(compressFileData))
                     if compressFileData.items == 1:
                         item = compressFileData.list_data[0]
                         if item.is_comic:
                             list_ComicFiles.append(item)
                         else:
-                            list_ContentCompressorFile.append(item)
+                            list_ContentCompressorFile.append(compressFileData)
                     else:
                         list_ContentCompressorFile.append(compressFileData)
 
@@ -528,7 +528,6 @@ class ComicPy:
                 filenameCompressor = filename
 
             if len(list_ContentCompressorFile) > 0:
-
                 listCurrentFiles = self.to_compressor(
                                 filename=filenameCompressor,
                                 listCompressorData=list_ContentCompressorFile,
@@ -564,6 +563,7 @@ class ComicPy:
         if type(listCompressorData) is not list:
             listCompressorData = [listCompressorData]
 
+        # print(filename)
         if compressor == 'zip':
             compressorFile = self.ziphandler.to_zip(
                                 filenameZIP=filename,
@@ -597,6 +597,8 @@ class ComicPy:
         """
         info_list = []
         for itemCurrent in listCurrentFiles:
+            # print(itemCurrent.filename, itemCurrent.name)
+
             file_name = '%s%s' % (
                             itemCurrent.name,
                             itemCurrent.extention
@@ -612,6 +614,15 @@ class ComicPy:
 
             path_output = self.paths.build(container_path, file_name)
 
+            if self.paths.exists(path_output):
+                file_name = '%s_%s%s' % (
+                                itemCurrent.name,
+                                id(itemCurrent),
+                                itemCurrent.extention
+                            )
+                path_output = self.paths.build(container_path, file_name)
+
+            # Sets destine path to CurrentFile instance.
             itemCurrent.path = path_output
 
             if itemCurrent.extention == ValidExtentions.CBR:

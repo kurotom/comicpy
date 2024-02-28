@@ -161,6 +161,7 @@ class ZipHandler(BaseZipRarHandler):
             data_of_zips.append(currentFileZip)
         elif join is False:
             for file in listZipFileCompress:
+
                 current_file_list = [file]
                 currentFileZip = self.__to_zip_data(
                             listZipFileCompress=current_file_list,

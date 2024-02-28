@@ -5,6 +5,8 @@ the future, formatting, and other related issues, if required.
 """
 
 
+from comicpy.models import ImageComicData
+
 from PIL import Image
 import io
 
@@ -41,23 +43,27 @@ class ImagesHandler:
         except KeyError:
             return ImagesHandler.sizeImageDict['small']
 
-    def new_size_image(
+    def new_image(
         self,
+        name_image: str,
         currentImage: Union[bytes, ImageInstancePIL],
         extention: str,
-        sizeImage: str = 'preserve'
-    ) -> io.BytesIO:
+        unit: str,
+        sizeImage: str = 'preserve',
+    ) -> ImageComicData:
         """
         Resize image.
 
         Args:
+            name_image: name of image.
             currentImage: `PIL` instance with data of original image.
             extension: extention of original image.
             sizeImage: category of size to resize original image. Default is
                        'small'.
+            unit: unit of measure data.
 
         Returns:
-            io.BytesIO: `BytesIO` instance with data of new resized image.
+            ImageComicData: `ImageComicData` instance with data of image.
         """
         size_tuple = self.get_size(size=sizeImage)
         newImageIO = io.BytesIO()
@@ -75,4 +81,10 @@ class ImagesHandler:
                 format=ImagesHandler.validFormats[extention],
                 quality=90
             )
-        return newImageIO
+
+        image_comic = ImageComicData(
+                        filename=name_image,
+                        bytes_data=newImageIO,
+                        unit=unit
+                    )
+        return image_comic

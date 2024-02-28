@@ -9,13 +9,13 @@ from comicpy.utils import Paths
 
 from comicpy.models import (
     CurrentFile,
-    ImageComicData,
     CompressorFileData
 )
 
 from rarfile import RarFile
 from pyzipper import AESZipFile
 import io
+from uuid import uuid4
 
 from typing import (
     Union,
@@ -128,7 +128,12 @@ class BaseZipRarHandler:
 
             elif _extention.lower() in images_Extentions:
 
-                item_name = name_file.replace(' ', '_')
+                item_name = '%s%s%s' % (
+                    uuid4().hex[:4],
+                    _name.replace(' ', '_'),
+                    _extention
+                )
+
                 file_name = self.paths.build(directory_name, item_name)
 
                 rawDataFile = self.read_file(
@@ -137,20 +142,13 @@ class BaseZipRarHandler:
                                     password=password
                                 )
 
-# TODO: add unique names for all images
-# WARNING: duplicated filenames.
-                imageIO = self.imageshandler.new_size_image(
+                image_comic = self.imageshandler.new_image(
+                                        name_image=file_name,
                                         currentImage=rawDataFile,
                                         extention=_extention[1:].upper(),
-                                        sizeImage=resize
+                                        sizeImage=resize,
+                                        unit=self.unit
                                     )
-##############################################
-
-                image_comic = ImageComicData(
-                                filename=file_name,
-                                bytes_data=imageIO,
-                                unit=self.unit
-                            )
 
                 listContentData.append(image_comic)
 

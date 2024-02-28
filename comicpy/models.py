@@ -98,6 +98,7 @@ class ImageComicData(FileBaseClass):
         self.extention = extention
         self.bytes_data = bytes_data
         self.name = None
+        self.is_comic = False
         self.unit = unit
         self.size = super().get_size()
         super().get_extention()
