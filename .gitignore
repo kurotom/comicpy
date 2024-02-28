@@ -19,6 +19,8 @@ notes.md
 Converted_*
 
 !tests/files/*
+!tests/files/*/*
+!tests/files/*/*/*
 
 tests/__pycache__
 tests/*/__pycache__
