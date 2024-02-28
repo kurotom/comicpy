@@ -30,6 +30,20 @@ For full operation of `comicpy` when using RAR files, you must have available th
 pip install comicpy
 ```
 
+### Cloning, preparing the environment and running the tests
+
+```bash
+git clone https://github.com/kurotom/comicpy.git
+
+cd comicpy
+
+poetry install
+
+poetry shell
+
+. run_tests.sh 
+```
+
 # Usage
 
 ## CLI - usage
