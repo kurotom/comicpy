@@ -29,7 +29,7 @@ def pdf(
                     listCurrentFiles=data,
                     path=dest
                 )
-    if check:
+    if metaFileCompress is not None and check is True:
         for item in metaFileCompress:
             comicInstance.check_integrity(
                     filename=item['name'],
@@ -57,7 +57,7 @@ def rar(
                                 listCurrentFiles=data,
                                 path=dest
                             )
-    if check:
+    if metaFileCompress is not None and check is True:
         for item in metaFileCompress:
             comicInstance.check_integrity(
                     filename=item['name'],
@@ -85,7 +85,7 @@ def zip(
                                 listCurrentFiles=data,
                                 path=dest
                             )
-    if check:
+    if metaFileCompress is not None and check is True:
         for item in metaFileCompress:
             comicInstance.check_integrity(
                         filename=item['name'],
@@ -121,7 +121,7 @@ def dir(
                                 listCurrentFiles=data,
                                 path=dest
                             )
-    if check:
+    if metaFileCompress is not None and check is True:
         for item in metaFileCompress:
             comicInstance.check_integrity(
                         filename=item['name'],

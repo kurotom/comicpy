@@ -27,6 +27,7 @@ from rarfile import (
     RarCannotExec
 )
 
+import os
 import io
 
 from typing import List, Union, TypeVar
@@ -62,6 +63,14 @@ class RarHandler(BaseZipRarHandler):
         self.paths = Paths()
         self.url_page = 'https://www.rarlab.com/download.htm'
         self.path_exec_rar = path_exec_rar
+        self.set_env_rar()
+
+    def set_env_rar(self):
+        """
+        Sets path to rar exec.
+        """
+        if self.path_exec_rar is not None:
+            os.environ['RAR_EXECUTABLE'] = self.path_exec_rar
 
     def testRar(
         self,
