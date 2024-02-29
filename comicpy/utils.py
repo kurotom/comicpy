@@ -18,6 +18,9 @@ class Paths:
     HOME_DIR = os.path.expanduser('~')
     ROOT_PATH = os.path.join(HOME_DIR, DIR)
 
+    def get_separator(self) -> str:
+        return os.sep
+
     def splitext(
         self,
         path: str

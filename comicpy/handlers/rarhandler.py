@@ -57,15 +57,21 @@ class RarHandler(BaseZipRarHandler):
         self.paths = Paths()
 
     def check_exec_rar(self):
+        """
+        Checks if there is an executable RAR on the system.
+
+        Returns
+            bool: `True` if exists, otherwise, `False`.
+        """
         try:
             with rarfile.RarFile(
-                file='None'.encode(),
+                file=io.BytesIO(b'Rar!\x1a\x07\x01\x00gVUX\x0b\x01\x05\x07'),
                 mode='r'
             ) as rarFile:
                 rarFile.testrar()
-            return False
-        except:
             return True
+        except rarfile.RarCannotExec as e:
+            return False
 
     def testRar(
         self,

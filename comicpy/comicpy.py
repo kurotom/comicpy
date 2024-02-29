@@ -383,7 +383,8 @@ class ComicPy:
 
     def get_file_glob(
         self,
-        extention: str
+        extention: str,
+        directory: str
     ) -> list:
         """
         Search by extention.
@@ -396,10 +397,13 @@ class ComicPy:
         """
         for extention_ in [extention.lower(), extention.upper()]:
             pattern = '*.%s' % (extention_)
-            filesMatch = glob.glob(
-                                    pathname=pattern,
-                                    root_dir=self.directory_path
-                                )
+
+            dir_path = '%s%s' % (directory, self.paths.get_separator())
+
+            full_pattern = '%s%s' % (dir_path, pattern)
+
+            filesMatch = glob.glob(full_pattern)
+
             if len(filesMatch) > 0:
                 return filesMatch
         else:
@@ -460,7 +464,10 @@ class ComicPy:
 
         self.directory_path = directory_path
 
-        filesMatch = self.get_file_glob(extention=extention_filter)
+        filesMatch = self.get_file_glob(
+                            extention=extention_filter,
+                            directory=directory_path
+                        )
 
         if len(filesMatch) == 0:
             raise DirectoryFilterEmptyFiles(
