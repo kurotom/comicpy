@@ -26,3 +26,4 @@ tests/__pycache__
 tests/*/__pycache__
 
 comicpy/check_compressors.py
+install.py

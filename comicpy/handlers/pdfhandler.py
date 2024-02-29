@@ -55,7 +55,7 @@ class PdfHandler:
         currentFilePDF: CurrentFile,
         compressor: str,
         resizeImage: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve'
-    ) -> CompressorFileData:
+    ) -> Union[CompressorFileData, None]:
         """
         Takes the bytes from a PDF file and gets the images.
 
@@ -75,6 +75,8 @@ class PdfHandler:
                                     pages_pdf=reader.pages,
                                     resize=resizeImage
                                 )
+        if len(listImageComicData) == 0:
+            return None
         # print(len(listImageComicData))
         pdfFileCompressor = CompressorFileData(
                                 filename=currentFilePDF.name.replace(' ', '_'),
@@ -88,7 +90,7 @@ class PdfHandler:
         self,
         pages_pdf: List[PageObject],
         resize: str
-    ) -> List[ImageComicData]:
+    ) -> Union[List[ImageComicData], list]:
         """
         Gets images of the pages of a PDF file.
 
@@ -104,23 +106,26 @@ class PdfHandler:
         i = 0
         while i < n_pages:
             # print(i, len(pages_pdf[i].images))
-            if len(pages_pdf[i].images) == 1:
-                current_image = pages_pdf[i].images[0]
-            elif len(pages_pdf[i].images) > 1:
-                current_image = pages_pdf[i].images[i]
+            if len(pages_pdf[i].images) == 0:
+                pass
+            else:
+                if len(pages_pdf[i].images) == 1:
+                    current_image = pages_pdf[i].images[0]
+                elif len(pages_pdf[i].images) > 1:
+                    current_image = pages_pdf[i].images[i]
 
-            name_, extention_ = self.paths.splitext(current_image.name)
-            name_image = 'Image' + '%d'.zfill(4) % (i) + extention_.lower()
+                name_, extention_ = self.paths.splitext(current_image.name)
+                name_image = 'Image' + '%d'.zfill(4) % (i) + extention_.lower()
 
-            image_comic = self.imageshandler.new_image(
-                                    name_image=name_image,
-                                    currentImage=current_image.image,
-                                    extention=extention_[1:].upper(),
-                                    sizeImage=resize,
-                                    unit=self.unit
-                                )
-            # print(images[i].name, name_image)
-            data.append(image_comic)
+                image_comic = self.imageshandler.new_image(
+                                        name_image=name_image,
+                                        currentImage=current_image.image,
+                                        extention=extention_[1:].upper(),
+                                        sizeImage=resize,
+                                        unit=self.unit
+                                    )
+                # print(images[i].name, name_image)
+                data.append(image_comic)
 
             i += 1
 

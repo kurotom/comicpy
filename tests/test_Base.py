@@ -19,10 +19,16 @@ import io
 
 class BaseTestCase(unittest.TestCase):
 
+    TESTS_DIR = 'tests'
+    TEMP_DIR = 'TEMP_DIR'
+
     FILES = {
         'empty.pdf': 'tests/files/empty.pdf',
         'empty.rar': 'tests/files/empty.rar',
         'empty.zip': 'tests/files/empty.zip',
+
+        'no_image.zip': 'tests/files/no_image.zip',
+        'no_image.rar': 'tests/files/no_image.rar',
 
         'protected_image_dir_2.zip': 'tests/files/image_dir_2_protected.zip',
         'protected_image_dir_2.rar': 'tests/files/image_dir_2_protected.rar',
@@ -49,7 +55,8 @@ class BaseTestCase(unittest.TestCase):
         'rars_protected': 'tests/files/rars_protected',
         'zips_protected': 'tests/files/zips_protected',
         'images_dir': 'tests/files/images_dir',
-        'cbr_cbz': 'tests/files/cbr_cbz'
+        'cbr_cbz': 'tests/files/cbr_cbz',
+        'no_image_zip_rar': 'tests/files/no_image_zip_rar'
     }
 
     def __init__(self, *args, **kwargs):
@@ -63,6 +70,8 @@ class BaseTestCase(unittest.TestCase):
         self.cbr_cbz_dir = BaseTestCase.DIRS['cbr_cbz']
         self.rars_protected = BaseTestCase.DIRS['rars_protected']
         self.zips_protected = BaseTestCase.DIRS['zips_protected']
+        self.no_image_zip_rar = BaseTestCase.DIRS['no_image_zip_rar']
+
         self.paths = Paths()
         self.temp_dir = self.make_temp_dir()
         self.comicpy = ComicPy
@@ -73,7 +82,9 @@ class BaseTestCase(unittest.TestCase):
         self.loadContent()
 
     def make_temp_dir(self):
-        path = self.paths.build('tests', 'TEMP_DIR', make=True)
+        path = self.paths.build(
+                    BaseTestCase.TESTS_DIR, BaseTestCase.TEMP_DIR,
+                    make=True)
         return path
 
     def loadContent(self) -> dict:

@@ -261,6 +261,8 @@ class ComicPy:
                             compressor=compressor,
                             resizeImage=resize
                         )
+        if compressFileData is None:
+            raise EmptyFile('File PDF not have images.')
 
         compressedCurrentFileIO = self.to_compressor(
                             filename=compressFileData.filename,
@@ -302,6 +304,12 @@ class ComicPy:
                                         password=password,
                                         resizeImage=resize
                                     )
+
+            if zipCompressorFileData is None:
+                msg = 'RAR not have images.'
+                exts = self.validextentions.get_container_valid_extentions()
+                msg += 'Valid Extentions:  ' + ', '.join(exts) + '\n'
+                raise EmptyFile(msg)
 
             compressedCurrentFileIO = self.to_compressor(
                                 filename=zipCompressorFileData.filename,
@@ -349,6 +357,12 @@ class ComicPy:
                                         password=password,
                                         resizeImage=resize
                                     )
+            if rarCompressorFileData is None:
+                msg = 'RAR not have images.'
+                exts = self.validextentions.get_container_valid_extentions()
+                msg += 'Valid Extentions:  ' + ', '.join(exts) + '\n'
+                raise EmptyFile(msg)
+
             compressedCurrentFileIO = self.to_compressor(
                                 filename=rarCompressorFileData.filename,
                                 listCompressorData=[rarCompressorFileData],
@@ -396,7 +410,7 @@ class ComicPy:
         compressor: Union[RAR, ZIP] = 'zip',
         join: bool = False,
         resize: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve'
-    ) -> List[CurrentFile]:
+    ) -> Union[List[CurrentFile], None]:
         """
         Searches files in the given directory, searches only PDF, CBZ, CBR
         files.
@@ -508,14 +522,19 @@ class ComicPy:
                                             resizeImage=resize
                                         )
                     # print(compressFileData.items, type(compressFileData))
-                    if compressFileData.items == 1:
-                        item = compressFileData.list_data[0]
-                        if item.is_comic:
-                            list_ComicFiles.append(item)
+                    if compressFileData is not None:
+                        if compressFileData.items == 1:
+                            item = compressFileData.list_data[0]
+                            if item.is_comic:
+                                list_ComicFiles.append(item)
+                            else:
+                                list_ContentCompressorFile.append(
+                                                            compressFileData
+                                                        )
                         else:
-                            list_ContentCompressorFile.append(compressFileData)
-                    else:
-                        list_ContentCompressorFile.append(compressFileData)
+                            list_ContentCompressorFile.append(
+                                                            compressFileData
+                                                        )
 
             # # print(len(list_ContentCompressorFile))
             if filename is None:
@@ -537,7 +556,11 @@ class ComicPy:
                 data_Return += listCurrentFiles
             if len(list_ComicFiles) > 0:
                 data_Return += list_ComicFiles
-            return data_Return
+
+            if data_Return != []:
+                return data_Return
+            else:
+                return None
 
     def to_compressor(
         self,
@@ -596,6 +619,13 @@ class ComicPy:
             dict: file/s information.
         """
         info_list = []
+        # print(listCurrentFiles)
+        if listCurrentFiles is None:
+            msg = 'Parameter `listCurrentFiles` must be list of `CurrentFile` \
+            instances not `None`.'
+            msg += 'Files must be have images only.'
+            raise ValueError(msg)
+
         for itemCurrent in listCurrentFiles:
             # print(itemCurrent.filename, itemCurrent.name)
 

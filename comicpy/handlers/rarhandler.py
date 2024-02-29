@@ -101,7 +101,7 @@ class RarHandler(BaseZipRarHandler):
         currentFileRar: CurrentFile,
         password: str = None,
         resizeImage: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve'
-    ) -> CompressorFileData:
+    ) -> Union[CompressorFileData, None]:
         """
         Extract images from RAR file.
 

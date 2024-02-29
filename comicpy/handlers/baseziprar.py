@@ -64,12 +64,39 @@ class BaseZipRarHandler:
                                     pwd=password
                                 )
 
+    def exists_valid_files(
+        self,
+        instanceCompress: Union[RarFile, AESZipFile],
+    ) -> bool:
+        """
+        Checks that the RAR or ZIP file has valid files.
+
+        Args
+            instanceCompress: `RarFile` or `AESZipFile` instance.
+
+        Returns
+            bool: `True` if exists files valid in the compressor file,
+                  otherwise, `False`.
+        """
+        filters_ = self.validextentions.get_images_extentions()
+        filters_ += self.validextentions.get_comic_extentions()
+        filters_ = tuple(filters_)
+        results = [
+                item
+                for item in instanceCompress.namelist()
+                if item.endswith(filters_)
+            ]
+        if len(results) > 0:
+            return True
+        else:
+            return False
+
     def iterateFiles(
         self,
         instanceCompress: Union[RarFile, AESZipFile],
         password: str = None,
         resize: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve'
-    ) -> CompressorFileData:
+    ) -> Union[CompressorFileData, None]:
         """
         Iterates over files of RAR or ZIP files, read their data.
 
@@ -85,6 +112,12 @@ class BaseZipRarHandler:
         images_Extentions = self.validextentions.get_images_extentions()
         listContentData = []
         directory_name = None
+
+        files_exists = self.exists_valid_files(
+                                instanceCompress=instanceCompress
+                            )
+        if files_exists is False:
+            return None
 
         for item in instanceCompress.namelist():
             directory_name = self.paths.get_dirname(item).replace(' ', '_')
@@ -153,10 +186,7 @@ class BaseZipRarHandler:
                 listContentData.append(image_comic)
 
         if len(listContentData) == 0:
-            msg = 'Files not found with valid extensions.\n'
-            exts = self.validextentions.get_container_valid_extentions()
-            msg += 'Valid Extentions:  ' + ', '.join(exts) + '\n'
-            raise TypeError(msg)
+            return None
 
         zipFileCompress = CompressorFileData(
                                 filename=directory_name,
