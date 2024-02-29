@@ -476,19 +476,13 @@ class ComicPy:
                         )
         elif len(filesMatch) > 0:
             filesMatch.sort()    # sort file names alphanumerically.
-
-            list_filePaths = [
-                            self.paths.build(
-                                    self.directory_path, item,
-                                    make=False
-                                )
-                            for item in filesMatch
-                        ]
             # print(list_filePaths)
+
             list_ComicFiles = []  # CBR CBZ
-            list_ContentCompressorFile = []
+            list_ContentCompressorFile = []  # zip, rar, pdf
+
             data_Return = []
-            for item_path in list_filePaths:
+            for item_path in filesMatch:
                 if not self.paths.exists(item_path):
                     pass
                 else:
@@ -523,7 +517,7 @@ class ComicPy:
                     elif extention == '.rar' or extention == '.cbr':
                         # print('>> DIR RAR')
                         if self.rar_exists is False:
-                            raise ValueError('Rar exec not found.')
+                            raise Exception('Rar executable not exists.')
 
                         self.check_protectedFile(
                                 handler=self.rarhandler,
@@ -613,6 +607,7 @@ class ComicPy:
                                 listRarFileCompress=listCompressorData,
                                 join=join_files
                             )
+        # print(compressorFile)
         if compressorFile is None:
             return None
         return compressorFile

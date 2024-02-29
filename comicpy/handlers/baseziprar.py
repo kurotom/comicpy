@@ -126,6 +126,8 @@ class BaseZipRarHandler:
 
             # print(_extention, images_Extentions)
 
+            # print('--> ', _extention.lower(), images_Extentions)
+
             if _extention.lower() == ValidExtentions.CBR:
 
                 rawDataFile = self.read_file(
