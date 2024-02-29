@@ -82,7 +82,6 @@ class ComicPy:
         self.rarhandler = RarHandler(unit=self.unit)
         self.paths = Paths()
         self.validextentions = ValidExtentions()
-        self.rar_exists = self.rarhandler.check_exec_rar()
 
     def __validating_unit(
         self,
@@ -342,10 +341,6 @@ class ComicPy:
             CurrentFile: the instance represents the data of the RAR archive
                          with the name CBR
         """
-
-        if self.rar_exists is False:
-            raise ValueError('Rar exec not found.')
-
         self.load_file(filename=filename)
 
         self.check_file(currentFile=self.currentFile)
@@ -516,19 +511,19 @@ class ComicPy:
 
                     elif extention == '.rar' or extention == '.cbr':
                         # print('>> DIR RAR')
-                        if self.rar_exists is False:
-                            raise Exception('Rar executable not exists.')
 
                         self.check_protectedFile(
                                 handler=self.rarhandler,
                                 compressCurrentFile=fileCurrentData,
                                 password=password
                             )
+
                         compressFileData = self.rarhandler.extract_content(
                                             currentFileRar=fileCurrentData,
                                             password=password,
                                             resizeImage=resize
                                         )
+
                     # print(compressFileData.items, type(compressFileData))
                     if compressFileData is not None:
                         if compressFileData.items == 1:
@@ -616,7 +611,7 @@ class ComicPy:
         self,
         listCurrentFiles: List[CurrentFile],
         path: str = '.'
-    ) -> List[dict]:
+    ) -> Union[List[dict], None]:
         """
         Write data from a list of `CurrentFile` instances.
 
@@ -630,10 +625,7 @@ class ComicPy:
         info_list = []
         # print(listCurrentFiles)
         if listCurrentFiles is None:
-            msg = 'Parameter `listCurrentFiles` must be list of `CurrentFile` \
-            instances not `None`.'
-            msg += 'Files must be have images only.'
-            raise ValueError(msg)
+            return None
 
         for itemCurrent in listCurrentFiles:
             # print(itemCurrent.filename, itemCurrent.name)

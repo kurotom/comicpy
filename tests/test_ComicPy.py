@@ -491,11 +491,11 @@ class ComicPyTestCase(BaseTestCase):
                     join=False,
                     resize='preserve'
             )
-        with self.assertRaises(ValueError):
-            self.comicpy_init.to_write(
+        result = self.comicpy_init.to_write(
                 listCurrentFiles=noImagesRAR,
                 path=self.temp_dir
             )
+        self.assertEqual(result, None)
 
     def test_comicpy_dir_no_images_zip_to_write(self):
         dirname = self.no_image_zip_rar
@@ -508,11 +508,11 @@ class ComicPyTestCase(BaseTestCase):
                     join=False,
                     resize='preserve'
             )
-        with self.assertRaises(ValueError):
-            self.comicpy_init.to_write(
+        result = self.comicpy_init.to_write(
                 listCurrentFiles=noImagesZIP,
                 path=self.temp_dir
             )
+        self.assertEqual(result, None)
 
     def test_comicpy_to_write_ZIP(self):
         list_Currentfiles = self.comicpy_init.process_dir(

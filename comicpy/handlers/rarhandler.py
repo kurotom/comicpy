@@ -22,7 +22,11 @@ import subprocess
 import tempfile
 import shutil
 import rarfile
-from rarfile import PasswordRequired
+from rarfile import (
+    PasswordRequired,
+    RarCannotExec
+)
+
 import io
 
 from typing import List, Union, TypeVar
@@ -41,7 +45,8 @@ class RarHandler(BaseZipRarHandler):
 
     def __init__(
         self,
-        unit: str
+        unit: str,
+        path_exec_rar: str = None
     ) -> None:
         """
         Constructor.
@@ -55,23 +60,8 @@ class RarHandler(BaseZipRarHandler):
         self.imageshandler = ImagesHandler()
         self.validextentions = ValidExtentions()
         self.paths = Paths()
-
-    def check_exec_rar(self):
-        """
-        Checks if there is an executable RAR on the system.
-
-        Returns
-            bool: `True` if exists, otherwise, `False`.
-        """
-        try:
-            with rarfile.RarFile(
-                file=io.BytesIO(b'Rar!\x1a\x07\x01\x00gVUX\x0b\x01\x05\x07'),
-                mode='r'
-            ) as rarFile:
-                rarFile.testrar()
-            return True
-        except rarfile.RarCannotExec as e:
-            return False
+        self.url_page = 'https://www.rarlab.com/download.htm'
+        self.path_exec_rar = path_exec_rar
 
     def testRar(
         self,
@@ -93,6 +83,8 @@ class RarHandler(BaseZipRarHandler):
             ) as rarFile:
                 rarFile.testrar()
             return False
+        except rarfile.RarCannotExec:
+            return None
         except PasswordRequired:
             return True
 
@@ -133,17 +125,21 @@ class RarHandler(BaseZipRarHandler):
                                 compressor.
         """
         rawDataRar = currentFileRar.bytes_data
+        try:
+            with rarfile.RarFile(
+                file=rawDataRar,
+                mode='r'
+            ) as rar_file:
 
-        with rarfile.RarFile(
-            file=rawDataRar,
-            mode='r'
-        ) as rar_file:
-
-            return super().iterateFiles(
-                instanceCompress=rar_file,
-                password=password,
-                resize=resizeImage
-            )
+                return super().iterateFiles(
+                    instanceCompress=rar_file,
+                    password=password,
+                    resize=resizeImage
+                )
+        except RarCannotExec as e:
+            msg = '%s. Download from "%s"' % (e, self.url_page)
+            print(msg)
+            return None
 
     def to_rar(
         self,
