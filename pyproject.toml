@@ -22,7 +22,6 @@ pypdf = "^4.0.1"
 pillow = "<=10"
 rarfile = "^4.1"
 pyzipper = "^0.3.6"
-requests = "^2.31.0"
 
 [tool.poetry.scripts]
 comicpy = 'comicpy.cli:CliComicPy'

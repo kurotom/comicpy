@@ -82,6 +82,7 @@ class ComicPy:
         self.rarhandler = RarHandler(unit=self.unit)
         self.paths = Paths()
         self.validextentions = ValidExtentions()
+        self.rar_exists = self.rarhandler.check_exec_rar()
 
     def __validating_unit(
         self,
@@ -342,6 +343,9 @@ class ComicPy:
                          with the name CBR
         """
 
+        if self.rar_exists is False:
+            raise ValueError('Rar exec not found.')
+
         self.load_file(filename=filename)
 
         self.check_file(currentFile=self.currentFile)
@@ -511,6 +515,9 @@ class ComicPy:
 
                     elif extention == '.rar' or extention == '.cbr':
                         # print('>> DIR RAR')
+                        if self.rar_exists is False:
+                            raise ValueError('Rar exec not found.')
+
                         self.check_protectedFile(
                                 handler=self.rarhandler,
                                 compressCurrentFile=fileCurrentData,

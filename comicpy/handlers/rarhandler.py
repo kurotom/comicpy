@@ -56,6 +56,17 @@ class RarHandler(BaseZipRarHandler):
         self.validextentions = ValidExtentions()
         self.paths = Paths()
 
+    def check_exec_rar(self):
+        try:
+            with rarfile.RarFile(
+                file='None'.encode(),
+                mode='r'
+            ) as rarFile:
+                rarFile.testrar()
+            return False
+        except:
+            return True
+
     def testRar(
         self,
         currentFileRar: CurrentFile
