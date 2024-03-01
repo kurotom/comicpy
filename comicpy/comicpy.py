@@ -67,7 +67,8 @@ class ComicPy:
 
     def __init__(
         self,
-        unit: str = 'mb'
+        unit: str = 'mb',
+        exec_path_rar: str = None
     ) -> None:
         """
         Constructor.
@@ -75,7 +76,7 @@ class ComicPy:
         Args:
             unit: indicate unit of measure using to represent file size.
         """
-        VarEnviron.setup()
+        VarEnviron.setup(path_exec=exec_path_rar)
         self.unit = self.__validating_unit(unit=unit)
         self.directory_path = None
         self.filename = None

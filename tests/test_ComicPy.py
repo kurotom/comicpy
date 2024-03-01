@@ -104,6 +104,26 @@ class ComicPyTestCase(BaseTestCase):
                 password=None
             )
 
+    def test_comicpy_read_file_NoExecRAR(self):
+        origin_paths = os.environ['PATH']
+
+        comicpy_inst = self.comicpy()
+        os.environ['PATH'] = ''
+
+        filename = 'image_dir_2.rar'
+        data = self.data[filename]
+        currentFile = self.buid_CurrentFile(
+                                filename=filename,
+                                raw_data=data
+                            )
+        result = comicpy_inst.rarhandler.extract_content(
+                                    currentFileRar=currentFile,
+                                    password=None,
+                                    resizeImage='preserve'
+                                )
+        os.environ['PATH'] = origin_paths
+        self.assertEqual(result, -1)
+
     def test_comicpy_check_FileZip(self):
         filename = 'image_dir_1.zip'
         data = self.data[filename]

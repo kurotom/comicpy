@@ -210,6 +210,11 @@ def CliComicPy() -> None:
             default='preserve',
             help='Password of file protected.'
         )
+    main_parser.add_argument(
+            '--path_exec',
+            default=None,
+            help='Path of RAR executable.'
+        )
 
     args = main_parser.parse_args()
     typeFile = args.type
@@ -223,9 +228,13 @@ def CliComicPy() -> None:
     joinFile = args.join
     password = args.password
     resizeImage = args.resize
+    path_exec = args.path_exec
 
     # Instance
-    comic = ComicPy(unit=unitFile)
+    comic = ComicPy(
+                unit=unitFile,
+                exec_path_rar=path_exec
+            )
 
     # FILE
     if typeFile == 'f':

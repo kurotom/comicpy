@@ -75,10 +75,11 @@ class BaseTestCase(unittest.TestCase):
         self.no_image_zip_rar = BaseTestCase.DIRS['no_image_zip_rar']
 
         self.paths = Paths()
+        self.custom_path_rar_exec = self.paths.build('tests', 'bin_rar')
         self.temp_dir = self.make_temp_dir()
 
         self.comicpy = ComicPy
-        self.comicpy_init = ComicPy()
+        self.comicpy_init = ComicPy(exec_path_rar=self.custom_path_rar_exec)
         self.files = BaseTestCase.FILES
         self.dirs = BaseTestCase.DIRS
         self.data = {}

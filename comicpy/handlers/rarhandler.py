@@ -3,6 +3,8 @@
 Handler related to files RAR.
 
 Temporary data written in TEMP directory.
+
+Rar executable path must be in `PATH` environment variable.
 """
 
 from comicpy.handlers.imageshandler import ImagesHandler
@@ -27,9 +29,7 @@ from rarfile import (
     RarCannotExec
 )
 
-import os
 import io
-import sys
 
 from typing import List, Union, TypeVar
 

@@ -148,9 +148,40 @@ class Paths:
 
 
 class VarEnviron:
-    rarWin32 = 'C:\\Program Files\\WinRar'
+    """
+    Class in charge of add rar executable path to `PATH` environment.
+    Binaries downloaded from `https://www.rarlab.com/download.htm`.
+    """
 
-    def setup():
+    HOME = Paths.HOME_DIR
+    rarWin32 = 'C:\\Program Files\\WinRar'
+    linuxPath = ('.local', 'bin')
+    bin_rar_path = ('comicpy', 'bin_rar')
+
+    def setup(
+        path_exec: str = None
+    ):
+        """
+        Sets the paths in the `PATH` environment.
+
+        Default set RAR path from RAR/UNRAR binaries in the `ComicPy` package.
+        """
         plat = sys.platform
+
+        paths = Paths()
+        path_rar_comicpy = paths.build(
+                                        os.getcwd(),
+                                        VarEnviron.bin_rar_path[0],
+                                        VarEnviron.bin_rar_path[1]
+                                    )
+
         if plat == 'win32':
-            os.environ['PATH'] += ';%s' % (VarEnviron.rarWin32)
+            os.environ['PATH'] += ';%s' % (path_rar_comicpy)
+            if path_exec is not None:
+                os.environ['PATH'] += ';%s' % (path_exec)
+            else:
+                os.environ['PATH'] += ';%s' % (VarEnviron.rarWin32)
+        elif plat == 'linux':
+            os.environ['PATH'] += ':%s' % (path_rar_comicpy)
+            if path_exec is not None:
+                os.environ['PATH'] += ':%s' % (path_exec)
