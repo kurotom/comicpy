@@ -17,7 +17,10 @@ from comicpy.models import (
 )
 
 from comicpy.checkfile import CheckFile
-from comicpy.utils import Paths
+from comicpy.utils import (
+    Paths,
+    VarEnviron
+)
 
 from comicpy.exceptionsClasses import (
     InvalidFile,
@@ -72,6 +75,7 @@ class ComicPy:
         Args:
             unit: indicate unit of measure using to represent file size.
         """
+        VarEnviron.setup()
         self.unit = self.__validating_unit(unit=unit)
         self.directory_path = None
         self.filename = None

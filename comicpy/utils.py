@@ -4,6 +4,7 @@ Utils
 """
 
 import os
+import sys
 
 from typing import Union, Tuple, TypeVar
 
@@ -144,3 +145,12 @@ class Paths:
             str: string of path.
         """
         return os.path.normpath(path).split(os.sep)[level]
+
+
+class VarEnviron:
+    rarWin32 = 'C:\\Program Files\\WinRar'
+
+    def setup():
+        plat = sys.platform
+        if plat == 'win32':
+            os.environ['PATH'] += VarEnviron.rarWin32
