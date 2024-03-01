@@ -153,4 +153,4 @@ class VarEnviron:
     def setup():
         plat = sys.platform
         if plat == 'win32':
-            os.environ['PATH'] += VarEnviron.rarWin32
+            os.environ['PATH'] += ';%s' % (VarEnviron.rarWin32)
