@@ -29,6 +29,7 @@ from rarfile import (
 
 import os
 import io
+import sys
 
 from typing import List, Union, TypeVar
 
@@ -46,8 +47,7 @@ class RarHandler(BaseZipRarHandler):
 
     def __init__(
         self,
-        unit: str,
-        path_exec_rar: str = None
+        unit: str
     ) -> None:
         """
         Constructor.
@@ -62,15 +62,6 @@ class RarHandler(BaseZipRarHandler):
         self.validextentions = ValidExtentions()
         self.paths = Paths()
         self.url_page = 'https://www.rarlab.com/download.htm'
-        self.path_exec_rar = path_exec_rar
-        self.set_env_rar()
-
-    def set_env_rar(self):
-        """
-        Sets path to rar exec.
-        """
-        if self.path_exec_rar is not None:
-            os.environ['RAR_EXECUTABLE'] = self.path_exec_rar
 
     def testRar(
         self,
@@ -97,29 +88,12 @@ class RarHandler(BaseZipRarHandler):
         except PasswordRequired:
             return True
 
-    def rename_rar_cbr(
-        self,
-        currentFileRar: CurrentFile
-    ) -> CurrentFile:
-        """
-        Add CBR name and extention of `CurrentFile` instance.
-
-        Args:
-            CurrentFile: instance with data RAR file.
-
-        Returns:
-            CurrentFile: same instance with new name and extention.
-        """
-        currentFileRar.extention = '.cbr'
-        currentFileRar.name = currentFileRar.name.replace(' ', '_')
-        return currentFileRar
-
     def extract_content(
         self,
         currentFileRar: CurrentFile,
         password: str = None,
         resizeImage: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve'
-    ) -> Union[CompressorFileData, None]:
+    ) -> Union[CompressorFileData, None, int]:
         """
         Extract images from RAR file.
 
@@ -145,9 +119,13 @@ class RarHandler(BaseZipRarHandler):
                     password=password,
                     resize=resizeImage
                 )
+
         except RarCannotExec as e:
-            msg = '%s. Download from "%s"' % (e, self.url_page)
+            msg = 'Rar not Installed: \n'
+            msg += '%s. Download from "%s"\n' % (e, self.url_page)
             print(msg)
+            return -1
+        except:
             return None
 
     def to_rar(

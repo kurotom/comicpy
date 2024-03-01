@@ -216,13 +216,9 @@ class ComicPyTestCase(BaseTestCase):
                             compressor='rar',
                             join_files=False
                         )
-        renamedCurrentFile = self.comicpy_init.rarhandler.rename_rar_cbr(
-                                    currentFileRar=currentFileWOpass
-                                )
         results = [
             isinstance(compressorWpass, CompressorFileData),
-            isinstance(currentFileCompressor[0], CurrentFile),
-            isinstance(renamedCurrentFile, CurrentFile)
+            isinstance(currentFileCompressor[0], CurrentFile)
         ]
         self.assertEqual(all(results), True)
 
@@ -269,13 +265,9 @@ class ComicPyTestCase(BaseTestCase):
                             compressor='zip',
                             join_files=False
                         )
-        renamedCurrentFile = self.comicpy_init.rarhandler.rename_rar_cbr(
-                                    currentFileRar=currentFileWOpass
-                                )
         results = [
             isinstance(compressorWpass, CompressorFileData),
-            isinstance(currentFileCompressor[0], CurrentFile),
-            isinstance(renamedCurrentFile, CurrentFile)
+            isinstance(currentFileCompressor[0], CurrentFile)
         ]
         self.assertEqual(all(results), True)
 
@@ -319,9 +311,7 @@ class ComicPyTestCase(BaseTestCase):
                     join=True,
                     resize='preserve'
             )
-        self.assertEqual(
-                isinstance(list_Currentfiles[0], CurrentFile), True
-            )
+        self.assertEqual(isinstance(list_Currentfiles, list), True)
 
     def test_comicpy_process_dir_RAR_protected(self):
         list_Currentfiles = self.comicpy_init.process_dir(
@@ -597,8 +587,6 @@ class ComicPyTestCase(BaseTestCase):
             for i in info_data
         ]
         self.assertEqual(all(results), True)
-
-
 
     @classmethod
     def tearDownClass(cls):

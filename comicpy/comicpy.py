@@ -277,7 +277,7 @@ class ComicPy:
         filename: str,
         password: str = None,
         resize: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve'
-    ) -> List[CurrentFile]:
+    ) -> Union[List[CurrentFile], None]:
         """
         Process ZIP files.
 
@@ -293,44 +293,37 @@ class ComicPy:
 
         self.check_file(currentFile=self.currentFile)
 
-        is_protected = self.check_protectedFile(
+        self.check_protectedFile(
                 handler=self.ziphandler,
                 compressCurrentFile=self.currentFile,
                 password=password
             )
-        if is_protected:
-            zipCompressorFileData = self.ziphandler.extract_content(
-                                        currentFileZip=self.currentFile,
-                                        password=password,
-                                        resizeImage=resize
-                                    )
-
-            if zipCompressorFileData is None:
-                msg = 'RAR not have images.'
-                exts = self.validextentions.get_container_valid_extentions()
-                msg += 'Valid Extentions:  ' + ', '.join(exts) + '\n'
-                raise EmptyFile(msg)
-
-            compressedCurrentFileIO = self.to_compressor(
-                                filename=zipCompressorFileData.filename,
-                                listCompressorData=[zipCompressorFileData],
-                                compressor='zip',
-                                join_files=False
-                            )
-            return compressedCurrentFileIO
-
-        else:
-            zipCompressorFileData = self.ziphandler.rename_zip_cbz(
-                                    currentFileZip=self.currentFile
+        zipCompressorFileData = self.ziphandler.extract_content(
+                                    currentFileZip=self.currentFile,
+                                    password=password,
+                                    resizeImage=resize
                                 )
-            return [zipCompressorFileData]
+
+        if zipCompressorFileData is None:
+            msg = 'RAR not have images.'
+            exts = self.validextentions.get_container_valid_extentions()
+            msg += 'Valid Extentions:  ' + ', '.join(exts) + '\n'
+            raise EmptyFile(msg)
+
+        compressedCurrentFileIO = self.to_compressor(
+                            filename=zipCompressorFileData.filename,
+                            listCompressorData=[zipCompressorFileData],
+                            compressor='zip',
+                            join_files=False
+                        )
+        return compressedCurrentFileIO
 
     def process_rar(
         self,
         filename: str,
         password: str = None,
         resize: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve'
-    ) -> List[CurrentFile]:
+    ) -> Union[List[CurrentFile], None]:
         """
         Process RAR files.
 
@@ -345,36 +338,31 @@ class ComicPy:
 
         self.check_file(currentFile=self.currentFile)
 
-        is_protected = self.check_protectedFile(
+        self.check_protectedFile(
                 handler=self.rarhandler,
                 compressCurrentFile=self.currentFile,
                 password=password
             )
-        if is_protected:
-            rarCompressorFileData = self.rarhandler.extract_content(
-                                        currentFileRar=self.currentFile,
-                                        password=password,
-                                        resizeImage=resize
-                                    )
-            if rarCompressorFileData is None:
-                msg = 'RAR not have images.'
-                exts = self.validextentions.get_container_valid_extentions()
-                msg += 'Valid Extentions:  ' + ', '.join(exts) + '\n'
-                raise EmptyFile(msg)
-
-            compressedCurrentFileIO = self.to_compressor(
-                                filename=rarCompressorFileData.filename,
-                                listCompressorData=[rarCompressorFileData],
-                                compressor='rar',
-                                join_files=False
-                            )
-            return compressedCurrentFileIO
-
-        else:
-            rarCompressorFileData = self.rarhandler.rename_rar_cbr(
-                                    currentFileRar=self.currentFile
+        rarCompressorFileData = self.rarhandler.extract_content(
+                                    currentFileRar=self.currentFile,
+                                    password=password,
+                                    resizeImage=resize
                                 )
-            return [rarCompressorFileData]
+        if rarCompressorFileData == -1:
+            return None
+        elif rarCompressorFileData is None:
+            msg = 'RAR not have images.'
+            exts = self.validextentions.get_container_valid_extentions()
+            msg += 'Valid Extentions:  ' + ', '.join(exts) + '\n'
+            raise EmptyFile(msg)
+
+        compressedCurrentFileIO = self.to_compressor(
+                            filename=rarCompressorFileData.filename,
+                            listCompressorData=[rarCompressorFileData],
+                            compressor='rar',
+                            join_files=False
+                        )
+        return compressedCurrentFileIO
 
     def get_file_glob(
         self,
@@ -525,7 +513,9 @@ class ComicPy:
                                         )
 
                     # print(compressFileData.items, type(compressFileData))
-                    if compressFileData is not None:
+                    if compressFileData == -1:
+                        pass
+                    elif compressFileData is not None:
                         if compressFileData.items == 1:
                             item = compressFileData.list_data[0]
                             if item.is_comic:

@@ -14,6 +14,7 @@ from comicpy.models import (
 
 import unittest
 import os
+import sys
 import io
 
 
@@ -21,6 +22,7 @@ class BaseTestCase(unittest.TestCase):
 
     TESTS_DIR = 'tests'
     TEMP_DIR = 'TEMP_DIR'
+    BIN_RAR = 'bin'
 
     FILES = {
         'empty.pdf': 'tests/files/empty.pdf',
@@ -74,6 +76,7 @@ class BaseTestCase(unittest.TestCase):
 
         self.paths = Paths()
         self.temp_dir = self.make_temp_dir()
+
         self.comicpy = ComicPy
         self.comicpy_init = ComicPy()
         self.files = BaseTestCase.FILES
