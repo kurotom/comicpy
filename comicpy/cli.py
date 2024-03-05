@@ -215,6 +215,12 @@ def CliComicPy() -> None:
             default=None,
             help='Path of RAR executable.'
         )
+    main_parser.add_argument(
+            '--progress',
+            default=False,
+            action='store_true',
+            help='Shows file in progress.'
+        )
 
     args = main_parser.parse_args()
     typeFile = args.type
@@ -229,11 +235,13 @@ def CliComicPy() -> None:
     password = args.password
     resizeImage = args.resize
     path_exec = args.path_exec
+    progress = args.progress
 
     # Instance
     comic = ComicPy(
                 unit=unitFile,
-                exec_path_rar=path_exec
+                exec_path_rar=path_exec,
+                show_progress=progress
             )
 
     # FILE

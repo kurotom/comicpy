@@ -41,6 +41,12 @@ class BaseTestCase(unittest.TestCase):
         'file.pdf': 'tests/files/file.pdf',
         'image.pdf': 'tests/files/image.pdf',
 
+        'image_1.pdf': 'tests/files/pdfs/image_1.pdf',
+        'image_2.pdf': 'tests/files/pdfs/image_2.pdf',
+
+        'comic 1.pdf': 'tests/files/pdfs/comic 1.pdf',
+        'comic 2.pdf': 'tests/files/pdfs/comic 2.pdf',
+
         'image_dir_1.zip': 'tests/files/image_dir_1.zip',
         'image_dir_1.rar': 'tests/files/image_dir_1.rar',
         'image_dir_2.zip': 'tests/files/image_dir_2.zip',

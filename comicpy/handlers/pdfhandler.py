@@ -23,6 +23,8 @@ from typing import (
     Union
 )
 
+import re
+
 
 PRESERVE = TypeVar('preserve')
 SMALL = TypeVar('small')
@@ -49,6 +51,13 @@ class PdfHandler:
         self.unit = unit
         self.imageshandler = ImagesHandler()
         self.paths = Paths()
+        self.history_images = {}
+
+    def clear_history(self) -> None:
+        """
+        Clears the dictionary history.
+        """
+        self.history_images.clear()
 
     def process_pdf(
         self,
@@ -67,10 +76,11 @@ class PdfHandler:
             List[ImageComicData]: list of instances of `ImageComicData` with
                                   the data of all the images in the PDF file.
         """
+        self.clear_history()
+
         dataRaw = currentFilePDF.bytes_data
         reader = PdfReader(dataRaw)
         # print(reader.pdf_header, len(reader.pages), reader.metadata)
-        # print(len(reader.pages))
         listImageComicData = self.getting_data(
                                     pages_pdf=reader.pages,
                                     resize=resizeImage
@@ -104,29 +114,112 @@ class PdfHandler:
         data = []
         n_pages = len(pages_pdf)
         i = 0
+        index_image = 0
         while i < n_pages:
-            # print(i, len(pages_pdf[i].images))
+            # print(len(pages_pdf[i].images))
             if len(pages_pdf[i].images) == 0:
                 pass
             else:
+                # print(i)
+                if index_image == 0:
+                    index_image = i + 1
                 if len(pages_pdf[i].images) == 1:
-                    current_image = pages_pdf[i].images[0]
+                    image_comic = self.to_image_instance(
+                                    current_image=pages_pdf[i].images[0],
+                                    index=index_image,
+                                    resize=resize
+                                )
+                    data.append(image_comic)
+                    index_image += 1
+
                 elif len(pages_pdf[i].images) > 1:
-                    current_image = pages_pdf[i].images[i]
+                    # original order must be preserve
 
-                name_, extention_ = self.paths.splitext(current_image.name)
-                name_image = 'Image' + '%d'.zfill(4) % (i) + extention_.lower()
+                    list_numeration_images = self.get_numbers_images(
+                                                list_data=pages_pdf[i].images
+                                            )
+                    if list_numeration_images == []:
+                        break
+                    else:
+                        dict_images = dict(
+                                            zip(
+                                                list_numeration_images,
+                                                pages_pdf[i].images
+                                            )
+                                        )
 
-                image_comic = self.imageshandler.new_image(
-                                        name_image=name_image,
-                                        currentImage=current_image.image,
-                                        extention=extention_[1:].upper(),
-                                        sizeImage=resize,
-                                        unit=self.unit
-                                    )
-                # print(images[i].name, name_image)
-                data.append(image_comic)
+                        sorted_dict = dict(sorted(dict_images.items()))
+
+                        for key, value in sorted_dict.items():
+                            # print(value.name)
+                            image_comic = self.to_image_instance(
+                                                current_image=value,
+                                                index=index_image,
+                                                resize=resize
+                                            )
+
+                            data.append(image_comic)
+                            index_image += 1
 
             i += 1
 
         return data
+
+    def get_numbers_images(
+        self,
+        list_data: list
+    ) -> list:
+        """
+        Gets numeration of images on image names.
+        Records the name and size of the image data to avoid duplicate images.
+
+        Args
+            list: list of images of pages.
+
+        Returns
+            list: list of numbers of images.
+        """
+        result = []
+        for item in list_data:
+            r = re.split(r'([0-9]{1,4})', item.name)
+            if r is not None:
+                if item.name not in self.history_images:
+                    self.history_images[item.name] = len(item.data)
+                    number = [int(i) for i in r if i.isdigit()][0]
+                    result.append(number)
+                else:
+                    if self.history_images[item.name] != len(item.data):
+                        number = [int(i) for i in r if i.isdigit()][0]
+                        result.append(number)
+        return result
+
+    def to_image_instance(
+        self,
+        current_image: ImageInstancePIL,
+        index: int,
+        resize: str,
+    ) -> ImageComicData:
+        """
+        Creates an image instance with new dimensions and names, preserving the
+        data.
+
+        Args
+            current_image: `PIL.Image` instance.
+            index: number of image position.
+            resize: string of new size of image.
+
+        Returns
+            ImageComicData: instance with byte data, new name.
+        """
+        name_, extention_ = self.paths.splitext(current_image.name)
+        name_image = 'Image' + str(index).zfill(4) + extention_.lower()
+        # print(index, current_image.name, name_image)
+        image_comic = self.imageshandler.new_image(
+                                name_image=name_image,
+                                currentImage=current_image.image,
+                                extention=extention_[1:].upper(),
+                                sizeImage=resize,
+                                unit=self.unit
+                            )
+        image_comic.original_name = current_image.name
+        return image_comic

@@ -54,6 +54,7 @@ $ comicpy -h
 | -u {b,kb,mb,gb}, --unit {b,kb,mb,gb} | Unit of measure of data size. Default is "mb". |
 | --password PASSWORD | Password of file protected. |
 | --resize {preserve,small,medium,large} | Password of file protected. |
+| --progress | Shows file in progress. |
 
 ```bash
 $ comicpy --type f -p file.PDF --check -u kb
@@ -80,6 +81,7 @@ $ comicpy --type f -p file.rar --check --resize small
 | -u {b,kb,mb,gb}, --unit {b,kb,mb,gb} | Unit of measure of data size. Default is "mb". |
 | --password PASSWORD | Password of file protected. |
 | --resize {preserve,small,medium,large} | Password of file protected. |
+| --progress | Shows file in progress. |
 
 
 ```bash

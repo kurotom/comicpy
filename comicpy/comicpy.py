@@ -68,7 +68,8 @@ class ComicPy:
     def __init__(
         self,
         unit: str = 'mb',
-        exec_path_rar: str = None
+        exec_path_rar: str = None,
+        show_progress: bool = False
     ) -> None:
         """
         Constructor.
@@ -78,6 +79,7 @@ class ComicPy:
         """
         VarEnviron.setup(path_exec=exec_path_rar)
         self.unit = self.__validating_unit(unit=unit)
+        self.show_progress = show_progress
         self.directory_path = None
         self.filename = None
         self.currentFile = None
@@ -252,6 +254,7 @@ class ComicPy:
                                 contains image data (bytes), image name, type
                                 of compressor used.
         """
+        self.__progress(file=filename)
 
         self.load_file(filename=filename)
 
@@ -293,6 +296,7 @@ class ComicPy:
             CurrentFile: instance representing the data of the ZIP file named
                          CBZ.
         """
+        self.__progress(file=filename)
 
         self.load_file(filename=filename)
 
@@ -339,6 +343,8 @@ class ComicPy:
             CurrentFile: the instance represents the data of the RAR archive
                          with the name CBR
         """
+        self.__progress(file=filename)
+
         self.load_file(filename=filename)
 
         self.check_file(currentFile=self.currentFile)
@@ -375,7 +381,7 @@ class ComicPy:
         directory: str
     ) -> list:
         """
-        Search by extention.
+        Searches for files by extension, ignoring upper and lower case letters.
 
         Args:
             extension: string of extention of file.
@@ -383,6 +389,7 @@ class ComicPy:
         Returns
             list: list of file names matched.
         """
+        results = []
         for extention_ in [extention.lower(), extention.upper()]:
             pattern = '*.%s' % (extention_)
 
@@ -391,11 +398,8 @@ class ComicPy:
             full_pattern = '%s%s' % (dir_path, pattern)
 
             filesMatch = glob.glob(full_pattern)
-
-            if len(filesMatch) > 0:
-                return filesMatch
-        else:
-            return []
+            results.extend(filesMatch)
+        return results
 
     def process_dir(
         self,
@@ -471,6 +475,9 @@ class ComicPy:
 
             data_Return = []
             for item_path in filesMatch:
+
+                self.__progress(file=item_path)
+
                 if not self.paths.exists(item_path):
                     pass
                 else:
@@ -683,6 +690,13 @@ class ComicPy:
             string = 'File is valid?:  "%s"' % (is_valid)
             print(string)
         return is_valid
+
+    def __progress(
+        self,
+        file: str
+    ) -> None:
+        if self.show_progress:
+            print('Current file:  %s' % file)
 
     def __str__(self) -> str:
         """

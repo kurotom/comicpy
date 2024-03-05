@@ -10,6 +10,8 @@ run_test () {
 
     set_poetry_python_version $string_python
 
+    poetry run poetry shell
+
     poetry run poetry install
 
     poetry run python --version

@@ -76,7 +76,7 @@ class ComicPyTestCase(BaseTestCase):
         with self.assertRaises(ValueError):
             self.comicpy_init.raiser_error_compressor(compressor_str='xx')
 
-    def test_comicpy_check_protectedFileZip(self):
+    def test_comicpy_check_protectedFileZipNoPass(self):
         filename = 'protected_image_dir_2.zip'
         data = self.data[filename]
         currentFile = self.buid_CurrentFile(
@@ -90,7 +90,7 @@ class ComicPyTestCase(BaseTestCase):
                 password=None
             )
 
-    def test_comicpy_check_protectedFileRar(self):
+    def test_comicpy_check_protectedFileRarNoPass(self):
         filename = 'protected_image_dir_2.rar'
         data = self.data[filename]
         currentFile = self.buid_CurrentFile(
@@ -165,10 +165,150 @@ class ComicPyTestCase(BaseTestCase):
                                 resizeImage='preserve'
                             )
 
-        self.assertEqual(
-                isinstance(compressFileData, CompressorFileData),
-                True
+        results = [
+            isinstance(compressFileData, CompressorFileData),
+            len(compressFileData.list_data) == 1
+        ]
+
+        self.assertEqual(all(results), True)
+
+
+    def test_comicpy_process_pdf_MultiImages(self):
+        filename1 = 'comic 1.pdf'
+        filename2 = 'comic 2.pdf'
+
+        data1 = self.data[filename1]
+        data2 = self.data[filename2]
+
+        currentFile1 = self.buid_CurrentFile(
+                                filename=filename1,
+                                raw_data=data1
+                            )
+        currentFile2 = self.buid_CurrentFile(
+                                filename=filename2,
+                                raw_data=data2
+                            )
+
+        compressFileData1 = self.comicpy_init.pdfphandler.process_pdf(
+                                currentFilePDF=currentFile1,
+                                compressor='rar',
+                                resizeImage='preserve'
+                            )
+        compressFileData2 = self.comicpy_init.pdfphandler.process_pdf(
+                                currentFilePDF=currentFile2,
+                                compressor='zip',
+                                resizeImage='preserve'
+                            )
+
+        compressedCurrentFileIO1 = self.comicpy_init.to_compressor(
+                filename=filename1,
+                listCompressorData=compressFileData1,
+                compressor='rar',
+                join_files=False,
             )
+
+        compressedCurrentFileIO2 = self.comicpy_init.to_compressor(
+                filename=filename2,
+                listCompressorData=compressFileData2,
+                compressor='zip',
+                join_files=False,
+            )
+
+        result1 = self.comicpy_init.to_write(
+                listCurrentFiles=compressedCurrentFileIO1,
+                path=self.temp_dir
+            )
+        result2 = self.comicpy_init.to_write(
+                listCurrentFiles=compressedCurrentFileIO2,
+                path=self.temp_dir
+            )
+
+        is_valid1 = self.comicpy_init.check_integrity(
+                                    filename=result1[0]['name'],
+                                    show=False
+                                )
+        is_valid2 = self.comicpy_init.check_integrity(
+                                    filename=result2[0]['name'],
+                                    show=False
+                                )
+        results = [
+            len(compressFileData1.list_data) == 4,
+            isinstance(compressFileData1, CompressorFileData),
+            is_valid1 is True,
+            len(compressFileData2.list_data) == 4,
+            isinstance(compressFileData2, CompressorFileData),
+            is_valid2 is True
+        ]
+        self.assertEqual(all(results), True)
+
+    def test_comicpy_process_pdf_MultiImageSorted(self):
+        filename = 'image_2.pdf'
+        data = self.data[filename]
+        currentFile = self.buid_CurrentFile(
+                                filename=filename,
+                                raw_data=data
+                            )
+        compressFileData = self.comicpy_init.pdfphandler.process_pdf(
+                                currentFilePDF=currentFile,
+                                compressor='rar',
+                                resizeImage='preserve'
+                            )
+
+        compressedCurrentFileIO = self.comicpy_init.to_compressor(
+                filename=filename,
+                listCompressorData=compressFileData,
+                compressor='rar',
+                join_files=False,
+            )
+        result = self.comicpy_init.to_write(
+                listCurrentFiles=compressedCurrentFileIO,
+                path=self.temp_dir
+            )
+
+        is_valid = self.comicpy_init.check_integrity(
+                                    filename=result[0]['name'],
+                                    show=False
+                                )
+        results = [
+            len(compressFileData.list_data) == 4,
+            isinstance(compressFileData, CompressorFileData),
+            is_valid is True
+        ]
+        self.assertEqual(all(results), True)
+
+    def test_comicpy_process_pdfMultiImageNotSorted(self):
+        # original order must be preserve
+        filename = 'comic 1.pdf'
+        data = self.data[filename]
+        currentFile = self.buid_CurrentFile(
+                                filename=filename,
+                                raw_data=data
+                            )
+        compressFileData = self.comicpy_init.pdfphandler.process_pdf(
+                                currentFilePDF=currentFile,
+                                compressor='rar',
+                                resizeImage='preserve'
+                            )
+        compressedCurrentFileIO = self.comicpy_init.to_compressor(
+                filename=filename,
+                listCompressorData=compressFileData,
+                compressor='rar',
+                join_files=False,
+            )
+        result = self.comicpy_init.to_write(
+                listCurrentFiles=compressedCurrentFileIO,
+                path=self.temp_dir
+            )
+        is_valid = self.comicpy_init.check_integrity(
+                                    filename=result[0]['name'],
+                                    show=False
+                                )
+        results = [
+            len(compressFileData.list_data) == 4,
+            isinstance(compressFileData, CompressorFileData),
+            is_valid is True
+        ]
+        self.assertEqual(all(results), True)
 
     def test_comicpy_process_pdf_empty_images(self):
         filename = 'file.pdf'
@@ -204,10 +344,11 @@ class ComicPyTestCase(BaseTestCase):
             )
 
         results = [
-            type(compressedCurrentFileIO),
-            isinstance(compressedCurrentFileIO[0], CurrentFile)
+            len(compressedCurrentFileIO) == 1,
+            isinstance(compressedCurrentFileIO[0], CurrentFile),
+            compressedCurrentFileIO[0].extention == '.cbr'
         ]
-        self.assertEqual(results, [list, True])
+        self.assertEqual(all(results), True)
 
     def test_comicpy_process_rar_wo_pass_w_pass(self):
         fileWpass = 'protected_image_dir_2.rar'
@@ -230,15 +371,34 @@ class ComicPyTestCase(BaseTestCase):
                                     password='password',
                                     resizeImage='preserve'
                                 )
-        currentFileCompressor = self.comicpy_init.to_compressor(
+
+        compressorWOpass = self.comicpy_init.rarhandler.extract_content(
+                                    currentFileRar=currentFileWOpass,
+                                    password='password',
+                                    resizeImage='preserve'
+                                )
+
+        currentFileCompressorWPass = self.comicpy_init.to_compressor(
                             filename=compressorWpass.filename,
                             listCompressorData=[compressorWpass],
                             compressor='rar',
                             join_files=False
                         )
+
+        currentFileCompressorWOPass = self.comicpy_init.to_compressor(
+                            filename=compressorWpass.filename,
+                            listCompressorData=[compressorWpass],
+                            compressor='rar',
+                            join_files=False
+                        )
+
         results = [
+            len(compressorWpass.list_data) == 2,
             isinstance(compressorWpass, CompressorFileData),
-            isinstance(currentFileCompressor[0], CurrentFile)
+            isinstance(currentFileCompressorWPass[0], CurrentFile),
+            len(compressorWOpass.list_data) == 1,
+            isinstance(compressorWOpass, CompressorFileData),
+            isinstance(currentFileCompressorWOPass[0], CurrentFile)
         ]
         self.assertEqual(all(results), True)
 
@@ -279,15 +439,32 @@ class ComicPyTestCase(BaseTestCase):
                                     password='password',
                                     resizeImage='preserve'
                                 )
-        currentFileCompressor = self.comicpy_init.to_compressor(
+
+        compressorWOpass = self.comicpy_init.ziphandler.extract_content(
+                                    currentFileZip=currentFileWOpass,
+                                    password='password',
+                                    resizeImage='preserve'
+                                )
+
+        currentFileCompressorWPass = self.comicpy_init.to_compressor(
                             filename=compressorWpass.filename,
                             listCompressorData=[compressorWpass],
                             compressor='zip',
                             join_files=False
                         )
+
+        currentFileCompressorWOPass = self.comicpy_init.to_compressor(
+                            filename=compressorWpass.filename,
+                            listCompressorData=[compressorWOpass],
+                            compressor='zip',
+                            join_files=False
+                        )
+
         results = [
             isinstance(compressorWpass, CompressorFileData),
-            isinstance(currentFileCompressor[0], CurrentFile)
+            isinstance(currentFileCompressorWPass[0], CurrentFile),
+            isinstance(compressorWOpass, CompressorFileData),
+            isinstance(currentFileCompressorWOPass[0], CurrentFile)
         ]
         self.assertEqual(all(results), True)
 
@@ -317,9 +494,11 @@ class ComicPyTestCase(BaseTestCase):
                     join=False,
                     resize='preserve'
             )
-        self.assertEqual(
-                isinstance(list_Currentfiles[0], CurrentFile), True
-            )
+        results = [
+            len(list_Currentfiles) == 4,
+            isinstance(list_Currentfiles[0], CurrentFile)
+        ]
+        self.assertEqual(all(results), True)
 
     def test_comicpy_process_dir_RAR(self):
         list_Currentfiles = self.comicpy_init.process_dir(
@@ -487,7 +666,7 @@ class ComicPyTestCase(BaseTestCase):
             ]
 
         self.assertEqual(all(results), True)
-
+#
 # Write TESTS
 
     def test_comicpy_dir_no_images_rar_to_write(self):
