@@ -24,6 +24,7 @@ from typing import (
 )
 
 import re
+from hashlib import md5
 
 
 PRESERVE = TypeVar('preserve')
@@ -51,13 +52,13 @@ class PdfHandler:
         self.unit = unit
         self.imageshandler = ImagesHandler()
         self.paths = Paths()
-        self.history_images = {}
+        self.number_image = 0
 
-    def clear_history(self) -> None:
+    def reset_counter(self) -> None:
         """
-        Clears the dictionary history.
+        Resets the number of the image name counter.
         """
-        self.history_images.clear()
+        self.number_image = 0
 
     def process_pdf(
         self,
@@ -76,7 +77,7 @@ class PdfHandler:
             List[ImageComicData]: list of instances of `ImageComicData` with
                                   the data of all the images in the PDF file.
         """
-        self.clear_history()
+        self.reset_counter()
 
         dataRaw = currentFilePDF.bytes_data
         reader = PdfReader(dataRaw)
@@ -103,6 +104,11 @@ class PdfHandler:
     ) -> Union[List[ImageComicData], list]:
         """
         Gets images of the pages of a PDF file.
+        Image comparison is performed by calculating the md5 hash by taking the
+        original image name and its raw data. This method avoids duplicate
+        images.
+        The images are ordered using their name and numbering as a reference,
+        in case of multiple images on a single page.
 
         Args:
             pages_pdf: list of `PageObject` objects of the PDF file.
@@ -114,56 +120,79 @@ class PdfHandler:
         data = []
         n_pages = len(pages_pdf)
         i = 0
-        index_image = 0
+        dict_images = {}
+        uniques_hash = []
+        prev_images = 0
         while i < n_pages:
             # print(len(pages_pdf[i].images))
+
             if len(pages_pdf[i].images) == 0:
                 pass
             else:
-                # print(i)
-                if index_image == 0:
-                    index_image = i + 1
+
                 if len(pages_pdf[i].images) == 1:
-                    image_comic = self.to_image_instance(
-                                    current_image=pages_pdf[i].images[0],
-                                    index=index_image,
-                                    resize=resize
-                                )
-                    data.append(image_comic)
-                    index_image += 1
+                    item = pages_pdf[i].images[0]
+                    hash_image = self.get_hash_md5(
+                                            image_name=item.name,
+                                            image_data=item.data,
+                                        )
+                    if hash_image not in uniques_hash:
+                        uniques_hash.append(hash_image)
+                        image_comic = self.to_image_instance(
+                                            current_image=item,
+                                            resize=resize
+                                        )
+                        data.append(image_comic)
 
                 elif len(pages_pdf[i].images) > 1:
                     # original order must be preserve
-
-                    list_numeration_images = self.get_numbers_images(
+                    if prev_images != len(pages_pdf[i].images):
+                        list_numeration = self.get_numbers_images(
                                                 list_data=pages_pdf[i].images
                                             )
-                    if list_numeration_images == []:
-                        break
-                    else:
+
                         dict_images = dict(
                                             zip(
-                                                list_numeration_images,
+                                                list_numeration,
                                                 pages_pdf[i].images
                                             )
                                         )
-
                         sorted_dict = dict(sorted(dict_images.items()))
-
-                        for key, value in sorted_dict.items():
-                            # print(value.name)
-                            image_comic = self.to_image_instance(
-                                                current_image=value,
-                                                index=index_image,
-                                                resize=resize
-                                            )
-
-                            data.append(image_comic)
-                            index_image += 1
+                        for key, item in sorted_dict.items():
+                            hash_image = self.get_hash_md5(
+                                                    image_name=item.name,
+                                                    image_data=item.data,
+                                                )
+                            if hash_image not in uniques_hash:
+                                uniques_hash.append(hash_image)
+                                image_comic = self.to_image_instance(
+                                                    current_image=item,
+                                                    resize=resize
+                                                )
+                                data.append(image_comic)
+                    prev_images = len(pages_pdf[i].images)
 
             i += 1
 
         return data
+
+    def get_hash_md5(
+        self,
+        image_name: str,
+        image_data: bytes
+    ) -> str:
+        """
+        Calculates hash md5.
+
+        Args
+            image_name: name of image.
+            image_data: raw data of image.
+
+        Returns
+            str: hash md5 string.
+        """
+        hash_data = image_name.encode() + image_data
+        return md5(hash_data).hexdigest()
 
     def get_numbers_images(
         self,
@@ -183,20 +212,13 @@ class PdfHandler:
         for item in list_data:
             r = re.split(r'([0-9]{1,4})', item.name)
             if r is not None:
-                if item.name not in self.history_images:
-                    self.history_images[item.name] = len(item.data)
-                    number = [int(i) for i in r if i.isdigit()][0]
-                    result.append(number)
-                else:
-                    if self.history_images[item.name] != len(item.data):
-                        number = [int(i) for i in r if i.isdigit()][0]
-                        result.append(number)
+                number = [int(i) for i in r if i.isdigit()][0]
+                result.append(number)
         return result
 
     def to_image_instance(
         self,
         current_image: ImageInstancePIL,
-        index: int,
         resize: str,
     ) -> ImageComicData:
         """
@@ -205,14 +227,17 @@ class PdfHandler:
 
         Args
             current_image: `PIL.Image` instance.
-            index: number of image position.
             resize: string of new size of image.
 
         Returns
             ImageComicData: instance with byte data, new name.
         """
         name_, extention_ = self.paths.splitext(current_image.name)
-        name_image = 'Image' + str(index).zfill(4) + extention_.lower()
+        # name_image = 'Image' + str(index).zfill(4) + extention_.lower()
+        name_image = 'Image%s%s' % (
+                            str(self.number_image).zfill(4),
+                            extention_.lower()
+                        )
         # print(index, current_image.name, name_image)
         image_comic = self.imageshandler.new_image(
                                 name_image=name_image,
@@ -222,4 +247,5 @@ class PdfHandler:
                                 unit=self.unit
                             )
         image_comic.original_name = current_image.name
+        self.number_image += 1
         return image_comic
