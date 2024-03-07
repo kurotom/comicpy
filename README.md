@@ -8,11 +8,6 @@ Extracts images from PDF, ZIP, CBR files, generating comic files respecting thei
 > The original files are not altered.
 
 
-### Important
-
-For full operation of `comicpy` when using RAR files, you must have available the `rar` command, download and install it from the official site, [**rarlab - rar/unrar command**](https://www.rarlab.com/download.htm).
-
-
 ## Features
 
 * Convert `PDF` file to `CBR` or `CBZ` files (by default).
@@ -22,6 +17,13 @@ For full operation of `comicpy` when using RAR files, you must have available th
 * Scan in the given directory and filter `CBR`, `CBZ` files allowing to merge them all into one.
 * Extract `CBR` or `CBZ` files from `RAR` or `ZIP` archives.
 * Support for password protected `RAR` or `ZIP` archives.
+
+
+### Important
+
+>> 1. For full operation of `comicpy` when using RAR files, you must have available the `rar` command, download and install it from the official site, [**rarlab - rar/unrar command**](https://www.rarlab.com/download.htm).
+
+>> 2. Some PDF files *contain multiple images on the same page*, which may be *repeated* within the *same file*; converting the PDF file <u>will remove all duplicate images</u>. <u>This is due to the original construction and layout of the source PDF file</u>. Therefore, as a result, there may be fewer or more pages compared to the original PDF file, this does *not necessarily indicate that the work of this tool (**comicpy**) is flawed or faulty*.
 
 
 # Installation
