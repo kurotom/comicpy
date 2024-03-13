@@ -4,6 +4,7 @@ CLI comicpy
 """
 
 import argparse
+import sys
 
 from comicpy.comicpy import ComicPy
 from comicpy.utils import Paths
@@ -53,6 +54,7 @@ def rar(
                     password=password,
                     resize=resize
                 )
+
     metaFileCompress = comicInstance.to_write(
                                 listCurrentFiles=data,
                                 path=dest
@@ -117,10 +119,12 @@ def dir(
                     password=password,
                     resize=resize
                 )
+    # print('--> ', data)
     metaFileCompress = comicInstance.to_write(
                                 listCurrentFiles=data,
                                 path=dest
                             )
+    # print(metaFileCompress)
     if metaFileCompress is not None and check is True:
         for item in metaFileCompress:
             comicInstance.check_integrity(
@@ -155,7 +159,7 @@ def CliComicPy() -> None:
         )
     main_parser.add_argument(
             '--filter',
-            choices=['pdf', 'rar', 'zip', 'cbr', 'cbz'],
+            choices=['pdf', 'rar', 'zip', 'cbr', 'cbz', 'images'],
             default='zip',
             help='Filter files on directory.'
         )
@@ -243,47 +247,48 @@ def CliComicPy() -> None:
                 exec_path_rar=path_exec,
                 show_progress=progress
             )
+    try:
+        # FILE
+        if typeFile == 'f':
+            name_, extention_ = paths.splitext(pathFile)
+            if extention_.lower() == '.pdf':
+                pdf(
+                    comicInstance=comic,
+                    filename=pathFile,
+                    compressor=compressorFile,
+                    dest=destFile,
+                    check=checkFile,
+                    resize=resizeImage
+                )
+            if extention_.lower() == '.rar' or extention_.lower() == '.cbr':
+                rar(
+                    comicInstance=comic,
+                    filename=pathFile,
+                    dest=destFile,
+                    check=checkFile,
+                    password=password,
+                    resize=resizeImage
+                )
 
-    # FILE
-    if typeFile == 'f':
-        name_, extention_ = paths.splitext(pathFile)
-        if extention_.lower() == '.pdf':
-            pdf(
-                comicInstance=comic,
-                filename=pathFile,
-                compressor=compressorFile,
-                dest=destFile,
-                check=checkFile,
-                resize=resizeImage
-            )
-        if extention_.lower() == '.rar':
-            rar(
-                comicInstance=comic,
-                filename=pathFile,
-                dest=destFile,
-                check=checkFile,
-                password=password,
-                resize=resizeImage
-            )
+            if extention_.lower() == '.zip' or extention_.lower() == '.cbz':
+                zip(
+                    comicInstance=comic,
+                    filename=pathFile,
+                    dest=destFile,
+                    check=checkFile,
+                    password=password,
+                    resize=resizeImage
+                )
 
-        if extention_.lower() == '.zip':
-            zip(
-                comicInstance=comic,
-                filename=pathFile,
-                dest=destFile,
-                check=checkFile,
-                password=password,
-                resize=resizeImage
-            )
+        # DIRECOTRY
+        elif typeFile == 'd':
+            dir_name = paths.get_basename(pathFile)
+            if dir_name == '':
+                name = None
+            else:
+                name = '%s%s' % (outputFile, dir_name)
 
-    # DIRECOTRY
-    elif typeFile == 'd':
-        dir_name = paths.get_basename(pathFile)
-        if dir_name == '':
-            name = None
-        else:
-            name = '%s%s' % (outputFile, dir_name)
-        dir(
+            dir(
                 comicInstance=comic,
                 directory_path=pathFile,
                 extention_filter=filterFile,
@@ -295,6 +300,10 @@ def CliComicPy() -> None:
                 check=checkFile,
                 resize=resizeImage
             )
+
+    except KeyboardInterrupt:
+        print('Interrumped by user.')
+        sys.exit(1)
 
 
 if __name__ == '__main__':

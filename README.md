@@ -17,6 +17,7 @@ Extracts images from PDF, ZIP, CBR files, generating comic files respecting thei
 * Scan in the given directory and filter `CBR`, `CBZ` files allowing to merge them all into one.
 * Extract `CBR` or `CBZ` files from `RAR` or `ZIP` archives.
 * Support for password protected `RAR` or `ZIP` archives.
+* Convert image directories (*jpeg*, *png*, *jpg*) to `CBR` or `CBZ` files.
 
 
 ### Important
@@ -74,7 +75,7 @@ $ comicpy --type f -p file.rar --check --resize small
 |-|-|
 | --type d | Directory. |
 | -p PATH, --path PATH | Path of directory. |
-| --filter {pdf,rar,zip,cbr,cbz} | Filter files on directory. Default is "zip". |
+| --filter {pdf,rar,zip,cbr,cbz,images} | Filter files on directory. Default is "zip". |
 | -c {rar,zip}, --compressor {rar,zip} | Type of compressor to use. Default is "zip".|
 | -d DEST, --dest DEST | Path to save output files. Default is ".".
 | -o OUTPUT, --output OUTPUT | Prefix of output file. Default is "Converted_". |
@@ -92,6 +93,7 @@ $ for i in $(ls -d Zip_Dir_*/); do
 > comicpy --type d -p "$i" --filter zip -c zip --check -o ${i: 0:-1} --join
 > done
 $ comicpy --type d -p rars_dir --filter rar -c rar --check --join -o prefix_final_ --password PASS --resize preserve
+$ comicpy --type d -p Comic_vol1/ --compress zip --filter images --check --progress --join
 ```
 
 

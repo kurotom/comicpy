@@ -5,6 +5,8 @@ Utils
 
 import os
 import sys
+import glob
+from pathlib import Path
 
 from typing import Union, Tuple, TypeVar
 
@@ -20,7 +22,28 @@ class Paths:
     ROOT_PATH = os.path.join(HOME_DIR, DIR)
 
     def get_separator(self) -> str:
+        """
+        Returns the separator used in the operating system.
+        """
         return os.sep
+
+    def isfile(
+        self,
+        path
+    ) -> bool:
+        """
+        Returns boolean if it is file or not.
+        """
+        return os.path.isfile(path)
+
+    def isdir(
+        self,
+        path
+    ) -> bool:
+        """
+        Returns boolean if it is directory or not.
+        """
+        return os.path.isdir(path)
 
     def splitext(
         self,
@@ -144,7 +167,53 @@ class Paths:
         Returns
             str: string of path.
         """
-        return os.path.normpath(path).split(os.sep)[level]
+        return os.path.normpath(path).split(self.get_separator())[level]
+
+    def get_file_glob(
+        self,
+        extention: str,
+        directory: str
+    ) -> list:
+        """
+        Searches for files by extension, ignoring upper and lower case letters.
+
+        Args:
+            extension: string of extention of file.
+
+        Returns
+            list: list of file names matched.
+        """
+        results = []
+        for extention_ in [extention.lower(), extention.upper()]:
+            pattern = '*.%s' % (extention_)
+
+            dir_path = '%s%s' % (directory, self.get_separator())
+
+            full_pattern = '%s%s' % (dir_path, pattern)
+
+            filesMatch = glob.glob(full_pattern)
+            results.extend(filesMatch)
+        return results
+
+    def get_files_recursive(
+        self,
+        directory: str,
+        extentions: Union[str, list]
+    ) -> list:
+        """
+        """
+        results = []
+        if isinstance(extentions, str):
+            extentions = [extentions]
+        dirPath = Path(directory)
+
+        [
+            results.extend(list(dirPath.rglob(f'*{ext}')))
+            for ext in extentions
+        ]
+
+        return results
+
 
 
 class VarEnviron:

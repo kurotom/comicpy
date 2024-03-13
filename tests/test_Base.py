@@ -13,8 +13,6 @@ from comicpy.models import (
 )
 
 import unittest
-import os
-import sys
 import io
 
 

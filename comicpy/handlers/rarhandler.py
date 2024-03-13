@@ -62,6 +62,7 @@ class RarHandler(BaseZipRarHandler):
         self.validextentions = ValidExtentions()
         self.paths = Paths()
         self.url_page = 'https://www.rarlab.com/download.htm'
+        self.number_index = 0
 
     def testRar(
         self,
@@ -81,7 +82,8 @@ class RarHandler(BaseZipRarHandler):
                 file=currentFileRar.bytes_data,
                 mode='r'
             ) as rarFile:
-                rarFile.testrar()
+                f = rarFile.namelist()[:1]
+                rarFile.read(f[0])
             return False
         except rarfile.RarCannotExec:
             return None
@@ -92,6 +94,7 @@ class RarHandler(BaseZipRarHandler):
         self,
         currentFileRar: CurrentFile,
         password: str = None,
+        is_join: bool = False,
         resizeImage: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve'
     ) -> Union[CompressorFileData, None, int]:
         """
@@ -108,17 +111,26 @@ class RarHandler(BaseZipRarHandler):
                                 compressor.
         """
         rawDataRar = currentFileRar.bytes_data
+
         try:
             with rarfile.RarFile(
                 file=rawDataRar,
                 mode='r'
             ) as rar_file:
 
-                return super().iterateFiles(
+                rarFileOrigin = super().iterateFiles(
                     instanceCompress=rar_file,
                     password=password,
-                    resize=resizeImage
+                    resize=resizeImage,
+                    type_compress='rar',
+                    join=is_join
                 )
+
+                if rarFileOrigin is not None:
+                    if rarFileOrigin.filename == '':
+                        rarFileOrigin.filename = currentFileRar.name
+
+                return rarFileOrigin
 
         except RarCannotExec as e:
             msg = 'Rar not Installed: \n'

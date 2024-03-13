@@ -83,6 +83,7 @@ class ComicPyTestCase(BaseTestCase):
                                 filename=filename,
                                 raw_data=data
                             )
+
         with self.assertRaises(FilePasswordProtected):
             self.comicpy_init.check_protectedFile(
                 handler=self.comicpy_init.ziphandler,
@@ -171,7 +172,6 @@ class ComicPyTestCase(BaseTestCase):
         ]
 
         self.assertEqual(all(results), True)
-
 
     def test_comicpy_process_pdf_MultiImages(self):
         filename1 = 'comic 1.pdf'
@@ -666,6 +666,30 @@ class ComicPyTestCase(BaseTestCase):
             ]
 
         self.assertEqual(all(results), True)
+
+    def test_comicpy_dir_images(self):
+        dirname = self.images_dir
+        imagesDir = self.comicpy_init.process_dir(
+                    directory_path=dirname,
+                    extention_filter='images',
+                    filename='Images_Dir_',
+                    password=None,
+                    compressor='zip',
+                    join=False,
+                    resize='preserve'
+            )
+        result = self.comicpy_init.to_write(
+                listCurrentFiles=imagesDir,
+                path=self.temp_dir
+            )
+        results = [
+            imagesDir[0].extention == '.cbz',
+            len(imagesDir) == 2,
+            isinstance(imagesDir[0], CurrentFile),
+
+        ]
+        self.assertEqual(all(results), True)
+
 #
 # Write TESTS
 

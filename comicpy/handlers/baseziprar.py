@@ -15,7 +15,6 @@ from comicpy.models import (
 from rarfile import RarFile
 from pyzipper import AESZipFile
 import io
-from uuid import uuid4
 
 from typing import (
     Union,
@@ -38,6 +37,12 @@ class BaseZipRarHandler:
     def __init__(self) -> None:
         self.paths = Paths()
         self.imageshandler = ImagesHandler()
+
+    def reset_counter(self) -> None:
+        """
+        Resets the number of the image name counter.
+        """
+        self.number_index = 0
 
     def read_file(
         self,
@@ -94,6 +99,8 @@ class BaseZipRarHandler:
     def iterateFiles(
         self,
         instanceCompress: Union[RarFile, AESZipFile],
+        type_compress: str,
+        join: bool,
         password: str = None,
         resize: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve'
     ) -> Union[CompressorFileData, None]:
@@ -111,6 +118,7 @@ class BaseZipRarHandler:
         """
         images_Extentions = self.validextentions.get_images_extentions()
         listContentData = []
+        # imagesCollector = {}
         directory_name = None
 
         files_exists = self.exists_valid_files(
@@ -119,14 +127,19 @@ class BaseZipRarHandler:
         if files_exists is False:
             return None
 
+        # if join is False:
+        #     self.reset_counter()
+
         for item in instanceCompress.namelist():
             directory_name = self.paths.get_dirname(item).replace(' ', '_')
             name_file = self.paths.get_basename(item)
-            _name, _extention = self.paths.splitext(name_file)
+
+            # print(name_file, directory_name)
+            name_, extention_ = self.paths.splitext(name_file)
 
             # print(_extention, images_Extentions)
 
-            if _extention.lower() == ValidExtentions.CBR:
+            if extention_.lower() == ValidExtentions.CBR:
 
                 rawDataFile = self.read_file(
                                     instanceCompress=instanceCompress,
@@ -142,7 +155,7 @@ class BaseZipRarHandler:
                             )
                 listContentData.append(currentFileCBR)
 
-            elif _extention.lower() == ValidExtentions.CBZ:
+            elif extention_.lower() == ValidExtentions.CBZ:
 
                 rawDataFile = self.read_file(
                                     instanceCompress=instanceCompress,
@@ -159,12 +172,10 @@ class BaseZipRarHandler:
                             )
                 listContentData.append(currentFileCBZ)
 
-            elif _extention.lower() in images_Extentions:
-
-                item_name = '%s%s%s' % (
-                    uuid4().hex[:4],
-                    _name.replace(' ', '_'),
-                    _extention
+            elif extention_.lower() in images_Extentions:
+                item_name = '%s%s' % (
+                    name_.replace(' ', '_'),
+                    extention_.lower()
                 )
 
                 file_name = self.paths.build(directory_name, item_name)
@@ -178,7 +189,7 @@ class BaseZipRarHandler:
                 image_comic = self.imageshandler.new_image(
                                         name_image=file_name,
                                         currentImage=rawDataFile,
-                                        extention=_extention[1:].upper(),
+                                        extention=extention_[1:].upper(),
                                         sizeImage=resize,
                                         unit=self.unit
                                     )
@@ -188,13 +199,13 @@ class BaseZipRarHandler:
         if len(listContentData) == 0:
             return None
 
-        zipFileCompress = CompressorFileData(
+        fileContainerCompressor = CompressorFileData(
                                 filename=directory_name,
                                 list_data=listContentData,
-                                type='zip',
+                                type=type_compress,
                                 unit=self.unit
                             )
-        return zipFileCompress
+        return fileContainerCompressor
 
     def extract_content(
         currentFileZip: CurrentFile,

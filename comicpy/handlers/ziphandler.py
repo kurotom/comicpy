@@ -49,6 +49,7 @@ class ZipHandler(BaseZipRarHandler):
         self.imageshandler = ImagesHandler()
         self.validextentions = ValidExtentions()
         self.paths = Paths()
+        self.number_index = 0
 
     def testZip(
         self,
@@ -94,6 +95,7 @@ class ZipHandler(BaseZipRarHandler):
         self,
         currentFileZip: CurrentFile,
         password: str = None,
+        is_join: bool = False,
         resizeImage: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve'
     ) -> Union[CompressorFileData, None]:
         """
@@ -121,11 +123,19 @@ class ZipHandler(BaseZipRarHandler):
             if password is not None:
                 zip_file.pwd = password.encode('utf-8')
 
-            return super().iterateFiles(
+            zipFileOrigin = super().iterateFiles(
                 instanceCompress=zip_file,
                 password=password,
-                resize=resizeImage
+                resize=resizeImage,
+                type_compress='zip',
+                join=is_join
             )
+
+            if zipFileOrigin is not None:
+                if zipFileOrigin.filename == '':
+                    zipFileOrigin.filename = currentFileZip.name
+
+            return zipFileOrigin
 
     def to_zip(
         self,
@@ -202,8 +212,8 @@ class ZipHandler(BaseZipRarHandler):
 
                 directory_path = item.filename
 
-                info_archivo_zip = zipfile.ZipInfo(filename=directory_path)
-                info_archivo_zip.compress_type = zipfile.ZIP_DEFLATED
+                info_file_zip = zipfile.ZipInfo(filename=directory_path)
+                info_file_zip.compress_type = zipfile.ZIP_DEFLATED
 
                 for image in item.list_data:
                     image_path = self.paths.build(
