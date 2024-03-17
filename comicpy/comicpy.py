@@ -316,7 +316,7 @@ class ComicPy:
                                 )
 
         if zipCompressorFileData is None:
-            msg = 'RAR not have images.'
+            msg = 'ZIP not have images.'
             exts = self.validextentions.get_container_valid_extentions()
             msg += 'Valid Extentions:  ' + ', '.join(exts) + '\n'
             raise EmptyFile(msg)

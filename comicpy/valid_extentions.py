@@ -14,6 +14,7 @@ class ValidExtentions:
     JPEG = '.jpeg'
     PNG = '.png'
     JPG = '.jpg'
+    WEBP = '.webp'
 
     def get_all_extentions(self) -> list:
         """
@@ -27,7 +28,8 @@ class ValidExtentions:
             ValidExtentions.RAR,
             ValidExtentions.JPEG,
             ValidExtentions.PNG,
-            ValidExtentions.JPG
+            ValidExtentions.JPG,
+            ValidExtentions.WEBP
         ]
 
     def get_container_valid_extentions(self) -> list:
@@ -55,7 +57,8 @@ class ValidExtentions:
         return [
                 ValidExtentions.JPEG,
                 ValidExtentions.PNG,
-                ValidExtentions.JPG
+                ValidExtentions.JPG,
+                ValidExtentions.WEBP
             ]
 
     def get_comic_extentions(self) -> list:

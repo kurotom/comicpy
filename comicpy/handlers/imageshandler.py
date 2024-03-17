@@ -13,6 +13,8 @@ Options for resize images.
 
 from comicpy.models import ImageComicData
 
+from comicpy.valid_extentions import ValidExtentions
+
 from PIL import Image
 import io
 
@@ -26,9 +28,10 @@ class ImagesHandler:
     Class dealing with image issues, such as resizing.
     """
     validFormats = {
-        'JPEG': 'jpeg',
-        'PNG': 'png',
-        'JPG': 'jpeg'
+        'JPEG': ValidExtentions.JPEG[1:],
+        'PNG': ValidExtentions.PNG[1:],
+        'JPG': ValidExtentions.JPG[1:],
+        'WEBP': ValidExtentions.WEBP[1:]
     }
     sizeImageDict = {
         'preserve': None,
@@ -84,6 +87,9 @@ class ImagesHandler:
                                 )
         else:
             imageResized = currentImage
+
+        if extention == 'JPG':
+            extention = 'JPEG'
 
         imageResized.save(
                 newImageIO,
