@@ -80,6 +80,10 @@ class ImagesHandler:
         if type(currentImage) is bytes:
             currentImage = Image.open(io.BytesIO(currentImage))
 
+        # convert png grey scale to RGB.
+        if extention == 'PNG':
+            currentImage = currentImage.convert('RGB')
+
         if size_tuple is not None:
             imageResized = currentImage.resize(
                                     size_tuple,
@@ -94,7 +98,8 @@ class ImagesHandler:
         imageResized.save(
                 newImageIO,
                 format=ImagesHandler.validFormats[extention],
-                quality=90
+                # quality=90
+                quality=100
             )
 
         image_comic = ImageComicData(

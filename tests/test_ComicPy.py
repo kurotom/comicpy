@@ -173,7 +173,7 @@ class ComicPyTestCase(BaseTestCase):
 
         self.assertEqual(all(results), True)
 
-    def test_comicpy_process_pdf_MultiImages(self):
+    def test_comicpy_process_pdf_MultiImages_PYPDF(self):
         filename1 = 'comic 1.pdf'
         filename2 = 'comic 2.pdf'
 
@@ -192,12 +192,14 @@ class ComicPyTestCase(BaseTestCase):
         compressFileData1 = self.comicpy_init.pdfphandler.process_pdf(
                                 currentFilePDF=currentFile1,
                                 compressor='rar',
-                                resizeImage='preserve'
+                                resizeImage='preserve',
+                                motor='pypdf'
                             )
         compressFileData2 = self.comicpy_init.pdfphandler.process_pdf(
                                 currentFilePDF=currentFile2,
                                 compressor='zip',
-                                resizeImage='preserve'
+                                resizeImage='preserve',
+                                motor='pypdf'
                             )
 
         compressedCurrentFileIO1 = self.comicpy_init.to_compressor(
@@ -241,7 +243,7 @@ class ComicPyTestCase(BaseTestCase):
         ]
         self.assertEqual(all(results), True)
 
-    def test_comicpy_process_pdf_MultiImageSorted(self):
+    def test_comicpy_process_pdf_MultiImageSorted_PYPDF(self):
         filename = 'image_2.pdf'
         data = self.data[filename]
         currentFile = self.buid_CurrentFile(
@@ -251,7 +253,8 @@ class ComicPyTestCase(BaseTestCase):
         compressFileData = self.comicpy_init.pdfphandler.process_pdf(
                                 currentFilePDF=currentFile,
                                 compressor='rar',
-                                resizeImage='preserve'
+                                resizeImage='preserve',
+                                motor='pypdf'
                             )
 
         compressedCurrentFileIO = self.comicpy_init.to_compressor(
@@ -276,7 +279,7 @@ class ComicPyTestCase(BaseTestCase):
         ]
         self.assertEqual(all(results), True)
 
-    def test_comicpy_process_pdfMultiImageNotSorted(self):
+    def test_comicpy_process_pdfMultiImageNotSorted_PYPDF(self):
         # original order must be preserve
         filename = 'comic 1.pdf'
         data = self.data[filename]
@@ -287,7 +290,8 @@ class ComicPyTestCase(BaseTestCase):
         compressFileData = self.comicpy_init.pdfphandler.process_pdf(
                                 currentFilePDF=currentFile,
                                 compressor='rar',
-                                resizeImage='preserve'
+                                resizeImage='preserve',
+                                motor='pypdf'
                             )
         compressedCurrentFileIO = self.comicpy_init.to_compressor(
                 filename=filename,
@@ -752,12 +756,13 @@ class ComicPyTestCase(BaseTestCase):
         list_Currentfiles = self.comicpy_init.process_dir(
                     directory_path=self.rars_dir,
                     extention_filter='rar',
-                    filename='RARS__',
+                    filename=None,
                     password=None,
                     compressor='rar',
                     join=False,
                     resize='preserve'
             )
+        # print(list_Currentfiles, self.temp_dir)
         info_data = self.comicpy_init.to_write(
             listCurrentFiles=list_Currentfiles,
             path=self.temp_dir

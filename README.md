@@ -51,6 +51,7 @@ $ comicpy -h
 | --type f | File. |
 | -p PATH, --path PATH | Path of file. |
 | -d DEST, --dest DEST | Path to save output files. Default is "." |
+| --motorPDF {pypdf,pymupdf} | PDF library to use. |
 | -c {rar,zip}, --compressor {rar,zip} | Type of compressor to use. |
 | -o OUTPUT, --output OUTPUT | Prefix of output file. |
 | --check | Check the CBR or CBZ files created. |
@@ -76,6 +77,7 @@ $ comicpy --type f -p file.rar --check --resize small
 | --type d | Directory. |
 | -p PATH, --path PATH | Path of directory. |
 | --filter {pdf,rar,zip,cbr,cbz,images} | Filter files on directory. Default is "zip". |
+| --motorPDF {pypdf,pymupdf} | PDF library to use. |
 | -c {rar,zip}, --compressor {rar,zip} | Type of compressor to use. Default is "zip".|
 | -d DEST, --dest DEST | Path to save output files. Default is ".".
 | -o OUTPUT, --output OUTPUT | Prefix of output file. Default is "Converted_". |

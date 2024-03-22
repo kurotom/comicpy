@@ -58,6 +58,9 @@ SMALL = TypeVar('small')
 MEDIUM = TypeVar('medium')
 LARGE = TypeVar('large')
 
+PYPDF = TypeVar('pypdf')
+PYMUPDF = TypeVar('pymupdf')
+
 
 class ComicPy:
     """
@@ -243,7 +246,8 @@ class ComicPy:
         self,
         filename: str,
         compressor: Union[RAR, ZIP] = 'zip',
-        resize: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve'
+        resize: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve',
+        motor: Union[PYPDF, PYMUPDF] = 'pypdf'
     ) -> List[CurrentFile]:
         """
         Process PDF file, load content, extract images.
@@ -269,7 +273,8 @@ class ComicPy:
         compressFileData = self.pdfphandler.process_pdf(
                             currentFilePDF=self.currentFile,
                             compressor=compressor,
-                            resizeImage=resize
+                            resizeImage=resize,
+                            motor=motor
                         )
         if compressFileData is None:
             raise EmptyFile('File PDF not have images.')
@@ -504,7 +509,8 @@ class ComicPy:
         password: str,
         compressor_type: str,
         join: str,
-        resize: str
+        resize: str,
+        motor: Union[PYPDF, PYMUPDF] = 'pypdf'
     ) -> list:
         """
         Manages the workflow for PDF, CBR, CBZ, RAR, ZIP files within a
@@ -579,7 +585,8 @@ class ComicPy:
                         compressFileData = self.pdfphandler.process_pdf(
                                                 currentFilePDF=fileCurrentData,
                                                 compressor=compressor_type,
-                                                resizeImage=resize
+                                                resizeImage=resize,
+                                                motor=motor
                                         )
 
                     elif extention == '.zip' or extention == '.cbz':
@@ -740,12 +747,12 @@ class ComicPy:
                         path, ComicPy.PREFIX_CONVERTED,
                         make=True
                     )
-
+        # print(base_path)
         for itemCurrent in listCurrentFiles:
             # print(itemCurrent.filename, itemCurrent.name)
 
             file_name = '%s%s' % (
-                            itemCurrent.name,
+                            itemCurrent.filename,
                             itemCurrent.extention
                         )
 
@@ -758,6 +765,8 @@ class ComicPy:
                                 itemCurrent.extention
                             )
                 path_output = self.paths.build(base_path, file_name)
+
+            # print(path_output)
 
             # Sets destine path to CurrentFile instance.
             itemCurrent.path = path_output

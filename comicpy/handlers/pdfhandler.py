@@ -12,10 +12,8 @@ from comicpy.models import (
     CompressorFileData
 )
 
-from pypdf import (
-    PdfReader,
-    PageObject
-)
+from pypdf import PdfReader
+import fitz
 
 from typing import (
     List,
@@ -32,6 +30,9 @@ SMALL = TypeVar('small')
 MEDIUM = TypeVar('medium')
 LARGE = TypeVar('large')
 ImageInstancePIL = TypeVar("ImageInstancePIL")
+
+PYPDF = TypeVar('pypdf')
+PYMUPDF = TypeVar('pymupdf')
 
 
 class PdfHandler:
@@ -52,19 +53,20 @@ class PdfHandler:
         self.unit = unit
         self.imageshandler = ImagesHandler()
         self.paths = Paths()
-        self.number_image = 0
+        self.number_image = 1
 
     def reset_counter(self) -> None:
         """
         Resets the number of the image name counter.
         """
-        self.number_image = 0
+        self.number_image = 1
 
     def process_pdf(
         self,
         currentFilePDF: CurrentFile,
         compressor: str,
-        resizeImage: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve'
+        resizeImage: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve',
+        motor: Union[PYPDF, PYMUPDF] = 'pypdf'
     ) -> Union[CompressorFileData, None]:
         """
         Takes the bytes from a PDF file and gets the images.
@@ -72,6 +74,9 @@ class PdfHandler:
         Args:
             currentFilePDF: Instance of `CurrentFile` with the data of the PDF
                             file.
+            compressor: type of compressor to use, RAR or ZIP.
+            resizeImage: rescaling image.
+            motor: motor to use, `pypdf` or `pymupdf`, default `pypdf`.
 
         Returns:
             List[ImageComicData]: list of instances of `ImageComicData` with
@@ -79,13 +84,19 @@ class PdfHandler:
         """
         self.reset_counter()
 
-        dataRaw = currentFilePDF.bytes_data
-        reader = PdfReader(dataRaw)
-        # print(reader.pdf_header, len(reader.pages), reader.metadata)
-        listImageComicData = self.getting_data(
-                                    pages_pdf=reader.pages,
-                                    resize=resizeImage
-                                )
+        listImageComicData = []
+
+        if motor == 'pypdf':
+            listImageComicData = self.to_pypdf(
+                                        filePDF=currentFilePDF,
+                                        resize=resizeImage
+                                    )
+        elif motor == 'pymupdf':
+            listImageComicData = self.to_pymupdf(
+                                        filePDF=currentFilePDF,
+                                        resize=resizeImage
+                                    )
+
         if len(listImageComicData) == 0:
             return None
         # print(len(listImageComicData))
@@ -97,13 +108,13 @@ class PdfHandler:
                             )
         return pdfFileCompressor
 
-    def getting_data(
+    def to_pypdf(
         self,
-        pages_pdf: List[PageObject],
+        filePDF: CurrentFile,
         resize: str
     ) -> Union[List[ImageComicData], list]:
         """
-        Gets images of the pages of a PDF file.
+        Gets images of the pages of a PDF file using PyPDF.
         Image comparison is performed by calculating the md5 hash by taking the
         original image name and its raw data. This method avoids duplicate
         images.
@@ -111,18 +122,23 @@ class PdfHandler:
         in case of multiple images on a single page.
 
         Args:
-            pages_pdf: list of `PageObject` objects of the PDF file.
+            currentFilePDF: Instance of `CurrentFile` with the data of the PDF
+                            file.
+            resizeImage: rescaling image.
 
         Returns:
             List[ImageComicData]: list of `ImageComicData` instances with the
                                   page image data.
         """
         data = []
+        reader = PdfReader(filePDF.bytes_data)
+        pages_pdf = reader.pages
         n_pages = len(pages_pdf)
         i = 0
         dict_images = {}
         uniques_hash = []
         prev_images = 0
+        # print(reader.pdf_header, len(reader.pages), reader.metadata)
         while i < n_pages:
             # print(len(pages_pdf[i].images))
 
@@ -138,10 +154,14 @@ class PdfHandler:
                                         )
                     if hash_image not in uniques_hash:
                         uniques_hash.append(hash_image)
+
+                        name_, extention_ = self.paths.splitext(item.name)
                         image_comic = self.to_image_instance(
-                                            current_image=item,
-                                            resize=resize
-                                        )
+                            dataImage=item.data,
+                            extentionImage=extention_[1:],
+                            resize=resize,
+                        )
+
                         data.append(image_comic)
 
                 elif len(pages_pdf[i].images) > 1:
@@ -165,10 +185,16 @@ class PdfHandler:
                                                 )
                             if hash_image not in uniques_hash:
                                 uniques_hash.append(hash_image)
+
+                                name_, extention_ = self.paths.splitext(
+                                                                    item.name
+                                                                )
                                 image_comic = self.to_image_instance(
-                                                    current_image=item,
-                                                    resize=resize
-                                                )
+                                    dataImage=item.data,
+                                    extentionImage=extention_[1:],
+                                    resize=resize,
+                                )
+
                                 data.append(image_comic)
                     prev_images = len(pages_pdf[i].images)
 
@@ -218,8 +244,10 @@ class PdfHandler:
 
     def to_image_instance(
         self,
-        current_image: ImageInstancePIL,
+        dataImage: bytes,
+        extentionImage: str,
         resize: str,
+        current_image: ImageInstancePIL = None,
     ) -> ImageComicData:
         """
         Creates an image instance with new dimensions and names, preserving the
@@ -232,20 +260,59 @@ class PdfHandler:
         Returns
             ImageComicData: instance with byte data, new name.
         """
-        name_, extention_ = self.paths.splitext(current_image.name)
-        # name_image = 'Image' + str(index).zfill(4) + extention_.lower()
-        name_image = 'Image%s%s' % (
+        name_image = 'Image%s.%s' % (
                             str(self.number_image).zfill(4),
-                            extention_.lower()
+                            extentionImage.lower()
                         )
         # print(index, current_image.name, name_image)
         image_comic = self.imageshandler.new_image(
                                 name_image=name_image,
-                                currentImage=current_image.image,
-                                extention=extention_[1:].upper(),
+                                currentImage=dataImage,
+                                extention=extentionImage.upper(),
                                 sizeImage=resize,
                                 unit=self.unit
                             )
-        image_comic.original_name = current_image.name
+
         self.number_image += 1
         return image_comic
+
+    def to_pymupdf(
+        self,
+        filePDF: CurrentFile,
+        resize: str = 'preserve'
+    ) -> Union[List[ImageComicData], list]:
+        """
+        Gets images of the pages of a PDF file using PyMuPDF.
+
+        Args:
+            currentFilePDF: Instance of `CurrentFile` with the data of the PDF
+                            file.
+            resizeImage: rescaling image.
+
+        Returns:
+            List[ImageComicData]: list of `ImageComicData` instances with the
+                                  page image data.
+        """
+
+        list_images = []
+
+        pdf_doc = fitz.open(stream=filePDF.bytes_data, filetype='pdf')
+
+        for i in range(len(pdf_doc)):
+            page = pdf_doc[i]
+            for indx, image in enumerate(page.get_images(full=True)):
+                refImage = image[0]
+                image_base = pdf_doc.extract_image(refImage)
+
+                image_data = image_base['image']
+                image_extention = image_base['ext']
+
+                image_comic = self.to_image_instance(
+                    dataImage=image_data,
+                    extentionImage=image_extention,
+                    resize=resize,
+                )
+                list_images.append(image_comic)
+
+                self.number_image += 1
+        return list_images

@@ -16,7 +16,8 @@ def pdf(
     compressor: str,
     dest: str,
     check: bool,
-    resize: str = 'preserve'
+    resize: str = 'preserve',
+    motor: str = 'pypdf'
 ) -> None:
     """
     Function for PDF file.
@@ -24,7 +25,8 @@ def pdf(
     data = comicInstance.process_pdf(
                     filename=filename,
                     compressor=compressor,
-                    resize=resize
+                    resize=resize,
+                    motor=motor
                 )
     metaFileCompress = comicInstance.to_write(
                     listCurrentFiles=data,
@@ -105,7 +107,8 @@ def dir(
     compressor: str = 'zip',
     join: bool = False,
     check: bool = False,
-    resize: str = 'preserve'
+    resize: str = 'preserve',
+    motor: str = 'pypdf'
 ) -> None:
     """
     Function for directories.
@@ -117,7 +120,8 @@ def dir(
                     compressor=compressor,
                     join=join,
                     password=password,
-                    resize=resize
+                    resize=resize,
+                    motor=motor
                 )
     # print('--> ', data)
     metaFileCompress = comicInstance.to_write(
@@ -162,6 +166,12 @@ def CliComicPy() -> None:
             choices=['pdf', 'rar', 'zip', 'cbr', 'cbz', 'images'],
             default='zip',
             help='Filter files on directory.'
+        )
+    main_parser.add_argument(
+            '--motorPDF',
+            choices=['pypdf', 'pymupdf'],
+            default='pypdf',
+            help='PDF library to use.'
         )
     main_parser.add_argument(
             '-c',
@@ -240,6 +250,7 @@ def CliComicPy() -> None:
     resizeImage = args.resize
     path_exec = args.path_exec
     progress = args.progress
+    motorPDF = args.motorPDF
 
     # Instance
     comic = ComicPy(
@@ -258,7 +269,8 @@ def CliComicPy() -> None:
                     compressor=compressorFile,
                     dest=destFile,
                     check=checkFile,
-                    resize=resizeImage
+                    resize=resizeImage,
+                    motor=motorPDF
                 )
             if extention_.lower() == '.rar' or extention_.lower() == '.cbr':
                 rar(
@@ -298,7 +310,8 @@ def CliComicPy() -> None:
                 compressor=compressorFile,
                 join=joinFile,
                 check=checkFile,
-                resize=resizeImage
+                resize=resizeImage,
+                motor=motorPDF
             )
 
     except KeyboardInterrupt:
