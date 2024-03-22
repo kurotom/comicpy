@@ -254,6 +254,9 @@ class ComicPy:
 
         Args:
             filename: str -> PDF file name.
+            compressor:
+            resize:
+            motor: motor to use, `pypdf` or `pymupdf`, default `pypdf`.
 
         Returns:
             CompressorFileData: instance representing the compressor file,
@@ -298,6 +301,8 @@ class ComicPy:
 
         Args:
             filename: str -> ZIP file name.
+            password: password of ZIP file.
+            resize: rescaling image.
 
         Returns:
             CurrentFile: instance representing the data of the ZIP file named
@@ -345,6 +350,8 @@ class ComicPy:
 
         Args:
             filename: str -> RAR file name.
+            password: password of RAR file.
+            resize: rescaling image.
 
         Returns:
             CurrentFile: the instance represents the data of the RAR archive
@@ -392,7 +399,8 @@ class ComicPy:
         password: str = None,
         compressor: Union[RAR, ZIP] = 'zip',
         join: bool = False,
-        resize: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve'
+        resize: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve',
+        motor: Union[PYPDF, PYMUPDF] = 'pypdf'
     ) -> Union[List[CurrentFile], None]:
         """
         Searches files in the given directory, searches only PDF, CBZ, CBR
@@ -410,6 +418,7 @@ class ComicPy:
                   otherwise, if `False` they are kept in individual files.
             password: password string of file, default is `None`.
             resize: string for resizing images.
+            motor: motor to use, `pypdf` or `pymupdf`, default `pypdf`.
 
         Returns:
             list: list if `CurrentFile` instance represents the data of the RAR
@@ -443,7 +452,8 @@ class ComicPy:
                 password=password,
                 compressor_type=compressor,
                 join=join,
-                resize=resize
+                resize=resize,
+                motor=motor
             )
 
 ######################################################
@@ -526,6 +536,7 @@ class ComicPy:
                   otherwise, if `False` they are kept in individual files.
             password: password string of file, default is `None`.
             resize: string for resizing images.
+            motor: motor to use, `pypdf` or `pymupdf`, default `pypdf`.
 
         Returns
             list: list if `CurrentFile` instance represents the data of the RAR
