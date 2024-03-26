@@ -26,14 +26,11 @@ def pdf(
                     filename=filename,
                     compressor=compressor,
                     resize=resize,
-                    motor=motor
+                    motor=motor,
+                    dest=dest
                 )
-    metaFileCompress = comicInstance.to_write(
-                    listCurrentFiles=data,
-                    path=dest
-                )
-    if metaFileCompress is not None and check is True:
-        for item in metaFileCompress:
+    if data is not None and check is True:
+        for item in data:
             comicInstance.check_integrity(
                     filename=item['name'],
                     show=True
@@ -54,15 +51,11 @@ def rar(
     data = comicInstance.process_rar(
                     filename=filename,
                     password=password,
-                    resize=resize
+                    resize=resize,
+                    dest=dest
                 )
-
-    metaFileCompress = comicInstance.to_write(
-                                listCurrentFiles=data,
-                                path=dest
-                            )
-    if metaFileCompress is not None and check is True:
-        for item in metaFileCompress:
+    if data is not None and check is True:
+        for item in data:
             comicInstance.check_integrity(
                     filename=item['name'],
                     show=True
@@ -83,14 +76,11 @@ def zip(
     data = comicInstance.process_zip(
                     filename=filename,
                     password=password,
-                    resize=resize
+                    resize=resize,
+                    dest=dest
                 )
-    metaFileCompress = comicInstance.to_write(
-                                listCurrentFiles=data,
-                                path=dest
-                            )
-    if metaFileCompress is not None and check is True:
-        for item in metaFileCompress:
+    if data is not None and check is True:
+        for item in data:
             comicInstance.check_integrity(
                         filename=item['name'],
                         show=True
@@ -121,16 +111,12 @@ def dir(
                     join=join,
                     password=password,
                     resize=resize,
-                    motor=motor
+                    motor=motor,
+                    dest=dest
                 )
     # print('--> ', data)
-    metaFileCompress = comicInstance.to_write(
-                                listCurrentFiles=data,
-                                path=dest
-                            )
-    # print(metaFileCompress)
-    if metaFileCompress is not None and check is True:
-        for item in metaFileCompress:
+    if data is not None and check is True:
+        for item in data:
             comicInstance.check_integrity(
                         filename=item['name'],
                         show=True

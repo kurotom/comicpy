@@ -19,6 +19,8 @@ from comicpy.handlers.baseziprar import BaseZipRarHandler
 
 from comicpy.valid_extentions import ValidExtentions
 
+from comicpy.exceptionsClasses import BadPassword
+
 from uuid import uuid1
 import subprocess
 import tempfile
@@ -129,13 +131,16 @@ class RarHandler(BaseZipRarHandler):
                 if rarFileOrigin is not None:
                     if rarFileOrigin.filename == '':
                         rarFileOrigin.filename = currentFileRar.name
-
+                # print(rarFileOrigin, rarFileOrigin.filename)
                 return rarFileOrigin
 
         except RarCannotExec as e:
             msg = 'Rar not Installed: \n'
             msg += '%s. Download from "%s"\n' % (e, self.url_page)
             print(msg)
+            return -1
+        except BadPassword as e:
+            print(e)
             return -1
         except:
             return None
@@ -207,25 +212,29 @@ class RarHandler(BaseZipRarHandler):
         # Make directory and save all data into `TEMP` `.RAR_TEMP`
         ROOT_PATH = self.paths.build(self.TEMPDIR, id_directory)
         DIR_RAR_FILES = self.paths.build(
-                            ROOT_PATH, filenameRar,
+                            ROOT_PATH,
                             make=True
                         )
         RAR_FILE_ = self.paths.build(DIR_RAR_FILES) + '.rar'
-        # print(ROOT_PATH)
+        # print(DIR_RAR_FILES, RAR_FILE_)
 
-        for item in listRarFileCompress:
-            # print(item, len(item.list_data), item.filename)
+        for itemCompressed in listRarFileCompress:
+            # print(DIR_RAR_FILES, itemCompressed.filename)
             directory_path = self.paths.build(
-                                    DIR_RAR_FILES, item.filename,
+                                    DIR_RAR_FILES, itemCompressed.filename,
                                     make=True
                                 )
+            # print(directory_path)
 
-            for image in item.list_data:
-                file_name = self.paths.get_basename(image.filename)
-                image_path = self.paths.build(directory_path, file_name)
+            for item in itemCompressed.list_data:
+                # print('--> ', item, item.extention, item.is_comic)
+                file_name = self.paths.get_basename(item.filename)
+                item_path = self.paths.build(directory_path, file_name)
 
-                data = image.bytes_data.getvalue()
-                with open(image_path, 'wb') as fileImage:
+                # print(file_name, directory_path, item_path)
+
+                data = item.bytes_data.getvalue()
+                with open(item_path, 'wb') as fileImage:
                     fileImage.write(data)
 
         # Run RAR command

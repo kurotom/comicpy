@@ -14,6 +14,8 @@ from comicpy.handlers.baseziprar import BaseZipRarHandler
 
 from comicpy.valid_extentions import ValidExtentions
 
+from comicpy.exceptionsClasses import BadPassword
+
 import tempfile
 import pyzipper
 import zipfile
@@ -113,29 +115,35 @@ class ZipHandler(BaseZipRarHandler):
         """
         bytesZipFile = currentFileZip.bytes_data
 
-        with pyzipper.AESZipFile(
-            bytesZipFile,
-            mode='r',
-            compression=pyzipper.ZIP_DEFLATED,
-            encryption=pyzipper.WZ_AES
-        ) as zip_file:
+        try:
+            with pyzipper.AESZipFile(
+                bytesZipFile,
+                mode='r',
+                compression=pyzipper.ZIP_DEFLATED,
+                encryption=pyzipper.WZ_AES
+            ) as zip_file:
 
-            if password is not None:
-                zip_file.pwd = password.encode('utf-8')
+                if password is not None:
+                    zip_file.pwd = password.encode('utf-8')
 
-            zipFileOrigin = super().iterateFiles(
-                instanceCompress=zip_file,
-                password=password,
-                resize=resizeImage,
-                type_compress='zip',
-                join=is_join
-            )
+                zipFileOrigin = super().iterateFiles(
+                    instanceCompress=zip_file,
+                    password=password,
+                    resize=resizeImage,
+                    type_compress='zip',
+                    join=is_join
+                )
 
-            if zipFileOrigin is not None:
-                if zipFileOrigin.filename == '':
-                    zipFileOrigin.filename = currentFileZip.name
+                if zipFileOrigin is not None:
+                    if zipFileOrigin.filename == '':
+                        zipFileOrigin.filename = currentFileZip.name
 
-            return zipFileOrigin
+                return zipFileOrigin
+        except BadPassword as e:
+            print(e)
+            return -1
+        except:
+            return None
 
     def to_zip(
         self,
@@ -220,6 +228,7 @@ class ZipHandler(BaseZipRarHandler):
                                             directory_path,
                                             image.filename
                                         )
+                    # print(image_path)
                     zip_file.writestr(
                             zinfo_or_arcname=image_path,
                             data=image.bytes_data.getvalue()

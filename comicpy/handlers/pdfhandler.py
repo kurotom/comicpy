@@ -138,9 +138,9 @@ class PdfHandler:
         dict_images = {}
         uniques_hash = []
         prev_images = 0
-        # print(reader.pdf_header, len(reader.pages), reader.metadata)
+        # print(reader.pdf_header, n_pages, reader.metadata)
         while i < n_pages:
-            # print(len(pages_pdf[i].images))
+            # print(i, len(pages_pdf[i].images))
 
             if len(pages_pdf[i].images) == 0:
                 pass

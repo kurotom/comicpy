@@ -6,6 +6,7 @@ Base class for ZIP and RAR handlers.
 from comicpy.handlers.imageshandler import ImagesHandler
 from comicpy.valid_extentions import ValidExtentions
 from comicpy.utils import Paths
+from comicpy.exceptionsClasses import BadPassword
 
 from comicpy.models import (
     CurrentFile,
@@ -13,6 +14,7 @@ from comicpy.models import (
 )
 
 from rarfile import RarFile
+from rarfile import BadRarFile
 from pyzipper import AESZipFile
 import io
 
@@ -49,7 +51,7 @@ class BaseZipRarHandler:
         instanceCompress: Union[RarFile, AESZipFile],
         itemFile: bytes,
         password: str = None,
-    ) -> bytes:
+    ) -> Union[bytes, None]:
         """
         Read data of file, using password for protected files.
 
@@ -61,13 +63,20 @@ class BaseZipRarHandler:
         Returns
             bytes: data of file.
         """
-        if isinstance(instanceCompress, AESZipFile):
-            return instanceCompress.read(itemFile)
-        elif isinstance(instanceCompress, RarFile):
-            return instanceCompress.read(
-                                    itemFile,
-                                    pwd=password
-                                )
+        try:
+            if isinstance(instanceCompress, AESZipFile):
+                return instanceCompress.read(itemFile)
+            elif isinstance(instanceCompress, RarFile):
+                return instanceCompress.read(
+                                        itemFile,
+                                        pwd=password
+                                    )
+        except RuntimeError as e:
+            # print('Incorrect password file ZIP.')
+            return None
+        except BadRarFile as e:
+            # print('Incorrect password file RAR.')
+            return None
 
     def exists_valid_files(
         self,
@@ -133,11 +142,10 @@ class BaseZipRarHandler:
         for item in instanceCompress.namelist():
             directory_name = self.paths.get_dirname(item).replace(' ', '_')
             name_file = self.paths.get_basename(item)
-
             # print(name_file, directory_name)
-            name_, extention_ = self.paths.splitext(name_file)
 
-            # print(_extention, images_Extentions)
+            name_, extention_ = self.paths.splitext(name_file)
+            # print(extention_, images_Extentions)
 
             if extention_.lower() == ValidExtentions.CBR:
 
@@ -146,14 +154,20 @@ class BaseZipRarHandler:
                                     itemFile=item,
                                     password=password
                                 )
-
-                currentFileCBR = CurrentFile(
-                                filename=name_file.replace(' ', '_'),
-                                bytes_data=io.BytesIO(rawDataFile),
-                                is_comic=True,
-                                unit=self.unit
-                            )
-                listContentData.append(currentFileCBR)
+                if rawDataFile is None:
+                    raise BadPassword
+                else:
+                    name_, extention_ = self.paths.splitext(
+                                                    name_file.replace(' ', '_')
+                                                )
+                    currentFileCBR = CurrentFile(
+                                    filename=name_,
+                                    bytes_data=io.BytesIO(rawDataFile),
+                                    is_comic=True,
+                                    unit=self.unit
+                                )
+                    currentFileCBR.extention = extention_
+                    listContentData.append(currentFileCBR)
 
             elif extention_.lower() == ValidExtentions.CBZ:
 
@@ -162,15 +176,21 @@ class BaseZipRarHandler:
                                     itemFile=item,
                                     password=password
                                 )
-
-                currentFileCBZ = CurrentFile(
-                                filename=name_file.replace(' ', '_'),
-                                bytes_data=io.BytesIO(rawDataFile),
-                                is_comic=True,
-                                chunk_bytes=None,
-                                unit=self.unit
-                            )
-                listContentData.append(currentFileCBZ)
+                if rawDataFile is None:
+                    raise BadPassword
+                else:
+                    name_, extention_ = self.paths.splitext(
+                                                    name_file.replace(' ', '_')
+                                                )
+                    currentFileCBZ = CurrentFile(
+                                    filename=name_,
+                                    bytes_data=io.BytesIO(rawDataFile),
+                                    is_comic=True,
+                                    chunk_bytes=None,
+                                    unit=self.unit
+                                )
+                    currentFileCBZ.extention = extention_
+                    listContentData.append(currentFileCBZ)
 
             elif extention_.lower() in images_Extentions:
                 item_name = '%s%s' % (
@@ -186,15 +206,18 @@ class BaseZipRarHandler:
                                     password=password
                                 )
 
-                image_comic = self.imageshandler.new_image(
-                                        name_image=file_name,
-                                        currentImage=rawDataFile,
-                                        extention=extention_[1:].upper(),
-                                        sizeImage=resize,
-                                        unit=self.unit
-                                    )
+                if rawDataFile is None:
+                    raise BadPassword
+                else:
+                    image_comic = self.imageshandler.new_image(
+                                            name_image=file_name,
+                                            currentImage=rawDataFile,
+                                            extention=extention_[1:].upper(),
+                                            sizeImage=resize,
+                                            unit=self.unit
+                                        )
 
-                listContentData.append(image_comic)
+                    listContentData.append(image_comic)
 
         if len(listContentData) == 0:
             return None

@@ -30,6 +30,12 @@ class FilePasswordProtected(ErrorFileBase):
         super().__init__(message)
 
 
+class BadPassword(ErrorFileBase):
+    def __init__(self) -> None:
+        message = 'Incorrect Password.'
+        super().__init__(message)
+
+
 class InvalidFile(ErrorFileBase):
     def __init__(
         self,

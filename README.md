@@ -20,11 +20,13 @@ Extracts images from PDF, ZIP, CBR files, generating comic files respecting thei
 * Convert image directories (*jpeg*, *png*, *jpg*) to `CBR` or `CBZ` files.
 
 
-### Important
-
+> [!Important]
 >> 1. For full operation of `comicpy` when using RAR files, you must have available the `rar` command, download and install it from the official site, [**rarlab - rar/unrar command**](https://www.rarlab.com/download.htm).
-
+>
 >> 2. Some PDF files *contain multiple images on the same page*, which may be *repeated* within the *same file*; converting the PDF file <u>will remove all duplicate images</u>. <u>This is due to the original construction and layout of the source PDF file</u>. Therefore, as a result, there may be fewer or more pages compared to the original PDF file, this does *not necessarily indicate that the work of this tool (**comicpy**) is flawed or faulty*.
+>
+>> In continuous development of `comicpy`, any problem, suggestion, doubt, leave it in [*Issues*](https://github.com/kurotom/comicpy/issues) of the repository.
+>
 
 
 # Installation
@@ -113,9 +115,8 @@ $ comicpy --type d -p Comic_vol1/ --compress zip --filter images --check --progr
 >>>
 >>> comic = ComicPy(unit='mb')
 >>>
->>> data = comic.process_pdf(filename=pdf_file, compressor='zip')
+>>> metaFileCompress = comic.process_pdf(filename=pdf_file, compressor='zip')
 >>>
->>> metaFileCompress = comic.to_write(listCurrentFiles=data)
 >>> print(metaFileCompress)
 [{'name': './file_pdf/file_pdf.cbz', 'size': '76.63 MB'}]
 >>>
@@ -143,7 +144,7 @@ True
 >>>
 >>> comic = ComicPy(unit='GB')
 >>>
->>> data = comic.process_dir(
+>>> metaFileCompress = comic.process_dir(
 ...             filename='final_CBR_file',
 ...             directory_path=dir_RAR,
 ...             extention_filter='rar',
@@ -151,7 +152,6 @@ True
 ...             password=None,
 ...             join=False
 ...           )
->>> metaFileCompress = comic.to_write(listCurrentFiles=data)
 >>> print(metaFileCompress)
 [
   {'name': './final_CBR_file/chapter_1.cbr', 'size': '0.02 GB'},
@@ -185,7 +185,7 @@ True
 >>>
 >>> comic = ComicPy(unit='GB')
 >>>
->>> data = comic.process_dir(
+>>> metaFileCompress = comic.process_dir(
 ...                 filename='final_CBR_file',
 ...                 directory_path=dir_RAR,
 ...                 extention_filter='rar',
@@ -193,7 +193,6 @@ True
 ...                 password=None,
 ...                 join=True
 ...               )
->>> metaFileCompress = comic.to_write(listCurrentFiles=data)
 >>> print(metaFileCompress)
 [{'name': 'result/final_CBR_file/final_CBR_file.cbr', 'size': '0.05 GB'}]
 >>>
