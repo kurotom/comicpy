@@ -43,7 +43,7 @@ class ImagesHandler:
     def get_size(
         self,
         size: str = 'preserve'
-    ) -> tuple:
+    ) -> Union[None, tuple]:
         """
         Returns tupe of size.
         """
@@ -51,6 +51,20 @@ class ImagesHandler:
             return ImagesHandler.sizeImageDict[size]
         except KeyError:
             return ImagesHandler.sizeImageDict['small']
+
+    def get_format(
+        self,
+        extention_img: str
+    ) -> str:
+        """
+        Returns image extention.
+        """
+        try:
+            if extention_img == 'JPG' or extention_img == 'JP2':
+                extention_img = 'JPEG'
+            return ImagesHandler.validFormats[extention_img]
+        except KeyError:
+            return ImagesHandler.validFormats['JPEG']
 
     def new_image(
         self,
@@ -74,15 +88,15 @@ class ImagesHandler:
         Returns:
             ImageComicData: `ImageComicData` instance with data of image.
         """
+        # print(extention)
         size_tuple = self.get_size(size=sizeImage)
         newImageIO = io.BytesIO()
 
         if type(currentImage) is bytes:
             currentImage = Image.open(io.BytesIO(currentImage))
 
-        # convert png grey scale to RGB.
-        if extention == 'PNG':
-            currentImage = currentImage.convert('RGB')
+        # force image color, RGB.
+        currentImage = currentImage.convert('RGB')
 
         if size_tuple is not None:
             imageResized = currentImage.resize(
@@ -92,12 +106,9 @@ class ImagesHandler:
         else:
             imageResized = currentImage
 
-        if extention == 'JPG':
-            extention = 'JPEG'
-
         imageResized.save(
                 newImageIO,
-                format=ImagesHandler.validFormats[extention],
+                format=self.get_format(extention_img=extention),
                 # quality=90
                 quality=100
             )

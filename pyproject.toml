@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "comicpy"
-version = "0.1.21"
+version = "0.1.22"
 description = "Tool to create CBR or CBZ files, supports PDF, ZIP, RAR files."
 authors = ["kurotom <55354389+kurotom@users.noreply.github.com>"]
 readme = "README.md"
@@ -23,6 +23,7 @@ pillow = "<=10"
 rarfile = "^4.1"
 pyzipper = "^0.3.6"
 pymupdf = "1.22.5"
+pycryptodome = "^3.20.0"
 
 [tool.poetry.scripts]
 comicpy = 'comicpy.cli:CliComicPy'
