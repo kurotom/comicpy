@@ -677,6 +677,11 @@ class ComicPy:
                                                 is_join=join
                                             )
 
+                    # print(
+                    #     compressFileData.items,
+                    #     len(list_CompressedFiles),
+                    #     len(data_metadata)
+                    # )
                     if compressFileData == -1:
                         pass
                     elif compressFileData is not None:

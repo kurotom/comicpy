@@ -88,7 +88,7 @@ class ImagesHandler:
         Returns:
             ImageComicData: `ImageComicData` instance with data of image.
         """
-        # print(extention)
+        # print(name_image, extention, type(currentImage))
         size_tuple = self.get_size(size=sizeImage)
         newImageIO = io.BytesIO()
 
@@ -97,6 +97,11 @@ class ImagesHandler:
 
         # force image color, RGB.
         currentImage = currentImage.convert('RGB')
+        # try:
+        #     # try to force image color, RGB.
+        #     currentImage = currentImage.convert('RGB')
+        # except OSError:
+        #     pass
 
         if size_tuple is not None:
             imageResized = currentImage.resize(

@@ -139,64 +139,67 @@ class PdfHandler:
         uniques_hash = []
         prev_images = 0
         # print(reader.pdf_header, n_pages, reader.metadata)
+
         while i < n_pages:
             # print(i, len(pages_pdf[i].images))
 
-            if len(pages_pdf[i].images) == 0:
-                pass
-            else:
+            if len(pages_pdf[i].images) > 0:
+                try:
+                    if len(pages_pdf[i].images) == 1:
+                        item = pages_pdf[i].images[0]
+                        hash_image = self.get_hash_md5(
+                                                image_name=item.name,
+                                                image_data=item.data,
+                                            )
+                        if hash_image not in uniques_hash:
+                            uniques_hash.append(hash_image)
 
-                if len(pages_pdf[i].images) == 1:
-                    item = pages_pdf[i].images[0]
-                    hash_image = self.get_hash_md5(
-                                            image_name=item.name,
-                                            image_data=item.data,
-                                        )
-                    if hash_image not in uniques_hash:
-                        uniques_hash.append(hash_image)
+                            name_, extention_ = self.paths.splitext(item.name)
+                            image_comic = self.to_image_instance(
+                                dataImage=item.data,
+                                extentionImage=extention_[1:],
+                                resize=resize,
+                            )
 
-                        name_, extention_ = self.paths.splitext(item.name)
-                        image_comic = self.to_image_instance(
-                            dataImage=item.data,
-                            extentionImage=extention_[1:],
-                            resize=resize,
-                        )
+                            data.append(image_comic)
 
-                        data.append(image_comic)
-
-                elif len(pages_pdf[i].images) > 1:
-                    # original order must be preserve
-                    if prev_images != len(pages_pdf[i].images):
-                        list_numeration = self.get_numbers_images(
+                    elif len(pages_pdf[i].images) > 1:
+                        # original order must be preserve
+                        if prev_images != len(pages_pdf[i].images):
+                            list_numeration = self.get_numbers_images(
                                                 list_data=pages_pdf[i].images
                                             )
 
-                        dict_images = dict(
-                                            zip(
-                                                list_numeration,
-                                                pages_pdf[i].images
-                                            )
-                                        )
-                        sorted_dict = dict(sorted(dict_images.items()))
-                        for key, item in sorted_dict.items():
-                            hash_image = self.get_hash_md5(
-                                                    image_name=item.name,
-                                                    image_data=item.data,
+                            dict_images = dict(
+                                                zip(
+                                                    list_numeration,
+                                                    pages_pdf[i].images
                                                 )
-                            if hash_image not in uniques_hash:
-                                uniques_hash.append(hash_image)
+                                            )
+                            sorted_dict = dict(sorted(dict_images.items()))
+                            for key, item in sorted_dict.items():
+                                hash_image = self.get_hash_md5(
+                                                        image_name=item.name,
+                                                        image_data=item.data,
+                                                    )
+                                if hash_image not in uniques_hash:
+                                    uniques_hash.append(hash_image)
 
-                                name_, extention_ = self.paths.splitext(
+                                    name_, extention_ = self.paths.splitext(
                                                                     item.name
                                                                 )
-                                image_comic = self.to_image_instance(
-                                    dataImage=item.data,
-                                    extentionImage=extention_[1:],
-                                    resize=resize,
-                                )
+                                    image_comic = self.to_image_instance(
+                                        dataImage=item.data,
+                                        extentionImage=extention_[1:],
+                                        resize=resize,
+                                    )
 
-                                data.append(image_comic)
-                    prev_images = len(pages_pdf[i].images)
+                                    data.append(image_comic)
+                        prev_images = len(pages_pdf[i].images)
+                except OSError as e:
+                    # Skip truncated images.
+                    print('Skipped truncated image, page "%d".' % (i))
+                    pass
 
             i += 1
 
