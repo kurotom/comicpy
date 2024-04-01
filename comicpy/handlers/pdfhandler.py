@@ -99,7 +99,7 @@ class PdfHandler:
 
         if len(listImageComicData) == 0:
             return None
-        # print(len(listImageComicData))
+        # print(len(listImageComicData), type(listImageComicData[0]))
         pdfFileCompressor = CompressorFileData(
                                 filename=currentFilePDF.name.replace(' ', '_'),
                                 list_data=listImageComicData,

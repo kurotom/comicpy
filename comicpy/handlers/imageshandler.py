@@ -97,11 +97,6 @@ class ImagesHandler:
 
         # force image color, RGB.
         currentImage = currentImage.convert('RGB')
-        # try:
-        #     # try to force image color, RGB.
-        #     currentImage = currentImage.convert('RGB')
-        # except OSError:
-        #     pass
 
         if size_tuple is not None:
             imageResized = currentImage.resize(

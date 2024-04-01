@@ -113,6 +113,8 @@ class DirectoryHandler:
         # print(filesDict, basenameDirectory)
 
         listImagesData = []
+        listCompressorFileData = []
+        name_directory = None
         for key, listImagePath in filesDict.items():
             # print(listImagePath)
             if join is False:
@@ -148,19 +150,29 @@ class DirectoryHandler:
 
                 self.number_image += 1
 
+            if join is False:
+                imagesDirectoryCompress = CompressorFileData(
+                                        filename=name_directory,
+                                        list_data=images_directory,
+                                        type=compressor,
+                                        unit=self.unit
+                                    )
+                listCompressorFileData.append(imagesDirectoryCompress)
+            else:
+                listImagesData += images_directory
+
+        if join:
             imagesDirectoryCompress = CompressorFileData(
-                                    filename=name_directory,
-                                    list_data=images_directory,
-                                    type=compressor,
-                                    unit=self.unit
-                                )
-            # print(imagesDirectoryCompress)
+                                        filename=name_directory,
+                                        list_data=listImagesData,
+                                        type=compressor,
+                                        unit=self.unit
+                                    )
+            listCompressorFileData.append(imagesDirectoryCompress)
 
-            listImagesData.append(imagesDirectoryCompress)
-
-        if len(listImagesData) == 0:
+        if len(listCompressorFileData) == 0:
             return None
-        return listImagesData
+        return listCompressorFileData
 
     def files_by_level(
         self,

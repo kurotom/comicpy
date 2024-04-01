@@ -283,19 +283,21 @@ class ComicPy:
         if compressFileData is None:
             raise EmptyFile('File PDF not have images.')
 
-        compressedCurrentFileIO = self.to_compressor(
-                            filename=compressFileData.filename,
-                            listCompressorData=compressFileData,
-                            compressor=compressor,
-                            join_files=False
-                        )
+        BASE_DIR_, CONVERTED_COMICPY_PATH_ = self.get_base_converted_path(
+                                                    filename=filename,
+                                                    dest_path=dest
+                                                )
 
-        metaFileCompress = self.to_write(
-                        listCurrentFiles=compressedCurrentFileIO,
-                        path=dest
-                    )
-        # return compressedCurrentFileIO
-        return metaFileCompress
+        list_metaFileCompress = self.to_compressor(
+                                filename=filename,
+                                basedir=BASE_DIR_,
+                                listCompressorData=compressFileData.list_data,
+                                join_files=False,
+                                compressor=compressor,
+                                dest=CONVERTED_COMICPY_PATH_,
+                            )
+
+        return list_metaFileCompress
 
     def process_zip(
         self,
@@ -316,6 +318,8 @@ class ComicPy:
             CurrentFile: instance representing the data of the ZIP file named
                          CBZ.
         """
+        data_metadata = []
+
         self.__show_progress(file=filename)
 
         self.load_file(filename=filename)
@@ -339,28 +343,36 @@ class ComicPy:
             msg += 'Valid Extentions:  ' + ', '.join(exts) + '\n'
             raise EmptyFile(msg)
 
-        if zipCompressorFileData.items == 1:
-            if zipCompressorFileData.list_data[0].is_comic:
-                itemComic = zipCompressorFileData.list_data[0]
+        BASE_DIR_, CONVERTED_COMICPY_PATH_ = self.get_base_converted_path(
+                                                    filename=filename,
+                                                    dest_path=dest
+                                                )
 
+        no_comic_files = []
+        for item in zipCompressorFileData.list_data:
+            if item.is_comic:
                 metaFileCompress = self.to_write(
-                                listCurrentFiles=[itemComic],
-                                path=dest
-                            )
-                return metaFileCompress
+                                            listCurrentFiles=[item],
+                                            path=CONVERTED_COMICPY_PATH_
+                                        )
+                data_metadata += metaFileCompress
+            else:
+                no_comic_files.append(item)
+
+        if no_comic_files == []:
+            return data_metadata
         else:
-            compressedCurrentFileIO = self.to_compressor(
-                                filename=zipCompressorFileData.filename,
-                                listCompressorData=[zipCompressorFileData],
-                                compressor='zip',
-                                join_files=False
-                            )
-            # return compressedCurrentFileIO
-            metaFileCompress = self.to_write(
-                            listCurrentFiles=compressedCurrentFileIO,
-                            path=dest
-                        )
-            return metaFileCompress
+            list_metaFileCompress = self.to_compressor(
+                                        filename=filename,
+                                        basedir=BASE_DIR_,
+                                        listCompressorData=no_comic_files,
+                                        join_files=False,
+                                        compressor='zip',
+                                        dest=CONVERTED_COMICPY_PATH_,
+                                    )
+            data_metadata += list_metaFileCompress
+
+        return data_metadata
 
     def process_rar(
         self,
@@ -381,6 +393,8 @@ class ComicPy:
             CurrentFile: the instance represents the data of the RAR archive
                          with the name CBR
         """
+        data_metadata = []
+
         self.__show_progress(file=filename)
 
         self.load_file(filename=filename)
@@ -407,29 +421,37 @@ class ComicPy:
             msg += 'Valid Extentions:  ' + ', '.join(exts) + '\n'
             raise EmptyFile(msg)
 
-        if rarCompressorFileData.items == 1:
-            if rarCompressorFileData.list_data[0].is_comic:
-                itemComic = rarCompressorFileData.list_data[0]
+        # print(rarCompressorFileData, type(rarCompressorFileData))
+        BASE_DIR_, CONVERTED_COMICPY_PATH_ = self.get_base_converted_path(
+                                                    filename=filename,
+                                                    dest_path=dest
+                                                )
 
+        no_comic_files = []
+        for item in rarCompressorFileData.list_data:
+            if item.is_comic:
                 metaFileCompress = self.to_write(
-                                listCurrentFiles=[itemComic],
-                                path=dest
-                            )
-                return metaFileCompress
-        else:
-            compressedCurrentFileIO = self.to_compressor(
-                                filename=rarCompressorFileData.filename,
-                                listCompressorData=[rarCompressorFileData],
-                                compressor='rar',
-                                join_files=False
-                            )
-            # print(compressedCurrentFileIO, type(compressedCurrentFileIO))
+                                            listCurrentFiles=[item],
+                                            path=CONVERTED_COMICPY_PATH_
+                                        )
+                data_metadata += metaFileCompress
+            else:
+                no_comic_files.append(item)
 
-            metaFileCompress = self.to_write(
-                            listCurrentFiles=compressedCurrentFileIO,
-                            path=dest
-                        )
-            return metaFileCompress
+        if no_comic_files == []:
+            return data_metadata
+        else:
+            list_metaFileCompress = self.to_compressor(
+                                        filename=filename,
+                                        basedir=BASE_DIR_,
+                                        listCompressorData=no_comic_files,
+                                        join_files=False,
+                                        compressor='rar',
+                                        dest=CONVERTED_COMICPY_PATH_,
+                                    )
+            data_metadata += list_metaFileCompress
+
+        return data_metadata
 
     def process_dir(
         self,
@@ -476,12 +498,19 @@ class ComicPy:
 
         self.directory_path = directory_path
 
+        BASE_DIR_, CONVERTED_COMICPY_PATH_ = self.get_base_converted_path(
+                                        filename=self.paths.get_dirname_level(
+                                                    directory_path, level=-1),
+                                        dest_path=dest
+                                    )
+
         if extention_filter == 'images':
             # handle JPG, PNG, JPEG
             return self.__images_dir(
                 directory_path=directory_path,
                 filename=filename,
-                dest_file=dest,
+                basedir=BASE_DIR_,
+                dest_file=CONVERTED_COMICPY_PATH_,
                 compressor_type=compressor,
                 join=join,
                 resize=resize
@@ -491,7 +520,8 @@ class ComicPy:
                 directory_path=directory_path,
                 extention_filter=extention_filter,
                 filename=filename,
-                dest_file=dest,
+                basedir=BASE_DIR_,
+                dest_file=CONVERTED_COMICPY_PATH_,
                 password=password,
                 compressor_type=compressor,
                 join=join,
@@ -503,6 +533,7 @@ class ComicPy:
         self,
         directory_path: str,
         filename: str,
+        basedir: str,
         compressor_type: str,
         join: str,
         resize: str,
@@ -525,7 +556,7 @@ class ComicPy:
                   or ZIP compressor file used.
             None: if the list of images is empty, the file has no images.
         """
-        # data = []
+        data_metadata = []
 
         self.raiser_error_compressor(compressor_str=compressor_type)
 
@@ -538,32 +569,35 @@ class ComicPy:
                         join=join
                     )
 
-        listCurrentFiles = self.to_compressor(
-                                filename=directory_path,
-                                listCompressorData=compressFileDataImages,
-                                compressor=compressor_type,
-                                join_files=join
-                            )
+        if compressFileDataImages is None:
+            return None
+
+        # print(compressFileDataImages)
+        for item in compressFileDataImages:
+            # print(item.filename, directory_path, filename)
+            filename_ = self.paths.build(directory_path, item.filename)
+            listCurrentFiles = self.to_compressor(
+                                        listCompressorData=item.list_data,
+                                        join_files=join,
+                                        basedir=basedir,
+                                        filename=filename_,
+                                        dest=dest_file,
+                                        compressor=compressor_type
+                                    )
+            if join is False:
+                data_metadata += listCurrentFiles
 
         if join:
-            if len(listCurrentFiles) == 1:
-                file_name = self.paths.get_dirname_level(
-                        path=listCurrentFiles[0].filename,
-                        level=-1
-                    )
-                listCurrentFiles[0].filename = file_name
-
-        metaFileCompress = self.to_write(
-                            listCurrentFiles=listCurrentFiles,
-                            path=dest_file
-                        )
-        return metaFileCompress
+            return listCurrentFiles
+        else:
+            return data_metadata
 
     def __dir_pdf_cbr_cbz(
         self,
         directory_path: str,
         extention_filter: str,
         filename: str,
+        basedir: str,
         password: str,
         compressor_type: str,
         join: str,
@@ -676,76 +710,116 @@ class ComicPy:
                                                 resizeImage=resize,
                                                 is_join=join
                                             )
-
                     # print(
                     #     compressFileData.items,
-                    #     len(list_CompressedFiles),
                     #     len(data_metadata)
                     # )
                     if compressFileData == -1:
                         pass
                     elif compressFileData is not None:
-                        if join is False:
-                            comicsItem = [
-                                        i for i in compressFileData.list_data
-                                        if i.is_comic
-                                    ]
-                            if len(comicsItem) > 0:
-                                for itemComic in comicsItem:
-                                    metaFileCompress = self.to_write(
-                                                listCurrentFiles=[itemComic],
-                                                path=dest_file
-                                            )
-                                    data_metadata += metaFileCompress
+                        comicsItem = [
+                                    i for i in compressFileData.list_data
+                                    if i.is_comic
+                                ]
 
-                            else:
-                                compressedFileData = self.to_compressor(
-                                        filename=compressFileData.filename,
-                                        listCompressorData=[compressFileData],
-                                        compressor=compressor_type,
-                                        join_files=join
-                                    )
-
+                        if len(comicsItem) > 0:
+                            for itemComic in comicsItem:
                                 metaFileCompress = self.to_write(
-                                        listCurrentFiles=compressedFileData,
-                                        path=dest_file
-                                    )
-
+                                            listCurrentFiles=[itemComic],
+                                            path=dest_file
+                                        )
                                 data_metadata += metaFileCompress
                         else:
                             list_CompressedFiles.append(compressFileData)
 
-            if join is False:
-                if data_metadata != []:
-                    return data_metadata
-                else:
-                    return None
+            if len(list_CompressedFiles) == 0:
+                return data_metadata
+
+            compressorFilesList = self.file_merger_handler(
+                                list_compressorFile=list_CompressedFiles,
+                                compressor=compressor_type,
+                                is_join=join,
+                            )
+
+            for item in compressorFilesList:
+                filename_ = self.paths.build(directory_path, item.filename)
+                metadataFiles = self.to_compressor(
+                                            filename=filename_,
+                                            basedir=basedir,
+                                            listCompressorData=item.list_data,
+                                            dest=dest_file,
+                                            join_files=join,
+                                            compressor=compressor_type
+                                        )
+                data_metadata += metadataFiles
+            return data_metadata
+
+    def file_merger_handler(
+        self,
+        list_compressorFile: List[CompressorFileData],
+        compressor: str,
+        is_join: bool
+    ) -> List[CompressorFileData]:
+        """
+        Restructures the data of RAW files depending on whether they should be
+        merged or not.
+
+        Args
+            list_compressorFile: list of `CompressorFileData` instances.
+            compressor: type of compressor to use.
+            is_join: boolean if the files will be joined.
+
+         Returns
+            List[CompressorFileData]: list of `CompressorFileData` instances.
+        """
+        files_ = {}
+        main_dir_ = False
+        name_file_join_ = None
+        results = []
+
+        for itemCompress in list_compressorFile:
+            if is_join is False:
+                results.append(itemCompress)
             else:
-                if list_CompressedFiles == []:
-                    return None
+                for item in itemCompress.list_data:
+                    name_dir_ = self.paths.get_dirname_level(
+                                            path=item.filename,
+                                            level=-1
+                                        )
+                    if name_dir_ == '.':
+                        name_, extention_ = self.paths.splitext(
+                                        self.paths.get_basename(item.filename)
+                                    )
+                        name_dir_ = name_
 
-            compressedFileData = self.to_compressor(
-                                    filename=list_CompressedFiles[0].filename,
-                                    listCompressorData=list_CompressedFiles,
-                                    compressor=compressor_type,
-                                    join_files=join
+                    if main_dir_ is False:
+                        if name_dir_ not in files_:
+                            files_[name_dir_] = [item]
+                            main_dir_ = True
+                            name_file_join_ = name_dir_
+                    else:
+                        files_[name_file_join_].append(item)
+
+        # print(name_file_join_, files_.keys(), len(list(files_.values())[0]))
+        if is_join:
+            compressorJoinFiles = CompressorFileData(
+                                    filename=name_file_join_,
+                                    list_data=list(files_.values())[0],
+                                    type=compressor,
+                                    unit=self.unit
                                 )
-            # print(compressedFileData, type(compressedFileData))
-
-            metaFileCompress = self.to_write(
-                                    listCurrentFiles=compressedFileData,
-                                    path=dest_file
-                                )
-
-            return metaFileCompress
+            results.append(compressorJoinFiles)
+        return results
 
     def to_compressor(
         self,
         listCompressorData: List[CompressorFileData],
         join_files: bool,
         filename: str = None,
+        basedir: str = None,
+        dest: str = None,
         compressor: Union[RAR, ZIP] = 'zip',
-    ) -> List[CurrentFile]:
+    ) -> List[dict]:
         """
         Convert data of list of CompressorFileData to only RAR or ZIP file.
 
@@ -753,11 +827,11 @@ class ComicPy:
             dataRawFile: list of CompressorFileData instances, this class
                          contains image list data, filename, etc.
             filename: name of the output file.
+            dest: destine to final file.
             compressor: ['rar', 'zip'], by default `zip`, compressor to use.
 
         Returns:
-            CompressorFileData: instance represents the data of the RAR or ZIP
-                                compressor file used.
+            list: list of directories of metadata of file CBR o CBZ.
             None: if the list of images is empty, the file has no images.
         """
         if type(listCompressorData) is not list:
@@ -765,21 +839,25 @@ class ComicPy:
 
         # print(filename)
         if compressor == 'zip':
-            compressorFile = self.ziphandler.to_zip(
+            metadata = self.ziphandler.to_zip(
                                 filenameZIP=filename,
-                                listZipFileCompress=listCompressorData,
-                                join=join_files
+                                basedir=basedir,
+                                data_list=listCompressorData,
+                                join=join_files,
+                                converted_comicpy_path=dest,
                             )
         elif compressor == 'rar':
-            compressorFile = self.rarhandler.to_rar(
+            metadata = self.rarhandler.to_rar(
                                 filenameRAR=filename,
-                                listRarFileCompress=listCompressorData,
-                                join=join_files
+                                basedir=basedir,
+                                data_list=listCompressorData,
+                                join=join_files,
+                                converted_comicpy_path=dest,
                             )
-        # print('--> ', compressorFile)
-        if compressorFile is None:
+        # print('--> ', type(metadata))
+        if metadata is None:
             return None
-        return compressorFile
+        return metadata
 
     def to_write(
         self,
@@ -801,30 +879,8 @@ class ComicPy:
         if listCurrentFiles is None:
             return None
 
-        if self.directory_path is not None:
-            basenameDirectory = self.paths.get_dirname_level(
-                                                path=self.directory_path,
-                                                level=-1
-                                            )
-            if len(listCurrentFiles) == 1:
-                listCurrentFiles[0].name = basenameDirectory
+        base_path = path
 
-            base_path = self.paths.build(
-                        path, ComicPy.PREFIX_CONVERTED, basenameDirectory,
-                        make=True
-                    )
-        elif self.filename is not None:
-            name_, extention_ = self.paths.splitext(self.filename)
-            base_path = self.paths.build(
-                        path, ComicPy.PREFIX_CONVERTED, name_,
-                        make=True
-                    )
-        else:
-            base_path = self.paths.build(
-                        path, ComicPy.PREFIX_CONVERTED,
-                        make=True
-                    )
-        # print(base_path)
         for itemCurrent in listCurrentFiles:
             # print(itemCurrent.filename, itemCurrent.name)
 
@@ -835,7 +891,11 @@ class ComicPy:
                             itemCurrent.extention
                         )
 
-            path_output = self.paths.build(base_path, file_name)
+            path_output = self.paths.build(
+                                base_path,
+                                file_name,
+                                # make=True
+                            )
 
             if self.paths.exists(path_output):
                 file_name = '%s_%s%s' % (
@@ -882,6 +942,26 @@ class ComicPy:
             string = 'File is valid?:  "%s"' % (is_valid)
             print(string)
         return is_valid
+
+    def get_base_converted_path(
+        self,
+        filename: str,
+        dest_path: str
+    ) -> tuple:
+        """
+        """
+        filename = filename.replace(' ', '_')
+        dest_path = dest_path.replace(' ', '_')
+        BASE_DIR_, extention_ = self.paths.splitext(
+                                        self.paths.get_basename(filename)
+                                    )
+        CONVERTED_COMICPY_PATH_ = self.paths.build(
+                                            dest_path,
+                                            ComicPy.PREFIX_CONVERTED,
+                                            BASE_DIR_,
+                                            make=True
+                                        )
+        return BASE_DIR_, CONVERTED_COMICPY_PATH_
 
     def __show_progress(
         self,

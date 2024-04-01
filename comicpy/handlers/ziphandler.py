@@ -16,9 +16,13 @@ from comicpy.valid_extentions import ValidExtentions
 
 from comicpy.exceptionsClasses import BadPassword
 
-import tempfile
 import pyzipper
 import zipfile
+
+from uuid import uuid1
+
+
+import tempfile
 import io
 
 from typing import List, Union, TypeVar
@@ -46,12 +50,23 @@ class ZipHandler(BaseZipRarHandler):
             unit: indicate unit of measure using to represent file size.
         """
         self.unit = unit
-        self.TEMPDIR = tempfile.gettempdir()
+        # self.TEMPDIR = tempfile.gettempdir()
         self.type = 'zip'
         self.imageshandler = ImagesHandler()
         self.validextentions = ValidExtentions()
         self.paths = Paths()
         self.number_index = 0
+
+        self.FILE_CBZ_ = None
+        self.FILE_ZIP_ = None
+        self.CONVERTED_COMICPY_PATH_ = None
+
+    def reset_names(self) -> None:
+        """
+        """
+        self.FILE_CBZ_ = None
+        self.FILE_ZIP_ = None
+        self.CONVERTED_COMICPY_PATH_ = None
 
     def testZip(
         self,
@@ -147,100 +162,104 @@ class ZipHandler(BaseZipRarHandler):
 
     def to_zip(
         self,
-        listZipFileCompress: List[CompressorFileData],
         join: bool,
-        filenameZIP: str = None
-    ) -> Union[List[CurrentFile], None]:
+        converted_comicpy_path: str,
+        filenameZIP: str,
+        basedir: str,
+        data_list: List[CompressorFileData] = None,
+    ) -> List[dict]:
         """
-        Handles how the data in the ZIP file(s) should be written.
-
-        Args:
-            listZipFileCompress: list of `CompressorFileData` instances.
-            filenameZIP: name of the ZIP archive.
-            join: if `True` merge all files, otherwise, no.
-
-        Returns:
-            List[CurrentFile]: list of `CurrentFile` instances contains bytes
-                               of the ZIP files.
-            None: if this process fail.
         """
-        if len(listZipFileCompress) == 0:
+        if data_list is None:
             return None
 
-        # print(listZipFileCompress, type(listZipFileCompress))
-        # print(len(listZipFileCompress), join)
+        # Reset names CBR, RAR.
+        self.reset_names()
 
-        data_of_zips = []
-        if join is True:
-            currentFileZip = self.__to_zip_data(
-                    listZipFileCompress=listZipFileCompress,
-                    filenameZIP=filenameZIP
-                )
-            data_of_zips.append(currentFileZip)
-        elif join is False:
-            for file in listZipFileCompress:
+        to_zip_directories = []
+        metadata_zip = []
+        first_directory = False
+        ITEM_DIR_ = None
 
-                current_file_list = [file]
-                currentFileZip = self.__to_zip_data(
-                            listZipFileCompress=current_file_list,
-                            filenameZIP=file.filename
-                        )
-                data_of_zips.append(currentFileZip)
+        name_, extention = self.paths.splitext(
+                                self.paths.get_basename(filenameZIP)
+                            )
 
-        return data_of_zips
+        self.CONVERTED_COMICPY_PATH_ = self.paths.build(
+                                    converted_comicpy_path.replace(' ', '_'),
+                                    make=True
+                                )
 
-    def __to_zip_data(
-        self,
-        listZipFileCompress: List[CompressorFileData],
-        filenameZIP: str = None,
-    ) -> CurrentFile:
-        """
-        Write data of `CompressorFileData` into ZIP file.
+        # DELETE THIS
+        # join = True  # DELETE THIS
+        # DELETE THIS
 
-        Args:
-            listZipFileCompress: list of `CompressorFileData` instances with
-                                 ZIP compressor data.
-            filenameZIP: name of file ZIP.
+        for item in data_list:
+            # names_dir = self.paths.get_dirname(item.filename)
+            # name_item = self.paths.get_basename(item.filename)
+            # print('-> ', name_item)
+            if join is True:
+                if first_directory is False:
+                    ITEM_DIR_ = self.paths.get_dirname_level(
+                                                item.filename,
+                                                level=-1
+                                            )
+                first_directory = True
+            else:
+                ITEM_DIR_ = self.paths.get_dirname_level(
+                                            item.filename,
+                                            level=-1
+                                        )
 
-        Returns:
-            CurrentFile: with data of ZIP file.
-        """
+            if ITEM_DIR_ == '.':
+                ITEM_DIR_ = name_
 
-        if filenameZIP is None:
-            filenameZIP = 'FileZip'
+            ITEM_DIR_ = ITEM_DIR_.replace(' ', '_')
 
-        buffer_dataZip = io.BytesIO()
-        with zipfile.ZipFile(
-            file=buffer_dataZip, mode='a',
-            compression=zipfile.ZIP_DEFLATED,
-            allowZip64=False
-        ) as zip_file:
-            for item in listZipFileCompress:
-                # print(item, len(item.list_data), item.filename)
+            # print(join, filenameZIP, ITEM_DIR_, self.CONVERTED_COMICPY_PATH_)
+
+            cbz_file_name = self.paths.build(
+                                self.CONVERTED_COMICPY_PATH_,
+                                '%s.cbz' % (ITEM_DIR_)
+                            )
+            if join:
+                if self.FILE_CBZ_ is None:
+                    self.FILE_CBZ_ = cbz_file_name
+            else:
+                self.FILE_CBZ_ = cbz_file_name
+
+            # print(zip_path, self.FILE_CBZ_)
+
+            with zipfile.ZipFile(
+                file=self.FILE_CBZ_, mode='a',
+                compression=zipfile.ZIP_DEFLATED,
+                allowZip64=False
+            ) as zip_file:
 
                 directory_path = item.filename
 
                 info_file_zip = zipfile.ZipInfo(filename=directory_path)
                 info_file_zip.compress_type = zipfile.ZIP_DEFLATED
 
-                for image in item.list_data:
-                    image_path = self.paths.build(
-                                            directory_path,
-                                            image.filename
-                                        )
-                    # print(image_path)
-                    zip_file.writestr(
-                            zinfo_or_arcname=image_path,
-                            data=image.bytes_data.getvalue()
-                        )
+                zip_file.writestr(
+                        zinfo_or_arcname=item.filename,
+                        data=item.bytes_data.getvalue()
+                    )
+            if cbz_file_name not in to_zip_directories:
+                to_zip_directories.append(cbz_file_name)
 
-        zipFileCurrent = CurrentFile(
-                            filename=filenameZIP,
-                            bytes_data=buffer_dataZip,
-                            unit=self.unit,
-                            extention='.cbz'
-                        )
-        return zipFileCurrent
+        for cbz_path in to_zip_directories:
+            # print(cbz_path)
+            size = self.paths.get_size(path=cbz_path, unit=self.unit)
+            meta = {
+                'name': cbz_path,
+                'size': '%.2f %s' % (
+                            size,
+                            self.unit.upper()
+                    )
+            }
+            metadata_zip.append(meta)
+        return metadata_zip
 
     def to_write(
         self,

@@ -280,18 +280,13 @@ def CliComicPy() -> None:
 
         # DIRECOTRY
         elif typeFile == 'd':
-            dir_name = paths.get_basename(pathFile)
-            if dir_name == '':
-                name = None
-            else:
-                name = '%s%s' % (outputFile, dir_name)
 
             dir(
                 comicInstance=comic,
                 directory_path=pathFile,
                 extention_filter=filterFile,
                 dest=destFile,
-                filename=name,
+                filename=pathFile,
                 password=password,
                 compressor=compressorFile,
                 join=joinFile,

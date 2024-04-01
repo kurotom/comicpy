@@ -7,14 +7,7 @@ import io
 import os
 
 from typing import List, Union
-
-# Units of measurement for data.
-SizeUnits = {
-    'b': 10**1,
-    'kb': 10**3,
-    'mb': 10**6,
-    'gb': 10**9
-}
+from comicpy.utils import SizeUnits
 
 
 class FileBaseClass:

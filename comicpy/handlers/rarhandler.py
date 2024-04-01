@@ -65,6 +65,16 @@ class RarHandler(BaseZipRarHandler):
         self.paths = Paths()
         self.url_page = 'https://www.rarlab.com/download.htm'
         self.number_index = 0
+        self.FILE_CBR_ = None
+        self.FILE_RAR_ = None
+        self.CONVERTED_COMICPY_PATH_ = None
+
+    def reset_names(self) -> None:
+        """
+        """
+        self.FILE_CBR_ = None
+        self.FILE_RAR_ = None
+        self.CONVERTED_COMICPY_PATH_ = None
 
     def testRar(
         self,
@@ -140,135 +150,192 @@ class RarHandler(BaseZipRarHandler):
             print(msg)
             return -1
         except BadPassword as e:
-            print(e)
+            print('--> ', e)
             return -1
         except:
             return None
 
     def to_rar(
         self,
-        listRarFileCompress: List[CompressorFileData],
         join: bool,
-        filenameRAR: str = None,
-    ) -> Union[List[CurrentFile], None]:
+        converted_comicpy_path: str,
+        filenameRAR: str,
+        basedir: str,
+        data_list: List[CompressorFileData] = None,
+    ) -> List[dict]:
         """
-        Handles how the data in the RAR file(s) should be written.
-
-        Args:
-            listRarFileCompress: list of `CompressorFileData` instances.
-            filenameRAR: name of the RAR archive.
-            join: if `True` merge all files, otherwise, no.
-
-        Returns:
-            List[CurrentFile]: list of `CurrentFile` instances contains bytes
-                               of the RAR files.
-            None: if `subprocess.run` fails.
         """
-        # print(listRarFileCompress)
-        if len(listRarFileCompress) == 0:
+        if data_list is None:
             return None
 
-        data_of_rars = []
-        if join is True:
-            currentFileRar = self.__to_rar_data(
-                    listRarFileCompress=listRarFileCompress,
-                    filenameRar=filenameRAR
-                )
-            data_of_rars.append(currentFileRar)
-        elif join is False:
-            for file in listRarFileCompress:
-                current_file_list = [file]
-                currentFileRar = self.__to_rar_data(
-                        listRarFileCompress=current_file_list,
-                        filenameRar=file.filename
-                    )
-                data_of_rars.append(currentFileRar)
+        # Reset names CBR, RAR.
+        self.reset_names()
 
-        return data_of_rars
+        name_, extention = self.paths.splitext(
+                                self.paths.get_basename(filenameRAR)
+                            )
 
-    def __to_rar_data(
-        self,
-        listRarFileCompress: List[CompressorFileData],
-        filenameRar: str = None,
-    ) -> CurrentFile:
-        """
-        Write data of `CompressorFileData` into RAR file.
-
-        Args:
-            listRarFileCompress: list of `CompressorFileData` instances with
-                                 RAR compressor data.
-            filenameRar: name of file RAR.
-
-        Returns:
-            CurrentFile: with data of RAR file.
-        """
-        if filenameRar is None:
-            filenameRar = 'FileRar'
-
-        buffer_dataRar = io.BytesIO()
-
-        id_directory = uuid1().hex
+        DIRECTORY_BASE_ = basedir.replace(' ', '_')
+        self.CONVERTED_COMICPY_PATH_ = converted_comicpy_path
 
         # Make directory and save all data into `TEMP` `.RAR_TEMP`
-        ROOT_PATH = self.paths.build(self.TEMPDIR, id_directory)
+        # id_directory = uuid1().hex
         DIR_RAR_FILES = self.paths.build(
-                            ROOT_PATH,
+                            self.TEMPDIR,
+                            DIRECTORY_BASE_,
                             make=True
                         )
-        RAR_FILE_ = self.paths.build(DIR_RAR_FILES) + '.rar'
-        # print(DIR_RAR_FILES, RAR_FILE_)
+        # print(DIR_RAR_FILES, DIRECTORY_BASE_, self.CONVERTED_COMICPY_PATH_)
 
-        for itemCompressed in listRarFileCompress:
-            # print(DIR_RAR_FILES, itemCompressed.filename)
-            directory_path = self.paths.build(
-                                    DIR_RAR_FILES, itemCompressed.filename,
-                                    make=True
+        # DELETE THIS
+        # join = True  # DELETE THIS
+        # DELETE THIS
+
+        ITEM_DIR_ = None
+        first_directory = False
+        to_rar_directory = {}
+        metadata_rar = []
+
+        for data in data_list:
+            if join is True:
+                if first_directory is False:
+                    ITEM_DIR_ = self.paths.get_dirname_level(
+                                                data.filename,
+                                                level=-1
+                                            )
+                    first_directory = True
+            else:
+                ITEM_DIR_ = self.paths.get_dirname_level(
+                                            data.filename,
+                                            level=-1
+                                        )
+
+            if ITEM_DIR_ == '.':
+                ITEM_DIR_ = name_
+
+            ITEM_DIR_ = ITEM_DIR_.replace(' ', '_')
+
+            item_filename = self.paths.get_basename(data.filename)
+            item_data = data.bytes_data.getvalue()
+
+            DIRECTORY_FILES_ = self.paths.build(
+                            DIR_RAR_FILES,
+                            ITEM_DIR_,
+                            make=True
+                        )
+
+            file_path_ = self.paths.build(DIRECTORY_FILES_, item_filename)
+
+            # print(data.filename, item_filename, ITEM_DIR_)
+            # print(file_path_, ITEM_DIR_, RAR_FILE_, DIRECTORY_FILES_)
+
+            with open(file_path_, 'wb') as fileImage:
+                fileImage.write(item_data)
+
+            if DIRECTORY_FILES_ not in to_rar_directory:
+                to_rar_directory[DIRECTORY_FILES_] = ITEM_DIR_
+
+        # print(to_rar_directories)
+        # print(converted_comicpy_path, CONVERTED_COMICPY_PATH_)
+
+        for name_dir, rar_name in to_rar_directory.items():
+            # print(name_dir, rar_name)
+
+            RAR_NAME_ = '%s.rar'.replace(' ', '_') % (name_dir)
+            CBR_NAME_ = '%s.cbr'.replace(' ', '_') % (name_dir)
+
+            if join:
+                if self.FILE_RAR_ is None:
+                    self.FILE_RAR_ = RAR_NAME_
+                    self.FILE_CBR_ = CBR_NAME_
+            else:
+                self.FILE_RAR_ = RAR_NAME_
+                self.FILE_CBR_ = CBR_NAME_
+
+            directory_rar_temp_ = '%s%s' % (
+                                        name_dir, self.paths.get_separator()
+                                    )
+
+            # print(self.FILE_RAR_, self.FILE_CBR_)
+
+            # Run RAR command
+            command = 'rar a -m1 -ep1 -r %s %s' % (
+                                    self.FILE_RAR_,
+                                    directory_rar_temp_
                                 )
-            # print(directory_path)
 
-            for item in itemCompressed.list_data:
-                # print('--> ', item, item.extention, item.is_comic)
-                file_name = self.paths.get_basename(item.filename)
-                item_path = self.paths.build(directory_path, file_name)
+            process = subprocess.run(
+                args=command.split(),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                shell=False
+            )
 
-                # print(file_name, directory_path, item_path)
+            # print('--> retuncode: ', process.returncode)
 
-                data = item.bytes_data.getvalue()
-                with open(item_path, 'wb') as fileImage:
-                    fileImage.write(data)
+            if process.returncode == 0:
 
-        # Run RAR command
-        command = 'rar a -m1 -ep1 -r %s %s/' % (
-                                RAR_FILE_,
-                                DIR_RAR_FILES
+                metadata_cbr = self.rename_move_rar_cbr(
+                                            fileRAR=self.FILE_RAR_,
+                                            fileCBR=self.FILE_CBR_
+                                        )
+                metadata_rar.append(metadata_cbr)
+
+        # Clear Temp Directory and RAR File.
+        shutil.rmtree(path=DIR_RAR_FILES)
+
+        return metadata_rar
+
+    def rename_move_rar_cbr(
+        self,
+        fileRAR: str,
+        fileCBR: str
+    ) -> None:
+        """
+        """
+        path_CBR_ = None
+
+        destination_path = self.paths.build(
+                                self.CONVERTED_COMICPY_PATH_,
+                                make=True
                             )
-        process = subprocess.run(
-            args=command.split(),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            shell=False
-        )
-        # print('--> retuncode: ', process.returncode)
-
-        if process.returncode == 0:
-
-            # Load RAR into io.BytesIO
-            with open(RAR_FILE_, 'rb') as file_rar:
-                shutil.copyfileobj(fsrc=file_rar, fdst=buffer_dataRar)
-
-            # Clear Temp Directory and RAR File.
-            shutil.rmtree(path=ROOT_PATH)
-
-            rarFileCurrent = CurrentFile(
-                                filename=filenameRar,
-                                bytes_data=buffer_dataRar,
-                                unit=self.unit,
-                                extention='.cbr'
+        cbr_name = self.paths.get_basename(fileCBR)
+        path_CBR_ = self.paths.build(
+                                destination_path,
+                                cbr_name
                             )
-            return rarFileCurrent
+        metadata = self.get_metadata(path_cbr=fileRAR, final_path=path_CBR_)
 
-        else:
-            return None
+        # Rename to RAR to CBR
+        shutil.move(src=fileRAR, dst=fileCBR)
+
+        # Move CBR file to `Converted_comicpy`
+        try:
+            shutil.move(src=fileCBR, dst=destination_path)
+        except shutil.Error:
+            is_deleted = self.paths.remove(path=path_CBR_)
+            if is_deleted:
+                shutil.move(src=fileCBR, dst=destination_path)
+        return metadata
+
+    def get_metadata(
+        self,
+        path_cbr: str,
+        final_path: str,
+    ) -> dict:
+        """
+        """
+        meta = {
+                'name': final_path,
+                'size': '%.2f %s' % (
+                            self.paths.get_size(
+                                    path=path_cbr,
+                                    unit=self.unit
+                            ),
+                            self.unit
+                    )
+            }
+        return meta
 
     def to_write(
         self,

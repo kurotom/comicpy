@@ -13,6 +13,15 @@ from typing import Union, Tuple, TypeVar
 CurrentFile = TypeVar('CurrentFile')
 
 
+# Units of measurement for data.
+SizeUnits = {
+    'b': 10**1,
+    'kb': 10**3,
+    'mb': 10**6,
+    'gb': 10**9
+}
+
+
 class Paths:
     """
     Centralized class in charge of matters related to paths.
@@ -26,6 +35,19 @@ class Paths:
         Returns the separator used in the operating system.
         """
         return os.sep
+
+    def remove(
+        self,
+        path
+    ) -> bool:
+        """
+        """
+        try:
+            os.remove(path=path)
+            return True
+        except:
+            return False
+
 
     def isfile(
         self,
@@ -155,7 +177,7 @@ class Paths:
     def get_dirname_level(
         self,
         path: str,
-        level: int = 0
+        level: int = None
     ) -> str:
         """
         Gets and returns the directory name depending on the level.
@@ -167,7 +189,12 @@ class Paths:
         Returns
             str: string of path.
         """
-        return os.path.normpath(path).split(self.get_separator())[level]
+        dirname = self.get_dirname(path)
+        levels_dir = os.path.normpath(dirname).split(self.get_separator())
+        if level is None:
+            return levels_dir
+        else:
+            return levels_dir[level]
 
     def get_file_glob(
         self,
@@ -214,6 +241,29 @@ class Paths:
 
         return results
 
+    def get_size(
+        self,
+        path: str,
+        unit: str
+    ) -> int:
+        """
+        Gets sise of data, and set `size` attribute.
+
+        Returns:
+            int: data size value.
+        """
+        try:
+            try:
+                size_unit = SizeUnits[unit]
+            except KeyError:
+                size_unit = SizeUnits['mb']
+
+            size_file = os.path.getsize(path)
+            size_ = size_file / size_unit
+            return size_
+
+        except OSError:
+            return -1
 
 
 class VarEnviron:
