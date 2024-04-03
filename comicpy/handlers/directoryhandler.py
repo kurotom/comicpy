@@ -45,14 +45,14 @@ class DirectoryHandler:
         self.unit = unit
         self.imageshandler = ImagesHandler()
         self.paths = Paths()
-        self.number_image = 0
+        self.number_image = 1
         self.separator = self.paths.get_separator()
 
-    def reset_index(self) -> None:
+    def reset_counter(self) -> None:
         """
         Resets index of images.
         """
-        self.number_image = 0
+        self.number_image = 1
 
     def read(
         self,
@@ -118,7 +118,7 @@ class DirectoryHandler:
         for key, listImagePath in filesDict.items():
             # print(listImagePath)
             if join is False:
-                self.reset_index()
+                self.reset_counter()
                 name_directory = key.replace(' ', '_')
             else:
                 name_directory = basenameDirectory.replace(' ', '_')

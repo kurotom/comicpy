@@ -64,7 +64,8 @@ class RarHandler(BaseZipRarHandler):
         self.validextentions = ValidExtentions()
         self.paths = Paths()
         self.url_page = 'https://www.rarlab.com/download.htm'
-        self.number_index = 0
+        self.number_index = 1
+
         self.FILE_CBR_ = None
         self.FILE_RAR_ = None
         self.CONVERTED_COMICPY_PATH_ = None
@@ -152,7 +153,7 @@ class RarHandler(BaseZipRarHandler):
         except BadPassword as e:
             print('--> ', e)
             return -1
-        except:
+        except Exception:
             return None
 
     def to_rar(
@@ -169,7 +170,8 @@ class RarHandler(BaseZipRarHandler):
             return None
 
         # Reset names CBR, RAR.
-        self.reset_names()
+        if join is False:
+            self.reset_names()
 
         name_, extention = self.paths.splitext(
                                 self.paths.get_basename(filenameRAR)

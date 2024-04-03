@@ -65,6 +65,7 @@ class PdfHandler:
         self,
         currentFilePDF: CurrentFile,
         compressor: str,
+        is_join: bool = False,
         resizeImage: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve',
         motor: Union[PYPDF, PYMUPDF] = 'pypdf'
     ) -> Union[CompressorFileData, None]:
@@ -82,9 +83,10 @@ class PdfHandler:
             List[ImageComicData]: list of instances of `ImageComicData` with
                                   the data of all the images in the PDF file.
         """
-        self.reset_counter()
-
         listImageComicData = []
+
+        if is_join is False:
+            self.reset_counter()
 
         if motor == 'pypdf':
             listImageComicData = self.to_pypdf(

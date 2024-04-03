@@ -44,7 +44,7 @@ class BaseZipRarHandler:
         """
         Resets the number of the image name counter.
         """
-        self.number_index = 0
+        self.number_index = 1
 
     def read_file(
         self,

@@ -55,7 +55,7 @@ class ZipHandler(BaseZipRarHandler):
         self.imageshandler = ImagesHandler()
         self.validextentions = ValidExtentions()
         self.paths = Paths()
-        self.number_index = 0
+        self.number_index = 1
 
         self.FILE_CBZ_ = None
         self.FILE_ZIP_ = None
@@ -157,7 +157,7 @@ class ZipHandler(BaseZipRarHandler):
         except BadPassword as e:
             print(e)
             return -1
-        except:
+        except Exception:
             return None
 
     def to_zip(
@@ -173,8 +173,9 @@ class ZipHandler(BaseZipRarHandler):
         if data_list is None:
             return None
 
-        # Reset names CBR, RAR.
-        self.reset_names()
+        # Reset names CBZ, ZIP.
+        if join is False:
+            self.reset_names()
 
         to_zip_directories = []
         metadata_zip = []
@@ -193,6 +194,7 @@ class ZipHandler(BaseZipRarHandler):
         # DELETE THIS
         # join = True  # DELETE THIS
         # DELETE THIS
+        # print(self.FILE_CBZ_, self.FILE_ZIP_)
 
         for item in data_list:
             # names_dir = self.paths.get_dirname(item.filename)
@@ -222,13 +224,12 @@ class ZipHandler(BaseZipRarHandler):
                                 self.CONVERTED_COMICPY_PATH_,
                                 '%s.cbz' % (ITEM_DIR_)
                             )
+
             if join:
                 if self.FILE_CBZ_ is None:
                     self.FILE_CBZ_ = cbz_file_name
             else:
                 self.FILE_CBZ_ = cbz_file_name
-
-            # print(zip_path, self.FILE_CBZ_)
 
             with zipfile.ZipFile(
                 file=self.FILE_CBZ_, mode='a',

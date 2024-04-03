@@ -45,9 +45,8 @@ class Paths:
         try:
             os.remove(path=path)
             return True
-        except:
+        except Exception:
             return False
-
 
     def isfile(
         self,
@@ -224,8 +223,8 @@ class Paths:
 
     def get_files_recursive(
         self,
-        directory: str,
-        extentions: Union[str, list]
+        extentions: Union[str, list],
+        directory: str
     ) -> list:
         """
         """
