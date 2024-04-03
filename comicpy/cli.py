@@ -208,7 +208,7 @@ def CliComicPy() -> None:
             '--resize',
             choices=['preserve', 'small', 'medium', 'large'],
             default='preserve',
-            help='Password of file protected.'
+            help='Resize images.'
         )
     main_parser.add_argument(
             '--path_exec',

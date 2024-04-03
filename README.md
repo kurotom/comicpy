@@ -5,7 +5,9 @@ Tool to create CBR or CBZ files.
 Extracts images from PDF, ZIP, CBR files, generating comic files respecting their original order.
 
 
-> The original files are not altered.
+> [!Important]
+>> The original files are not altered.
+>
 
 
 ## Features
@@ -31,10 +33,9 @@ Extracts images from PDF, ZIP, CBR files, generating comic files respecting thei
 
 # Installation
 
-```
+```bash
 pip install comicpy
 ```
-
 
 # Usage
 
@@ -59,7 +60,7 @@ $ comicpy -h
 | --check | Check the CBR or CBZ files created. |
 | -u {b,kb,mb,gb}, --unit {b,kb,mb,gb} | Unit of measure of data size. Default is "mb". |
 | --password PASSWORD | Password of file protected. |
-| --resize {preserve,small,medium,large} | Password of file protected. |
+| --resize {preserve,small,medium,large} | Resize images. |
 | --progress | Shows file in progress. |
 
 ```bash
@@ -87,7 +88,7 @@ $ comicpy --type f -p file.rar --check --resize small
 | --join | Join or does not files thath are in the directory. Default is "False". |
 | -u {b,kb,mb,gb}, --unit {b,kb,mb,gb} | Unit of measure of data size. Default is "mb". |
 | --password PASSWORD | Password of file protected. |
-| --resize {preserve,small,medium,large} | Password of file protected. |
+| --resize {preserve,small,medium,large} | Resize images. |
 | --progress | Shows file in progress. |
 
 
@@ -104,7 +105,7 @@ $ comicpy --type d -p Comic_vol1/ --compress zip --filter images --check --progr
 
 ## Development - usage
 
-> `path='.'` parameter of `ComicPy.to_write()`, indicates that files will be written by default to the current directory. It can be changed.
+> `path='.'` parameter indicates that files will be written by default to the current directory. It can be changed.
 
 ## Single PDF, RAR, ZIP file -> CBZ or CBR
 
