@@ -536,31 +536,6 @@ class ComicPy:
         except Exception:
             return []
 
-        # if extention_filter == 'images':
-        #     # handle JPG, PNG, JPEG
-        #     return self.__images_dir(
-        #         directory_path=directory_path,
-        #         filename=filename,
-        #         basedir=BASE_DIR_,
-        #         dest_file=CONVERTED_COMICPY_PATH_,
-        #         compressor_type=compressor,
-        #         join=join,
-        #         resize=resize
-        #     )
-        # else:
-        #     return self.__dir_pdf_cbr_cbz(
-        #         directory_path=directory_path,
-        #         extention_filter=extention_filter,
-        #         filename=filename,
-        #         basedir=BASE_DIR_,
-        #         dest_file=CONVERTED_COMICPY_PATH_,
-        #         password=password,
-        #         compressor_type=compressor,
-        #         join=join,
-        #         resize=resize,
-        #         motor=motor
-        #     )
-
     def __images_dir(
         self,
         directory_path: str,
@@ -676,14 +651,13 @@ class ComicPy:
         if not self.paths.exists(dir_abs_path):
             raise DirectoryPathNotExists(dir_path=directory_path)
 
-        # filesMatch = self.paths.get_file_glob(
-        #                     extention=extention_filter,
-        #                     directory=directory_path
-        #                 )
-
+        list_extention = [
+                            extention_filter.lower(),
+                            extention_filter.upper()
+                        ]
         filesMatch = self.paths.get_files_recursive(
                             directory=directory_path,
-                            extentions=extention_filter,
+                            extentions=list_extention,
                         )
 
         if len(filesMatch) == 0:

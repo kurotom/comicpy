@@ -231,6 +231,7 @@ class Paths:
         results = []
         if isinstance(extentions, str):
             extentions = [extentions]
+
         dirPath = Path(directory)
 
         [
