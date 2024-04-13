@@ -20,7 +20,9 @@ from comicpy.exceptionsClasses import (
     DirectoryPathNotExists,
     DirectoryEmptyFilesValid,
     DirectoryFilterEmptyFiles,
-    BadPassword
+    BadPassword,
+    InvalidCompressor,
+    ExtentionError
 )
 
 from comicpy.valid_extentions import ValidExtentions

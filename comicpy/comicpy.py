@@ -29,7 +29,9 @@ from comicpy.exceptionsClasses import (
     DirectoryPathNotExists,
     DirectoryFilterEmptyFiles,
     UnitFileSizeInvalid,
-    FilePasswordProtected
+    FilePasswordProtected,
+    InvalidCompressor,
+    ExtentionError
 )
 
 from comicpy.valid_extentions import ValidExtentions
@@ -533,7 +535,13 @@ class ComicPy:
         except KeyboardInterrupt:
             print('Interrump')
             return []
-        except Exception:
+        except (
+            DirectoryPathNotExists,
+            DirectoryFilterEmptyFiles,
+            InvalidCompressor,
+            ExtentionError
+        ) as e:
+            print('%s\n' % (e))
             return []
 
     def __images_dir(
@@ -756,69 +764,16 @@ class ComicPy:
                                             join_files=join,
                                             compressor=compressor_type
                                         )
-                            data_metadata += metadataFiles
+                            if join:
+                                if len(data_metadata) == 0:
+                                    data_metadata += metadataFiles
+                            else:
+                                data_metadata += metadataFiles
                         comicsItem = None
 
             self.__reset_names_counter_handlers()
 
             return data_metadata
-
-    def file_merger_handler(
-        self,
-        list_compressorFile: List[CompressorFileData],
-        compressor: str,
-        is_join: bool
-    ) -> List[CompressorFileData]:
-        """
-        Restructures the data of RAW files depending on whether they should be
-        merged or not.
-
-        Args
-            list_compressorFile: list of `CompressorFileData` instances.
-            compressor: type of compressor to use.
-            is_join: boolean if the files will be joined.
-
-         Returns
-            List[CompressorFileData]: list of `CompressorFileData` instances.
-        """
-        files_ = {}
-        main_dir_ = False
-        name_file_join_ = None
-        results = []
-
-        for itemCompress in list_compressorFile:
-            if is_join is False:
-                results.append(itemCompress)
-            else:
-                for item in itemCompress.list_data:
-                    name_dir_ = self.paths.get_dirname_level(
-                                            path=item.filename,
-                                            level=-1
-                                        )
-                    if name_dir_ == '.':
-                        name_, extention_ = self.paths.splitext(
-                                        self.paths.get_basename(item.filename)
-                                    )
-                        name_dir_ = name_
-
-                    if main_dir_ is False:
-                        if name_dir_ not in files_:
-                            files_[name_dir_] = [item]
-                            main_dir_ = True
-                            name_file_join_ = name_dir_
-                    else:
-                        files_[name_file_join_].append(item)
-
-        # print(name_file_join_, files_.keys(), len(list(files_.values())[0]))
-        if is_join:
-            compressorJoinFiles = CompressorFileData(
-                                    filename=name_file_join_,
-                                    list_data=list(files_.values())[0],
-                                    type=compressor,
-                                    unit=self.unit
-                                )
-            results.append(compressorJoinFiles)
-        return results
 
     def __reset_names_counter_handlers(self) -> None:
         """

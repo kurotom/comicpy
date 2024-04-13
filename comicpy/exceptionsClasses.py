@@ -52,6 +52,15 @@ class EmptyFile(ErrorFileBase):
         super().__init__(message)
 
 
+class ExtentionError(ErrorFileBase):
+    def __init__(
+        self,
+        message: str
+    ) -> None:
+        msg = 'Extention must be %s.' % message
+        super().__init__(msg)
+
+
 class FileExtentionNotMatch(ErrorFileBase):
     def __init__(
         self,
@@ -92,4 +101,12 @@ class DirectoryEmptyFilesValid(ErrorFileBase):
     ) -> None:
         message = 'Not found valid files on "%s".\n' % (dir_path)
         message += 'Only files: .pdf, .cbz, .cbr.'
+        super().__init__(message)
+
+
+class InvalidCompressor(ErrorFileBase):
+    def __init__(
+        self
+    ) -> None:
+        message = 'Compressor must be "rar" or "zip".'
         super().__init__(message)
