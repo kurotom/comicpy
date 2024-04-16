@@ -164,7 +164,7 @@ class ZipHandler(BaseZipRarHandler):
         self,
         join: bool,
         converted_comicpy_path: str,
-        filenameZIP: str,
+        pathCBZconverted: str,
         basedir: str,
         data_list: List[CompressorFileData] = None,
     ) -> List[dict]:
@@ -183,7 +183,7 @@ class ZipHandler(BaseZipRarHandler):
         ITEM_DIR_ = None
 
         name_, extention = self.paths.splitext(
-                                self.paths.get_basename(filenameZIP)
+                                self.paths.get_basename(pathCBZconverted)
                             )
 
         self.CONVERTED_COMICPY_PATH_ = self.paths.build(
@@ -218,7 +218,7 @@ class ZipHandler(BaseZipRarHandler):
 
             ITEM_DIR_ = ITEM_DIR_.replace(' ', '_')
 
-            # print(join, filenameZIP, ITEM_DIR_, self.CONVERTED_COMICPY_PATH_)
+            # print(pathCBZconverted, ITEM_DIR_, self.CONVERTED_COMICPY_PATH_)
 
             cbz_file_name = self.paths.build(
                                 self.CONVERTED_COMICPY_PATH_,

@@ -21,7 +21,7 @@ from comicpy.valid_extentions import ValidExtentions
 
 from comicpy.exceptionsClasses import BadPassword
 
-from uuid import uuid1
+# from uuid import uuid1
 import subprocess
 import tempfile
 import shutil
@@ -30,8 +30,6 @@ from rarfile import (
     PasswordRequired,
     RarCannotExec
 )
-
-import io
 
 from typing import List, Union, TypeVar
 
@@ -153,19 +151,21 @@ class RarHandler(BaseZipRarHandler):
         except BadPassword as e:
             print('--> ', e)
             return -1
-        except Exception:
+        except Exception as e:
             return None
 
     def to_rar(
         self,
         join: bool,
         converted_comicpy_path: str,
-        filenameRAR: str,
+        pathCBRconverted: str,
         basedir: str,
         data_list: List[CompressorFileData] = None,
+        last_item: bool = False
     ) -> List[dict]:
         """
         """
+        # print('--> ', pathCBRconverted, converted_comicpy_path, basedir)
         if data_list is None:
             return None
 
@@ -174,7 +174,7 @@ class RarHandler(BaseZipRarHandler):
             self.reset_names()
 
         name_, extention = self.paths.splitext(
-                                self.paths.get_basename(filenameRAR)
+                                self.paths.get_basename(pathCBRconverted)
                             )
 
         DIRECTORY_BASE_ = basedir.replace(' ', '_')
@@ -211,7 +211,6 @@ class RarHandler(BaseZipRarHandler):
                                             data.filename,
                                             level=-1
                                         )
-
             if ITEM_DIR_ == '.':
                 ITEM_DIR_ = name_
 
@@ -219,6 +218,8 @@ class RarHandler(BaseZipRarHandler):
 
             item_filename = self.paths.get_basename(data.filename)
             item_data = data.bytes_data.getvalue()
+
+            # print(data, ITEM_DIR_, name_, item_filename)
 
             DIRECTORY_FILES_ = self.paths.build(
                             DIR_RAR_FILES,
@@ -228,40 +229,31 @@ class RarHandler(BaseZipRarHandler):
 
             file_path_ = self.paths.build(DIRECTORY_FILES_, item_filename)
 
-            # print(data.filename, item_filename, ITEM_DIR_)
-            # print(file_path_, ITEM_DIR_, RAR_FILE_, DIRECTORY_FILES_)
-
             with open(file_path_, 'wb') as fileImage:
                 fileImage.write(item_data)
 
             if DIRECTORY_FILES_ not in to_rar_directory:
                 to_rar_directory[DIRECTORY_FILES_] = ITEM_DIR_
 
-        # print(to_rar_directories)
+        # print(to_rar_directory, DIRECTORY_BASE_, DIR_RAR_FILES)
         # print(converted_comicpy_path, CONVERTED_COMICPY_PATH_)
 
         for name_dir, rar_name in to_rar_directory.items():
-            # print(name_dir, rar_name)
+            # print(name_dir, rar_name, pathCBRconverted)
 
-            RAR_NAME_ = '%s.rar'.replace(' ', '_') % (name_dir)
-            CBR_NAME_ = '%s.cbr'.replace(' ', '_') % (name_dir)
-
-            if join:
-                if self.FILE_RAR_ is None:
-                    self.FILE_RAR_ = RAR_NAME_
-                    self.FILE_CBR_ = CBR_NAME_
-            else:
-                self.FILE_RAR_ = RAR_NAME_
-                self.FILE_CBR_ = CBR_NAME_
+            self.FILE_RAR_ = self.paths.build(
+                                    DIR_RAR_FILES,
+                                    '%s.rar'.replace(' ', '_') % (name_)
+                                )
 
             directory_rar_temp_ = '%s%s' % (
-                                        name_dir, self.paths.get_separator()
+                                        name_dir,
+                                        self.paths.get_separator()
                                     )
-
-            # print(self.FILE_RAR_, self.FILE_CBR_)
+            # print(directory_rar_temp_)
 
             # Run RAR command
-            command = 'rar a -m1 -ep1 -r %s %s' % (
+            command = 'rar a -r -m1 -ep1 %s %s' % (
                                     self.FILE_RAR_,
                                     directory_rar_temp_
                                 )
@@ -275,23 +267,39 @@ class RarHandler(BaseZipRarHandler):
 
             # print('--> retuncode: ', process.returncode)
 
-            if process.returncode == 0:
+            if process.returncode != 0:
+                return []
 
+        # print(self.FILE_RAR_, name_, DIR_RAR_FILES)
+        self.FILE_CBR_ = self.paths.build(
+                                DIR_RAR_FILES,
+                                '%s.cbr' % (name_)
+                            )
+        # print(self.FILE_CBR_, self.FILE_RAR_, self.CONVERTED_COMICPY_PATH_)
+
+        if join:
+            if last_item:
                 metadata_cbr = self.rename_move_rar_cbr(
                                             fileRAR=self.FILE_RAR_,
-                                            fileCBR=self.FILE_CBR_
+                                            fileCBR=self.FILE_CBR_,
+                                            directory_files=DIR_RAR_FILES
                                         )
                 metadata_rar.append(metadata_cbr)
-
-        # Clear Temp Directory and RAR File.
-        shutil.rmtree(path=DIR_RAR_FILES)
+        else:
+            metadata_cbr = self.rename_move_rar_cbr(
+                                            fileRAR=self.FILE_RAR_,
+                                            fileCBR=self.FILE_CBR_,
+                                            directory_files=DIR_RAR_FILES
+                                        )
+            metadata_rar.append(metadata_cbr)
 
         return metadata_rar
 
     def rename_move_rar_cbr(
         self,
         fileRAR: str,
-        fileCBR: str
+        fileCBR: str,
+        directory_files: str
     ) -> None:
         """
         """
@@ -318,6 +326,10 @@ class RarHandler(BaseZipRarHandler):
             is_deleted = self.paths.remove(path=path_CBR_)
             if is_deleted:
                 shutil.move(src=fileCBR, dst=destination_path)
+
+        # Clear Temp Directory and RAR File.
+        shutil.rmtree(path=directory_files)
+
         return metadata
 
     def get_metadata(
@@ -334,7 +346,7 @@ class RarHandler(BaseZipRarHandler):
                                     path=path_cbr,
                                     unit=self.unit
                             ),
-                            self.unit
+                            self.unit.upper()
                     )
             }
         return meta

@@ -53,10 +53,8 @@ $ comicpy -h
 |-|-|
 | --type f | File. |
 | -p PATH, --path PATH | Path of file. |
-| -d DEST, --dest DEST | Path to save output files. Default is "." |
 | --motorPDF {pypdf,pymupdf} | PDF library to use. |
 | -c {rar,zip}, --compressor {rar,zip} | Type of compressor to use. |
-| -o OUTPUT, --output OUTPUT | Prefix of output file. |
 | --check | Check the CBR or CBZ files created. |
 | -u {b,kb,mb,gb}, --unit {b,kb,mb,gb} | Unit of measure of data size. Default is "mb". |
 | --password PASSWORD | Password of file protected. |
@@ -82,8 +80,6 @@ $ comicpy --type f -p file.rar --check --resize small
 | --filter {pdf,rar,zip,cbr,cbz,images} | Filter files on directory. Default is "zip". |
 | --motorPDF {pypdf,pymupdf} | PDF library to use. |
 | -c {rar,zip}, --compressor {rar,zip} | Type of compressor to use. Default is "zip".|
-| -d DEST, --dest DEST | Path to save output files. Default is ".".
-| -o OUTPUT, --output OUTPUT | Prefix of output file. Default is "Converted_". |
 | --check | Check the CBR or CBZ files created. |
 | --join | Join or does not files thath are in the directory. Default is "False". |
 | -u {b,kb,mb,gb}, --unit {b,kb,mb,gb} | Unit of measure of data size. Default is "mb". |
@@ -112,20 +108,20 @@ $ comicpy --type d -p Comic_vol1/ --compress zip --filter images --check --progr
 ```python
 >>> from comicpy import ComicPy
 >>>
->>> pdf_file = 'file_pdf.PDF'
+>>> file = "fileComic.pdf"
 >>>
 >>> comic = ComicPy(unit='mb')
 >>>
->>> metaFileCompress = comic.process_pdf(filename=pdf_file, compressor='zip')
+>>> metadata = comic.process_pdf(
+...             filename=file,
+...             compressor='zip'
+...         )
 >>>
->>> print(metaFileCompress)
-[{'name': './file_pdf/file_pdf.cbz', 'size': '76.63 MB'}]
+>>> print(metadata)
+[{'name': './Converted_comicpy/fileComic/fileComic.cbz', 'size': '193.24 MB'}]
 >>>
->>> comic.check_integrity(filename=metaFileCompress[0]['name'])
-File is valid?:  "True"
-True
->>>
->>> comic.check_integrity(filename=metaFileCompress[0]['name'], show=False)
+>>> comic.check_integrity(filename=metadata[0]['name'])
+File "fileComic.cbz" is valid?:  "True"
 True
 >>>
 ```
@@ -137,41 +133,34 @@ True
 
 * Example, directory with RAR files - `join=False`
 
-
 ```python
 >>> from comicpy import ComicPy
 >>>
->>> dir_RAR = 'rars'
+>>> dir = 'ComicVol1'
 >>>
 >>> comic = ComicPy(unit='GB')
 >>>
->>> metaFileCompress = comic.process_dir(
-...             filename='final_CBR_file',
-...             directory_path=dir_RAR,
-...             extention_filter='rar',
-...             compressor='rar',
-...             password=None,
-...             join=False
-...           )
->>> print(metaFileCompress)
-[
-  {'name': './final_CBR_file/chapter_1.cbr', 'size': '0.02 GB'},
-  {'name': './final_CBR_file/chapter_2.cbr', 'size': '0.01 GB'}
-]
->>>>
->>> for item in metaFileCompress:
-...   comic.check_integrity(
-...      filename=item['name'],
-...      show=True
-...   )
+>>> metadata = comic.process_dir(
+...     directory_path=dir,
+...     extention_filter='rar',
+...     compressor='rar',
+...     password=None,
+...     join=False
+... )
+
+>>> print(metadata)
+[{'name': './Converted_comicpy/ComicVol1/chapter_1.cbr', 'size': '0.03 GB'}, {'name': './Converted_comicpy/ComicVol1/chapter_2.cbr', 'size': '0.02 GB'}]
+>>>
+>>>
+>>> for item in metadata:
+...     comic.check_integrity(
+...             filename=item['name'],
+...             show=True
+...     )
 ...
-File is valid?:  "True"
+File "chapter_1.cbr" is valid?:  "True"
 True
-File is valid?:  "True"
-True
-File is valid?:  "True"
-True
-File is valid?:  "True"
+File "chapter_2.cbr" is valid?:  "True"
 True
 >>>
 ```
@@ -182,28 +171,28 @@ True
 ```python
 >>> from comicpy import ComicPy
 >>>
->>> dir_RAR = 'rars'
+>>> dir = 'ComicVol1'
 >>>
 >>> comic = ComicPy(unit='GB')
 >>>
->>> metaFileCompress = comic.process_dir(
-...                 filename='final_CBR_file',
-...                 directory_path=dir_RAR,
-...                 extention_filter='rar',
-...                 compressor='rar',
-...                 password=None,
-...                 join=True
-...               )
->>> print(metaFileCompress)
-[{'name': 'result/final_CBR_file/final_CBR_file.cbr', 'size': '0.05 GB'}]
+>>> metadata = comic.process_dir(
+...     directory_path=dir,
+...     extention_filter='rar',
+...     compressor='rar',
+...     password=None,
+...     join=True
+... )
 >>>
->>> for item in metaFileCompress:
-...   comic.check_integrity(
-...      filename=item['name'],
-...      show=True
-...   )
+>>> print(metadata)
+[{'name': './Converted_comicpy/ComicVol1/chapter_1.cbr', 'size': '0.09 GB'}]
+>>>
+>>> for item in metadata:
+...     comic.check_integrity(
+...             filename=item['name'],
+...             show=True
+...     )
 ...
-File is valid?:  "True"
+File "chapter_1.cbr" is valid?:  "True"
 True
 >>>
 ```

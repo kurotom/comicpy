@@ -100,7 +100,7 @@ class DirectoryEmptyFilesValid(ErrorFileBase):
         dir_path: str
     ) -> None:
         message = 'Not found valid files on "%s".\n' % (dir_path)
-        message += 'Only files: .pdf, .cbz, .cbr.'
+        message += 'Only files: .pdf, .cbz, .cbr, .jpg, .png.'
         super().__init__(message)
 
 

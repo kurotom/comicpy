@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TEST_FINISHED_WITH_SUCCESS='SUCCESS'
+TEST_FINISHED_WITH_SUCCESS='\033[0;32m SUCCESS \033[0m'
 
 run_test () {
   string_python="python$1"
@@ -18,7 +18,7 @@ run_test () {
     poetry run bash run_tests.sh
 
     if (( $? != 0 )); then
-      TEST_FINISHED_WITH_SUCCESS='FAILED'
+      TEST_FINISHED_WITH_SUCCESS='\033[0;31m FAILED \033[0m'
     fi
 
   fi

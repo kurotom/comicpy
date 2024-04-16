@@ -14,15 +14,18 @@ from comicpy.models import (
 from comicpy.checkfile import CheckFile
 
 from comicpy.exceptionsClasses import (
+    UnitFileSizeInvalid,
+    ErrorFileBase,
+    FilePasswordProtected,
+    BadPassword,
     InvalidFile,
     EmptyFile,
+    ExtentionError,
     FileExtentionNotMatch,
     DirectoryPathNotExists,
-    DirectoryEmptyFilesValid,
     DirectoryFilterEmptyFiles,
-    BadPassword,
-    InvalidCompressor,
-    ExtentionError
+    DirectoryEmptyFilesValid,
+    InvalidCompressor
 )
 
 from comicpy.valid_extentions import ValidExtentions

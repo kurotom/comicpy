@@ -10,13 +10,17 @@ from comicpy.exceptionsClasses import (
     UnitFileSizeInvalid,
     ErrorFileBase,
     FilePasswordProtected,
+    BadPassword,
     InvalidFile,
     EmptyFile,
+    ExtentionError,
     FileExtentionNotMatch,
     DirectoryPathNotExists,
     DirectoryFilterEmptyFiles,
-    DirectoryEmptyFilesValid
+    DirectoryEmptyFilesValid,
+    InvalidCompressor
 )
+
 from comicpy.models import (
     CurrentFile,
     CompressorFileData
@@ -73,7 +77,7 @@ class ComicPyTestCase(BaseTestCase):
             self.comicpy_init.check_file(currentFile=currentFile)
 
     def test_comicpy_check_compressor(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(InvalidCompressor):
             self.comicpy_init.raiser_error_compressor(compressor_str='xx')
 
     def test_comicpy_check_protectedFileZipNoPass(self):
@@ -266,6 +270,7 @@ class ComicPyTestCase(BaseTestCase):
 
     def test_comicpy_to_compressor(self):
         filename2 = 'image.pdf'
+        path = self.FILES[filename2]
         data = self.data[filename2]
         currentFile = self.buid_CurrentFile(
                                 filename=filename2,
@@ -276,13 +281,25 @@ class ComicPyTestCase(BaseTestCase):
                                 compressor='rar',
                                 resizeImage='preserve'
                             )
+
+        self.comicpy_init.get_base_converted_path(
+                origin=path,
+                dest=self.temp_dir,
+                type='f'
+            )
+
+        self.comicpy_init.get_cbz_cbr_name(
+                filename=path,
+                compressor='rar'
+            )
+
         metadataFile = self.comicpy_init.to_compressor(
-                filename=filename2,
+                filename=self.comicpy_init.FILE_CBR_CBZ_,
                 listCompressorData=compressFileData.list_data,
                 compressor='rar',
                 join_files=False,
-                basedir="pdf_image",
-                dest=self.temp_dir
+                basedir=self.comicpy_init.BASE_DIR_,
+                dest=self.comicpy_init.CONVERTED_COMICPY_PATH_,
             )
 
         is_valid = self.comicpy_init.check_integrity(
@@ -296,20 +313,13 @@ class ComicPyTestCase(BaseTestCase):
         ]
         self.assertEqual(all(results), True)
 
-    def test_comicpy_process_rar_wo_pass_w_pass(self):
+    def test_comicpy_process_rar_w_pass(self):
         fileWpass = 'protected_image_dir_2.rar'
-        fileWOpass = 'image_dir_1.rar'
 
         dataWpass = self.data[fileWpass]
         currentFileWpass = self.buid_CurrentFile(
                                 filename=fileWpass,
                                 raw_data=dataWpass
-                            )
-
-        dataWOpass = self.data[fileWOpass]
-        currentFileWOpass = self.buid_CurrentFile(
-                                filename=fileWOpass,
-                                raw_data=dataWOpass
                             )
 
         compressorWpass = self.comicpy_init.rarhandler.extract_content(
@@ -318,45 +328,9 @@ class ComicPyTestCase(BaseTestCase):
                                     resizeImage='preserve'
                                 )
 
-        compressorWOpass = self.comicpy_init.rarhandler.extract_content(
-                                    currentFileRar=currentFileWOpass,
-                                    password='password',
-                                    resizeImage='preserve'
-                                )
-
-        metaFileCompressorWPass = self.comicpy_init.to_compressor(
-                            filename=compressorWpass.filename,
-                            listCompressorData=compressorWpass.list_data,
-                            compressor='rar',
-                            join_files=False,
-                            basedir="rar_protected",
-                            dest=self.temp_dir
-                        )
-
-        metaFileCompressorWOPass = self.comicpy_init.to_compressor(
-                            filename=compressorWpass.filename,
-                            listCompressorData=compressorWOpass.list_data,
-                            compressor='rar',
-                            join_files=False,
-                            basedir="rar_no_protected",
-                            dest=self.temp_dir
-                        )
-
-        is_valid1 = self.comicpy_init.check_integrity(
-                                filename=metaFileCompressorWPass[0]['name'],
-                                show=False
-                            )
-
-        is_valid2 = self.comicpy_init.check_integrity(
-                                filename=metaFileCompressorWOPass[0]['name'],
-                                show=False
-                            )
-
         results = [
-            len(metaFileCompressorWPass) == 2,
-            len(metaFileCompressorWOPass) == 1,
-            is_valid1 is True,
-            is_valid2 is True,
+            compressorWpass is not None,
+            compressorWpass.items == 2
         ]
         self.assertEqual(all(results), True)
 
@@ -376,20 +350,13 @@ class ComicPyTestCase(BaseTestCase):
                                 )
         self.assertEqual(compressorFile, None)
 
-    def test_comicpy_process_zip_wo_pass_w_pass(self):
+    def test_comicpy_process_zip_w_pass(self):
         fileWpass = 'protected_image_dir_2.zip'
-        fileWOpass = 'image_dir_1.zip'
 
         dataWpass = self.data[fileWpass]
         currentFileWpass = self.buid_CurrentFile(
                                 filename=fileWpass,
                                 raw_data=dataWpass
-                            )
-
-        dataWOpass = self.data[fileWOpass]
-        currentFileWOpass = self.buid_CurrentFile(
-                                filename=fileWOpass,
-                                raw_data=dataWOpass
                             )
 
         compressorWpass = self.comicpy_init.ziphandler.extract_content(
@@ -398,45 +365,9 @@ class ComicPyTestCase(BaseTestCase):
                                     resizeImage='preserve'
                                 )
 
-        compressorWOpass = self.comicpy_init.ziphandler.extract_content(
-                                    currentFileZip=currentFileWOpass,
-                                    password='password',
-                                    resizeImage='preserve'
-                                )
-
-        metaFileCompressorWPass = self.comicpy_init.to_compressor(
-                            filename=compressorWpass.filename,
-                            listCompressorData=compressorWpass.list_data,
-                            compressor='zip',
-                            join_files=False,
-                            basedir="zip_protected",
-                            dest=self.temp_dir
-                        )
-
-        metaFileCompressorWOPass = self.comicpy_init.to_compressor(
-                            filename=compressorWpass.filename,
-                            listCompressorData=compressorWOpass.list_data,
-                            compressor='zip',
-                            join_files=False,
-                            basedir="zip_no_protected",
-                            dest=self.temp_dir
-                        )
-
-        is_valid1 = self.comicpy_init.check_integrity(
-                                filename=metaFileCompressorWPass[0]['name'],
-                                show=False
-                            )
-
-        is_valid2 = self.comicpy_init.check_integrity(
-                                filename=metaFileCompressorWOPass[0]['name'],
-                                show=False
-                            )
-
         results = [
-            len(metaFileCompressorWPass) == 2,
-            len(metaFileCompressorWOPass) == 1,
-            is_valid1 is True,
-            is_valid2 is True,
+            compressorWpass is not None,
+            compressorWpass.items == 2
         ]
 
         self.assertEqual(all(results), True)
@@ -461,8 +392,6 @@ class ComicPyTestCase(BaseTestCase):
         results = self.comicpy_init.process_dir(
                     directory_path=self.pdfs_dir,
                     extention_filter='pdf',
-                    filename=None,
-                    password=None,
                     compressor='zip',
                     join=False,
                     resize='preserve',
@@ -474,7 +403,6 @@ class ComicPyTestCase(BaseTestCase):
         list_Currentfiles = self.comicpy_init.process_dir(
                     directory_path=self.rars_dir,
                     extention_filter='rar',
-                    filename=None,
                     password=None,
                     compressor='rar',
                     join=True,
@@ -484,10 +412,10 @@ class ComicPyTestCase(BaseTestCase):
         self.assertEqual(isinstance(list_Currentfiles, list), True)
 
     def test_comicpy_process_dir_RAR_protected(self):
+        print(self.rars_protected)
         results = self.comicpy_init.process_dir(
                     directory_path=self.rars_protected,
                     extention_filter='rar',
-                    filename='RarProtected',
                     password='password',
                     compressor='rar',
                     join=True,
@@ -509,7 +437,6 @@ class ComicPyTestCase(BaseTestCase):
         results = self.comicpy_init.process_dir(
                     directory_path=self.rars_protected,
                     extention_filter='rar',
-                    filename='RarProtected',
                     password='none',
                     compressor='rar',
                     join=True,
@@ -522,20 +449,22 @@ class ComicPyTestCase(BaseTestCase):
         result = self.comicpy_init.process_dir(
                     directory_path=self.zips_dir,
                     extention_filter='zip',
-                    filename='ZIPS',
                     password=None,
                     compressor='zip',
                     join=False,
                     resize='preserve',
                     dest=self.temp_dir
             )
-        self.assertNotEqual(result, None)
+        results = [
+            isinstance(result, list),
+            len(result) == 2
+        ]
+        self.assertEqual(all(results), True)
 
     def test_comicpy_process_dir_ZIP_protected(self):
         result = self.comicpy_init.process_dir(
                     directory_path=self.zips_protected,
                     extention_filter='zip',
-                    filename='ZIPS',
                     password='password',
                     compressor='zip',
                     join=False,
@@ -548,7 +477,6 @@ class ComicPyTestCase(BaseTestCase):
         results = self.comicpy_init.process_dir(
                     directory_path=self.zips_protected,
                     extention_filter='zip',
-                    filename='ZipProtected',
                     password='none',
                     compressor='zip',
                     join=True,
@@ -558,49 +486,57 @@ class ComicPyTestCase(BaseTestCase):
         self.assertEqual(results, [])
 
     def test_comicpy_process_dir_PDF_JOIN(self):
-        results = self.comicpy_init.process_dir(
+        result = self.comicpy_init.process_dir(
                     directory_path=self.pdfs_dir,
                     extention_filter='pdf',
-                    filename=None,
                     password=None,
                     compressor='zip',
                     join=True,
                     resize='preserve',
                     dest=self.temp_dir
             )
-        self.assertNotEqual(results, None)
+        results = [
+            isinstance(result, list),
+            len(result) == 1
+        ]
+        self.assertEqual(all(results), True)
 
     def test_comicpy_process_dir_ZIP_JOIN(self):
-        results = self.comicpy_init.process_dir(
+        result = self.comicpy_init.process_dir(
                     directory_path=self.zips_dir,
                     extention_filter='zip',
-                    filename='ZIPS',
                     password=None,
                     compressor='zip',
                     join=True,
                     resize='preserve',
                     dest=self.temp_dir
             )
-        self.assertNotEqual(results, None)
+        results = [
+            isinstance(result, list),
+            len(result) == 1
+        ]
+        self.assertEqual(all(results), True)
 
     def test_comicpy_process_dir_RAR_JOIN(self):
-        results = self.comicpy_init.process_dir(
+        result = self.comicpy_init.process_dir(
                     directory_path=self.rars_dir,
                     extention_filter='rar',
-                    filename=None,
                     password=None,
                     compressor='rar',
                     join=True,
                     resize='preserve',
                     dest=self.temp_dir
             )
-        self.assertNotEqual(results, None)
+        results = [
+            isinstance(result, list),
+            len(result) == 1
+        ]
+        self.assertEqual(all(results), True)
 
     def test_comicpy_dir_cbr(self):
         results = self.comicpy_init.process_dir(
                     directory_path=self.cbr_cbz_dir,
                     extention_filter='rar',
-                    filename=None,
                     password=None,
                     compressor='rar',
                     join=False,
@@ -613,7 +549,6 @@ class ComicPyTestCase(BaseTestCase):
         results = self.comicpy_init.process_dir(
                     directory_path=self.cbr_cbz_dir,
                     extention_filter='zip',
-                    filename=None,
                     password=None,
                     compressor='zip',
                     join=False,
@@ -624,97 +559,24 @@ class ComicPyTestCase(BaseTestCase):
 
     def test_comicpy_dir_no_images_zip_rar(self):
         dirname = self.no_image_zip_rar
-        noImagesZIP = self.comicpy_init.process_dir(
-                    directory_path=dirname,
-                    extention_filter='zip',
-                    filename=None,
-                    password='password',
-                    compressor='zip',
-                    join=False,
-                    resize='preserve',
-                    dest=self.temp_dir
-            )
-        noImagesRAR = self.comicpy_init.process_dir(
-                    directory_path=dirname,
-                    extention_filter='rar',
-                    filename=None,
-                    password='password',
-                    compressor='rar',
-                    join=False,
-                    resize='preserve',
-                    dest=self.temp_dir
-            )
-
-        results = [
-            noImagesZIP == [],
-            noImagesRAR == []
-        ]
-
-        self.assertEqual(all(results), True)
+        result = self.comicpy_init.process_dir(
+                        directory_path=dirname,
+                        extention_filter='images',
+                        password='password',
+                        compressor='zip',
+                        join=False,
+                        resize='preserve',
+                        dest=self.temp_dir
+                    )
+        self.assertEqual(result, [])
 
     def test_comicpy_dir_images(self):
         dirname = self.images_dir
         results = self.comicpy_init.process_dir(
                     directory_path=dirname,
                     extention_filter='images',
-                    filename='Images_Dir_',
                     password=None,
                     compressor='zip',
-                    join=False,
-                    resize='preserve',
-                    dest=self.temp_dir
-            )
-        self.assertNotEqual(results, None)
-
-#
-# Write TESTS
-
-    def test_comicpy_to_write_ZIP(self):
-        results = self.comicpy_init.process_dir(
-                    directory_path=self.zips_dir,
-                    extention_filter='zip',
-                    filename='ZIPS__',
-                    password=None,
-                    compressor='zip',
-                    join=False,
-                    resize='preserve',
-                    dest=self.temp_dir
-            )
-        self.assertNotEqual(results, None)
-
-    def test_comicpy_to_write_RAR(self):
-        results = self.comicpy_init.process_dir(
-                    directory_path=self.rars_dir,
-                    extention_filter='rar',
-                    filename=None,
-                    password=None,
-                    compressor='rar',
-                    join=False,
-                    resize='preserve',
-                    dest=self.temp_dir
-            )
-        self.assertNotEqual(results, None)
-
-    def test_comicpy_to_write_CBZ(self):
-        results = self.comicpy_init.process_dir(
-                    directory_path=self.cbr_cbz_dir,
-                    extention_filter='zip',
-                    filename='CBZ__',
-                    password=None,
-                    compressor='zip',
-                    join=False,
-                    resize='preserve',
-                    dest=self.temp_dir
-            )
-        self.assertNotEqual(results, None)
-
-    def test_comicpy_to_write_CBR(self):
-        results = self.comicpy_init.process_dir(
-                    directory_path=self.cbr_cbz_dir,
-                    extention_filter='rar',
-                    filename='CBR__',
-                    password=None,
-                    compressor='rar',
                     join=False,
                     resize='preserve',
                     dest=self.temp_dir

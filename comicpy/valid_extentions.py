@@ -41,7 +41,11 @@ class ValidExtentions:
                 ValidExtentions.CBR,
                 ValidExtentions.CBZ,
                 ValidExtentions.ZIP,
-                ValidExtentions.RAR
+                ValidExtentions.RAR,
+                ValidExtentions.JPEG,
+                ValidExtentions.PNG,
+                ValidExtentions.JPG,
+                ValidExtentions.WEBP
             ]
 
     def get_pdf_extention(self) -> str:

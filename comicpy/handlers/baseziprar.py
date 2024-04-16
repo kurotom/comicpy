@@ -76,7 +76,7 @@ class BaseZipRarHandler:
             return None
         except BadRarFile as e:
             # print('Incorrect password file RAR.')
-            return None
+            return -1
 
     def exists_valid_files(
         self,

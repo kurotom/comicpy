@@ -14,7 +14,7 @@ def pdf(
     comicInstance: ComicPy,
     filename: str,
     compressor: str,
-    dest: str,
+    # dest: str,
     check: bool,
     resize: str = 'preserve',
     motor: str = 'pypdf'
@@ -27,7 +27,7 @@ def pdf(
                     compressor=compressor,
                     resize=resize,
                     motor=motor,
-                    dest=dest
+                    # dest=dest
                 )
     if data is not None and check is True:
         for item in data:
@@ -40,7 +40,7 @@ def pdf(
 def rar(
     comicInstance: ComicPy,
     filename: str,
-    dest: str,
+    # dest: str,
     check: bool,
     password: str,
     resize: str = 'preserve'
@@ -52,7 +52,7 @@ def rar(
                     filename=filename,
                     password=password,
                     resize=resize,
-                    dest=dest
+                    # dest=dest
                 )
     if data is not None and check is True:
         for item in data:
@@ -65,7 +65,7 @@ def rar(
 def zip(
     comicInstance: ComicPy,
     filename: str,
-    dest: str,
+    # dest: str,
     check: bool,
     password: str,
     resize: str = 'preserve'
@@ -77,7 +77,7 @@ def zip(
                     filename=filename,
                     password=password,
                     resize=resize,
-                    dest=dest
+                    # dest=dest
                 )
     if data is not None and check is True:
         for item in data:
@@ -91,7 +91,7 @@ def dir(
     comicInstance: ComicPy,
     directory_path: str,
     extention_filter: str,
-    dest: str,
+    # dest: str,
     filename: str = None,
     password: str = None,
     compressor: str = 'zip',
@@ -104,7 +104,6 @@ def dir(
     Function for directories.
     """
     data = comicInstance.process_dir(
-                    filename=filename,
                     directory_path=directory_path,
                     extention_filter=extention_filter,
                     compressor=compressor,
@@ -112,7 +111,7 @@ def dir(
                     password=password,
                     resize=resize,
                     motor=motor,
-                    dest=dest
+                    # dest=dest
                 )
     # print('--> ', data)
     if data is not None and check is True:
@@ -167,20 +166,6 @@ def CliComicPy() -> None:
             help='Type of compressor to use.',
         )
     main_parser.add_argument(
-            '-d',
-            '--dest',
-            default='.',
-            help='Path to save output files. Default is "."',
-        )
-    ##########################################
-    # TODO: delete?
-    main_parser.add_argument(
-            '-o',
-            '--output',
-            help='Prefix of output file.',
-        )
-    ##########################################
-    main_parser.add_argument(
             '--check',
             action='store_true',
             default=False,
@@ -227,8 +212,6 @@ def CliComicPy() -> None:
     pathFile = args.path
     filterFile = args.filter
     compressorFile = args.compressor
-    destFile = args.dest
-    outputFile = args.output
     checkFile = args.check
     unitFile = args.unit
     joinFile = args.join
@@ -253,7 +236,6 @@ def CliComicPy() -> None:
                     comicInstance=comic,
                     filename=pathFile,
                     compressor=compressorFile,
-                    dest=destFile,
                     check=checkFile,
                     resize=resizeImage,
                     motor=motorPDF
@@ -262,7 +244,6 @@ def CliComicPy() -> None:
                 rar(
                     comicInstance=comic,
                     filename=pathFile,
-                    dest=destFile,
                     check=checkFile,
                     password=password,
                     resize=resizeImage
@@ -272,7 +253,6 @@ def CliComicPy() -> None:
                 zip(
                     comicInstance=comic,
                     filename=pathFile,
-                    dest=destFile,
                     check=checkFile,
                     password=password,
                     resize=resizeImage
@@ -285,8 +265,6 @@ def CliComicPy() -> None:
                 comicInstance=comic,
                 directory_path=pathFile,
                 extention_filter=filterFile,
-                dest=destFile,
-                filename=pathFile,
                 password=password,
                 compressor=compressorFile,
                 join=joinFile,
