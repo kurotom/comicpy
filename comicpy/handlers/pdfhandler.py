@@ -24,6 +24,8 @@ from typing import (
 import re
 from hashlib import md5
 
+import logging
+
 
 PRESERVE = TypeVar('preserve')
 SMALL = TypeVar('small')
@@ -54,6 +56,9 @@ class PdfHandler:
         self.imageshandler = ImagesHandler()
         self.paths = Paths()
         self.number_image = 1
+        # handle log messages PyPDF.
+        self.logger = logging.getLogger("pypdf")
+        self.logger.setLevel(logging.ERROR)
 
     def reset_counter(self) -> None:
         """

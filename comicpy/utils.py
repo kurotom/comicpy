@@ -41,6 +41,13 @@ class Paths:
         path
     ) -> bool:
         """
+        Remove element by their path.
+
+        Args
+            path: path of file.
+
+        Returns:
+            bool: boolean if file has deleted successfully.
         """
         try:
             os.remove(path=path)
@@ -54,6 +61,12 @@ class Paths:
     ) -> bool:
         """
         Returns boolean if it is file or not.
+
+        Args
+            path: path of file.
+
+        Returns:
+            bool: boolean if path is file or not.
         """
         return os.path.isfile(path)
 
@@ -63,6 +76,12 @@ class Paths:
     ) -> bool:
         """
         Returns boolean if it is directory or not.
+
+        Args
+            path: path of directory.
+
+        Returns:
+            bool: boolean if path is directory or not.
         """
         return os.path.isdir(path)
 
@@ -227,6 +246,15 @@ class Paths:
         directory: str
     ) -> list:
         """
+        Recursively scans a directory looking for valid files.
+
+        Args
+            extensions: string or list of strings with the extensions that will
+                        be used to filter the files.
+            directory: directory path.
+
+        Returns
+            list: list of `Path` instances.
         """
         results = []
         if isinstance(extentions, str):

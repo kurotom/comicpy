@@ -43,9 +43,15 @@ class ImagesHandler:
     def get_size(
         self,
         size: str = 'preserve'
-    ) -> Union[None, tuple]:
+    ) -> tuple:
         """
         Returns tupe of size.
+
+        Args
+            size: string indicating the new size of the image.
+
+        Returns
+            tuple: tuple of int.
         """
         try:
             return ImagesHandler.sizeImageDict[size]
@@ -58,6 +64,12 @@ class ImagesHandler:
     ) -> str:
         """
         Returns image extention.
+
+        Args
+            extention_img: original extention of image.
+
+        Returns
+            str: image extention.
         """
         try:
             if extention_img == 'JPG' or extention_img == 'JP2':
@@ -80,10 +92,10 @@ class ImagesHandler:
         Args:
             name_image: name of image.
             currentImage: `PIL` instance with data of original image.
-            extension: extention of original image.
+            extention: extention of original image.
+            unit: unit of measure data.
             sizeImage: category of size to resize original image. Default is
                        'small'.
-            unit: unit of measure data.
 
         Returns:
             ImageComicData: `ImageComicData` instance with data of image.

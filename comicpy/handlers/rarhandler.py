@@ -70,6 +70,7 @@ class RarHandler(BaseZipRarHandler):
 
     def reset_names(self) -> None:
         """
+        Resets attributes of instance.
         """
         self.FILE_CBR_ = None
         self.FILE_RAR_ = None
@@ -112,14 +113,18 @@ class RarHandler(BaseZipRarHandler):
         Extract images from RAR file.
 
         Args:
-            currentFile: `CurrentFile` instance with data of original RAR file.
+            currentFileRar: `CurrentFile` instance with data of original RAR
+                            file.
             password: password string of file, default is `None`.
-            imageSize: string of size image. Default is `'small'`.
+            is_join: boolean if file joining into one, otherwise, no.
+            resizeImage: string of size image. Default is `'preserve'`.
 
         Returns:
             CompressorFileData: instances contains name of directory of images,
                                 list of ImageComicData instances, type of
                                 compressor.
+            int: if password is incorrect.
+            None: any other problems.
         """
         rawDataRar = currentFileRar.bytes_data
 
@@ -164,6 +169,20 @@ class RarHandler(BaseZipRarHandler):
         last_item: bool = False
     ) -> List[dict]:
         """
+        It groups the raw data into a RAR file and renames it with a CBR
+        extension.
+
+        Args
+            join: boolean, `True` to join, otherwise, `False`.
+            converted_comicpy_path: directory path to all CBR files.
+            pathCBRconverted: path of CBR file.
+            basedir: name of directory base of CBR file.
+            data_list: list of raw data content of RAR file.
+            last_item: boolean indicates last item of list of content of RAR
+                       file.
+
+        Returns
+            list: list of diccionaries with metadata of file/s CBR.
         """
         # print('--> ', pathCBRconverted, converted_comicpy_path, basedir)
         if data_list is None:
@@ -302,6 +321,15 @@ class RarHandler(BaseZipRarHandler):
         directory_files: str
     ) -> None:
         """
+        Rename and move file CBR to destination.
+
+        Args
+            fileRAR: path of RAR file.
+            fileCBR: path of CBR file.
+            directory_files: main directory of content of RAR file.
+
+        Returns
+            dict: directory with name and size of file.
         """
         path_CBR_ = None
 
@@ -314,7 +342,9 @@ class RarHandler(BaseZipRarHandler):
                                 destination_path,
                                 cbr_name
                             )
-        metadata = self.get_metadata(path_cbr=fileRAR, final_path=path_CBR_)
+
+        # metadata of CBR
+        metadata = super().get_metadata(path=path_CBR_)
 
         # Rename to RAR to CBR
         shutil.move(src=fileRAR, dst=fileCBR)
@@ -331,25 +361,6 @@ class RarHandler(BaseZipRarHandler):
         shutil.rmtree(path=directory_files)
 
         return metadata
-
-    def get_metadata(
-        self,
-        path_cbr: str,
-        final_path: str,
-    ) -> dict:
-        """
-        """
-        meta = {
-                'name': final_path,
-                'size': '%.2f %s' % (
-                            self.paths.get_size(
-                                    path=path_cbr,
-                                    unit=self.unit
-                            ),
-                            self.unit.upper()
-                    )
-            }
-        return meta
 
     def to_write(
         self,

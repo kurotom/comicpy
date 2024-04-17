@@ -118,12 +118,16 @@ class BaseZipRarHandler:
 
         Args
             instanceCompress: `RarFile` or `AESZipFile` instance.
+            type_compress: type of compressor, 'rar' or 'zip'.
+            join: `True` to join into one file, otherwise `False`.
             password: password string to unlock the archive data.
+            resize: string for resizing images, default is 'preserve'.
 
         Returns:
             CompressorFileData: instances contains name of directory of images,
                                 list of ImageComicData instances, type of
                                 compressor.
+            None: if the process have an error.
         """
         images_Extentions = self.validextentions.get_images_extentions()
         listContentData = []
@@ -247,7 +251,8 @@ class BaseZipRarHandler:
         Write data into file.
 
         Args:
-            currentFile: `CurrentFile` instance with data of ZIP or RAR file.
+            currentFileInstance: `CurrentFile` instance with data of ZIP or RAR
+                                 file.
 
         Returns:
             dict: compressor file information. Keys `'name'`, `'size'`.
@@ -263,3 +268,28 @@ class BaseZipRarHandler:
                                 currentFileInstance.unit.upper()
                             )
             }
+
+    def get_metadata(
+        self,
+        path: str,
+    ) -> dict:
+        """
+        Get metadata of file.
+
+        Args
+            path: path of file.
+
+        Returns
+            dict: directory with name and size of file.
+        """
+        meta = {
+                'name': self.paths.get_basename(path),
+                'size': '%.2f %s' % (
+                            self.paths.get_size(
+                                    path=path,
+                                    unit=self.unit
+                            ),
+                            self.unit.upper()
+                    )
+            }
+        return meta

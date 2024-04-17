@@ -19,11 +19,11 @@ from comicpy.exceptionsClasses import BadPassword
 import pyzipper
 import zipfile
 
-from uuid import uuid1
+# from uuid import uuid1
+# import tempfile
+# import io
 
-
-import tempfile
-import io
+import warnings
 
 from typing import List, Union, TypeVar
 
@@ -50,7 +50,6 @@ class ZipHandler(BaseZipRarHandler):
             unit: indicate unit of measure using to represent file size.
         """
         self.unit = unit
-        # self.TEMPDIR = tempfile.gettempdir()
         self.type = 'zip'
         self.imageshandler = ImagesHandler()
         self.validextentions = ValidExtentions()
@@ -61,8 +60,11 @@ class ZipHandler(BaseZipRarHandler):
         self.FILE_ZIP_ = None
         self.CONVERTED_COMICPY_PATH_ = None
 
+        warnings.filterwarnings("ignore", category=UserWarning)
+
     def reset_names(self) -> None:
         """
+        Resets attributes of instance.
         """
         self.FILE_CBZ_ = None
         self.FILE_ZIP_ = None
@@ -114,19 +116,23 @@ class ZipHandler(BaseZipRarHandler):
         password: str = None,
         is_join: bool = False,
         resizeImage: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve'
-    ) -> Union[CompressorFileData, None]:
+    ) -> Union[CompressorFileData, None, int]:
         """
         Extract images from ZIP file.
 
         Args:
-            currentFile: `CurrentFile` instance with data of original ZIP file.
+            currentFileZip: `CurrentFile` instance with data of original ZIP
+                            file.
             password: password string of file, default is `None`.
-            imageSize: string of size image. Default is `'small'`.
+            is_join: `True` to join into one, otherwise no.
+            resizeImage: string of size image. Default is `'small'`.
 
         Returns:
             CompressorFileData: instances contains name of directory of images,
                                 list of ImageComicData instances, type of
                                 compressor.
+            int: `-1` if password is incorrect.
+            None: if has an error ocurrs.
         """
         bytesZipFile = currentFileZip.bytes_data
 
@@ -167,8 +173,23 @@ class ZipHandler(BaseZipRarHandler):
         pathCBZconverted: str,
         basedir: str,
         data_list: List[CompressorFileData] = None,
+        last_item: bool = False
     ) -> List[dict]:
         """
+        It groups the raw data into a ZIP file and renames it with a CBZ
+        extension.
+
+        Args
+            join: boolean, `True` to join, otherwise, `False`.
+            converted_comicpy_path: directory path to all CBZ files.
+            pathCBZconverted: path of CBZ file.
+            basedir: name of directory base of CBZ file.
+            data_list: list of raw data content of ZIP file.
+            last_item: boolean indicates last item of list of content of ZIP
+                       file.
+
+        Returns
+            list: list of diccionaries with metadata of file/s CBZ.
         """
         if data_list is None:
             return None
@@ -177,7 +198,6 @@ class ZipHandler(BaseZipRarHandler):
         if join is False:
             self.reset_names()
 
-        to_zip_directories = []
         metadata_zip = []
         first_directory = False
         ITEM_DIR_ = None
@@ -220,16 +240,7 @@ class ZipHandler(BaseZipRarHandler):
 
             # print(pathCBZconverted, ITEM_DIR_, self.CONVERTED_COMICPY_PATH_)
 
-            cbz_file_name = self.paths.build(
-                                self.CONVERTED_COMICPY_PATH_,
-                                '%s.cbz' % (ITEM_DIR_)
-                            )
-
-            if join:
-                if self.FILE_CBZ_ is None:
-                    self.FILE_CBZ_ = cbz_file_name
-            else:
-                self.FILE_CBZ_ = cbz_file_name
+            self.FILE_CBZ_ = pathCBZconverted
 
             with zipfile.ZipFile(
                 file=self.FILE_CBZ_, mode='a',
@@ -246,20 +257,16 @@ class ZipHandler(BaseZipRarHandler):
                         zinfo_or_arcname=item.filename,
                         data=item.bytes_data.getvalue()
                     )
-            if cbz_file_name not in to_zip_directories:
-                to_zip_directories.append(cbz_file_name)
 
-        for cbz_path in to_zip_directories:
-            # print(cbz_path)
-            size = self.paths.get_size(path=cbz_path, unit=self.unit)
-            meta = {
-                'name': cbz_path,
-                'size': '%.2f %s' % (
-                            size,
-                            self.unit.upper()
-                    )
-            }
+        if join:
+            if last_item:
+                meta = super().get_metadata(path=self.FILE_CBZ_)
+                metadata_zip.append(meta)
+
+        else:
+            meta = super().get_metadata(path=self.FILE_CBZ_)
             metadata_zip.append(meta)
+
         return metadata_zip
 
     def to_write(

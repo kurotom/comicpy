@@ -261,15 +261,14 @@ class ComicPy:
         Process PDF file, load content, extract images.
 
         Args:
-            filename: str -> PDF file name.
-            compressor:
-            resize:
+            filename: PDF file name.
+            dest: destination path of CBZ or CBR files, default is '.'.
+            compressor: type of compressor, 'rar' or 'zip', default is 'zip'.
+            resize: resize images, default is 'preserve'
             motor: motor to use, `pypdf` or `pymupdf`, default `pypdf`.
 
         Returns:
-            CompressorFileData: instance representing the compressor file,
-                                contains image data (bytes), image name, type
-                                of compressor used.
+            list: list of diccionaries with metadata of file/s CBZ or CBR.
         """
         metaFileCompress = []
 
@@ -327,13 +326,13 @@ class ComicPy:
         Process ZIP files.
 
         Args:
-            filename: str -> ZIP file name.
+            filename: ZIP file name.
+            dest: destination path of CBZ files, default is '.'.
             password: password of ZIP file.
             resize: rescaling image.
 
         Returns:
-            CurrentFile: instance representing the data of the ZIP file named
-                         CBZ.
+            list: list of diccionaries with metadata of file/s CBZ.
         """
         data_metadata = []
 
@@ -410,13 +409,13 @@ class ComicPy:
         Process RAR files.
 
         Args:
-            filename: str -> RAR file name.
+            filename: RAR file name.
+            dest: destination path of CBR files, default is '.'.
             password: password of RAR file.
             resize: rescaling image.
 
         Returns:
-            CurrentFile: the instance represents the data of the RAR archive
-                         with the name CBR
+            list: list of diccionaries with metadata of file/s CBR.
         """
         data_metadata = []
 
@@ -504,23 +503,17 @@ class ComicPy:
             extention_filter: 'rar', 'zip', 'pdf', 'cbz', 'cbr', 'jpeg', 'png',
                               'jpg', extension of the file to search in the
                               directory.
+            dest: destination path of CBZ or CBR files, default is '.'.
+            password: password string of file, default is `None`.
             compressor: 'zip', 'rar', extension of the compressor used.
             join: boolean, if `True` all files are consolidated into one,
                   otherwise, if `False` they are kept in individual files.
-            password: password string of file, default is `None`.
-            resize: string for resizing images.
+            resize: string for resizing images, default is 'preserve'.
             motor: motor to use, `pypdf` or `pymupdf`, default `pypdf`.
 
         Returns:
-            list: list if `CurrentFile` instance represents the data of the RAR
-                  or ZIP compressor file used.
+            list: list of diccionaries with metadata of file/s CBR or CBZ.
             None: if the list of images is empty, the file has no images.
-
-        Raises:
-            ValueError: if the extension used to filter the files is not valid.
-            DirectoryPathNotExists: if the directory path does not exist.
-            DirectoryFilterEmptyFiles: if no file matches the filter file
-                                       extension.
         """
         compressor = compressor.replace('.', '').lower().strip()
 
@@ -588,21 +581,16 @@ class ComicPy:
                   otherwise, if `False` they are kept in individual files.
             password: password string of file, default is `None`.
             resize: string for resizing images.
+            dest: destination path of CBZ or CBR files, default is '.'.
 
         Returns:
-            list: list if `CurrentFile` instance represents the data of the RAR
-                  or ZIP compressor file used.
+            list: list of diccionaries with metadata of file/s CBR or CBZ.
             None: if the list of images is empty, the file has no images.
+
+        Raises
+            DirectoryEmptyFilesValid: if directory not have valid files.
         """
         data_metadata = []
-
-        # print(
-        #     directory_path,
-        #     compressor_type,
-        #     join,
-        #     resize,
-        #     dest
-        # )
 
         self.raiser_error_compressor(compressor_str=compressor_type)
 
@@ -619,7 +607,9 @@ class ComicPy:
             raise DirectoryEmptyFilesValid(dir_path=directory_path)
 
         for item in compressFileDataImages:
-            # print('->', item.filename, directory_path, filename)
+            # print('->', item.filename, directory_path)
+            if item.filename == compressFileDataImages[-1].filename:
+                self.LAST_ITEM_ = True
 
             self.get_cbz_cbr_name(
                     filename=item.filename,
@@ -665,17 +655,22 @@ class ComicPy:
             directory_path: directory name.
             extention_filter: 'rar', 'zip', 'pdf', 'cbz', 'cbr' extension of
                               the file to search in the directory.
+            password: password string of file, default is `None`.
             compressor_type: 'zip', 'rar', extension of the compressor used.
             join: boolean, if `True` all files are consolidated into one,
                   otherwise, if `False` they are kept in individual files.
-            password: password string of file, default is `None`.
-            resize: string for resizing images.
+            resize: string for resizing images, default is 'preserve'.
+            dest: destination path of CBZ or CBR files, default is '.'.
             motor: motor to use, `pypdf` or `pymupdf`, default `pypdf`.
 
         Returns
-            list: list if `CurrentFile` instance represents the data of the RAR
-                  or ZIP compressor file used.
+            list: list of diccionaries with metadata of file/s CBR or CBZ.
             None: if the list of images is empty, the file has no images.
+
+        Raises
+            ExtentionError: if filter extention is not valid.
+            DirectoryPathNotExists: if directory path not exists.
+            DirectoryFilterEmptyFiles: if directory not have valid files.
         """
         data_metadata = []
         valids_extentions = [
@@ -768,14 +763,17 @@ class ComicPy:
         Resets CBR or CBZ names and counters of images in handlers and status
         of `ComicPy`.
         """
+        # handlers
         self.ziphandler.reset_names()
         self.rarhandler.reset_names()
         self.pdfphandler.reset_counter()
         self.directoryhandler.reset_counter()
+        # ComicPy instance
         self.BASE_DIR_ = None
         self.CONVERTED_COMICPY_PATH_ = None
         self.join_files = False
         self.FILE_CBR_CBZ_ = None
+        self.LAST_ITEM_ = False
         self.filename = None
 
     def to_compressor(
@@ -791,9 +789,11 @@ class ComicPy:
         Convert data of list of CompressorFileData to only RAR or ZIP file.
 
         Args:
-            dataRawFile: list of CompressorFileData instances, this class
-                         contains image list data, filename, etc.
+            listCompressorData: list of CompressorFileData instances, this
+            class contains image list data, filename, etc.
+            join_files: if `True` join the data, otherwise, no.
             filename: name of the output file.
+            basedir: name of directory base to store files CBR or CBZ.
             dest: destine to final file.
             compressor: ['rar', 'zip'], by default `zip`, compressor to use.
 
@@ -811,6 +811,7 @@ class ComicPy:
                                 data_list=listCompressorData,
                                 join=join_files,
                                 converted_comicpy_path=dest,
+                                last_item=self.LAST_ITEM_
                             )
         elif compressor == 'rar':
             metadata = self.rarhandler.to_rar(
@@ -822,11 +823,12 @@ class ComicPy:
                                 last_item=self.LAST_ITEM_
                             )
 
+        if metadata is None:
+            return None
+
         if metadata != []:
             metadata[0]['name'] = self.FILE_CBR_CBZ_
 
-        if metadata is None:
-            return None
         return metadata
 
     def to_write(
@@ -842,7 +844,7 @@ class ComicPy:
             path: location where the final file will be stored. Default is
                   `'.'`.
         Returns:
-            dict: file/s information.
+            dict: metadata file/s information.
         """
         info_list = []
         # print(listCurrentFiles)
@@ -905,6 +907,9 @@ class ComicPy:
             filename: ZIP or RAR output file name, given of method `write_cbr`
                       or `write_cbz`.
             show: boolean to print on terminal. Default is `True`.
+
+        Returns
+            bool: boolean if file is stored on right place and can be readed.
         """
         fileCompressed = self.read(filename=filename)
         is_valid = self.checker.check(currenf_file=fileCompressed)
@@ -924,8 +929,9 @@ class ComicPy:
         Gets name of file and path to save file CBR or CBZ.
 
         Args
-            filename: file.
-            dest_path: location to save file given for user.
+            origin: path of original file.
+            dest: location to save file given for user.
+            type: directory ("d") or file ("f").
 
         Returns
             tuple: filename without extention and path to save CBR or CBZ file.
@@ -953,7 +959,6 @@ class ComicPy:
                                         )
 
         self.BASE_DIR_ = BASE_DIR_
-
         self.CONVERTED_COMICPY_PATH_ = CONVERTED_COMICPY_PATH_
         return BASE_DIR_, CONVERTED_COMICPY_PATH_
 
@@ -963,6 +968,14 @@ class ComicPy:
         compressor: str
     ) -> str:
         """
+        Gets name of CBR or CBZ files from originals names of files RAR or ZIP.
+
+        Args
+            filename: name of file RAR or ZIP.
+            compressor: type of compressor.
+
+        Returns:
+            str: name of file CBR or CBZ.
         """
         compressor_ext = {'zip': 'cbz', 'rar': 'cbr'}
         name_, ext_ = self.paths.splitext(
