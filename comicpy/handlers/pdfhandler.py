@@ -13,7 +13,7 @@ from comicpy.models import (
 )
 
 from pypdf import PdfReader
-import fitz
+# import fitz
 
 from typing import (
     List,
@@ -34,7 +34,7 @@ LARGE = TypeVar('large')
 ImageInstancePIL = TypeVar("ImageInstancePIL")
 
 PYPDF = TypeVar('pypdf')
-PYMUPDF = TypeVar('pymupdf')
+# PYMUPDF = TypeVar('pymupdf')
 
 
 class PdfHandler:
@@ -72,7 +72,8 @@ class PdfHandler:
         compressor: str,
         is_join: bool = False,
         resizeImage: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve',
-        motor: Union[PYPDF, PYMUPDF] = 'pypdf'
+        # motor: Union[PYPDF, PYMUPDF] = 'pypdf'
+        motor: Union[PYPDF] = 'pypdf'
     ) -> Union[CompressorFileData, None]:
         """
         Takes the bytes from a PDF file and gets the images.
@@ -82,7 +83,7 @@ class PdfHandler:
                             file.
             compressor: type of compressor to use, RAR or ZIP.
             resizeImage: rescaling image.
-            motor: motor to use, `pypdf` or `pymupdf`, default `pypdf`.
+            motor: motor to use, `pypdf` default `pypdf`.
 
         Returns:
             List[ImageComicData]: list of instances of `ImageComicData` with
@@ -98,11 +99,11 @@ class PdfHandler:
                                         filePDF=currentFilePDF,
                                         resize=resizeImage
                                     )
-        elif motor == 'pymupdf':
-            listImageComicData = self.to_pymupdf(
-                                        filePDF=currentFilePDF,
-                                        resize=resizeImage
-                                    )
+        # elif motor == 'pymupdf':
+        #     listImageComicData = self.to_pymupdf(
+        #                                 filePDF=currentFilePDF,
+        #                                 resize=resizeImage
+        #                             )
 
         if len(listImageComicData) == 0:
             return None
@@ -286,43 +287,49 @@ class PdfHandler:
         self.number_image += 1
         return image_comic
 
-    def to_pymupdf(
-        self,
-        filePDF: CurrentFile,
-        resize: str = 'preserve'
-    ) -> Union[List[ImageComicData], list]:
-        """
-        Gets images of the pages of a PDF file using PyMuPDF.
-
-        Args:
-            currentFilePDF: Instance of `CurrentFile` with the data of the PDF
-                            file.
-            resizeImage: rescaling image.
-
-        Returns:
-            List[ImageComicData]: list of `ImageComicData` instances with the
-                                  page image data.
-        """
-
-        list_images = []
-
-        pdf_doc = fitz.open(stream=filePDF.bytes_data, filetype='pdf')
-
-        for i in range(len(pdf_doc)):
-            page = pdf_doc[i]
-            for indx, image in enumerate(page.get_images(full=True)):
-                refImage = image[0]
-                image_base = pdf_doc.extract_image(refImage)
-
-                image_data = image_base['image']
-                image_extention = image_base['ext']
-
-                image_comic = self.to_image_instance(
-                    dataImage=image_data,
-                    extentionImage=image_extention,
-                    resize=resize,
-                )
-                list_images.append(image_comic)
-
-                self.number_image += 1
-        return list_images
+    # def to_pymupdf(
+    #     self,
+    #     filePDF: CurrentFile,
+    #     resize: str = 'preserve'
+    # ) -> Union[List[ImageComicData], list]:
+    #     """
+    #     Gets images of the pages of a PDF file using PyMuPDF.
+    #
+    #     Args:
+    #         currentFilePDF: Instance of `CurrentFile` with the data of the PDF
+    #                         file.
+    #         resizeImage: rescaling image.
+    #
+    #     Returns:
+    #         List[ImageComicData]: list of `ImageComicData` instances with the
+    #                               page image data.
+    #     """
+    #
+    #     list_images = []
+    #
+    #     pdf_doc = fitz.open(stream=filePDF.bytes_data, filetype='pdf')
+    #     # print(len(pdf_doc))
+    #
+    #     for i in range(len(pdf_doc)):
+    #         page = pdf_doc[i]
+    #
+    #         refImage = page.get_image_info(xrefs=True)
+    #
+    #         image_base = pdf_doc.extract_image(refImage[0]["xref"])
+    #
+    #         image_data = image_base['image']
+    #         image_extention = image_base['ext']
+    #
+    #         image_comic = self.to_image_instance(
+    #                 dataImage=image_data,
+    #                 extentionImage=image_extention,
+    #                 resize=resize,
+    #             )
+    #
+    #         list_images.append(image_comic)
+    #
+    #         self.number_image += 1
+    #
+    #     print(self.number_image)
+    #
+    #     return list_images

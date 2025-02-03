@@ -27,7 +27,7 @@ Extracts images from PDF, ZIP, CBR files, generating comic files respecting thei
 >
 >> 2. Some PDF files *contain multiple images on the same page*, which may be *repeated* within the *same file*; converting the PDF file <u>will remove all duplicate images</u>. <u>This is due to the original construction and layout of the source PDF file</u>. Therefore, as a result, there may be fewer or more pages compared to the original PDF file, this does *not necessarily indicate that the work of this tool (**comicpy**) is flawed or faulty*.
 >
->> In continuous development of `comicpy`, any problem, suggestion, doubt, leave it in [*Issues*](https://github.com/kurotom/comicpy/issues) of the repository.
+>> Any problem, suggestion, doubt, leave it in [*Issues*](https://github.com/kurotom/comicpy/issues) of the repository.
 >
 
 
@@ -53,7 +53,7 @@ $ comicpy -h
 |-|-|
 | --type f | File. |
 | -p PATH, --path PATH | Path of file. |
-| --motorPDF {pypdf,pymupdf} | PDF library to use. |
+| --motorPDF {pypdf} | PDF library to use. |
 | -c {rar,zip}, --compressor {rar,zip} | Type of compressor to use. |
 | --check | Check the CBR or CBZ files created. |
 | -u {b,kb,mb,gb}, --unit {b,kb,mb,gb} | Unit of measure of data size. Default is "mb". |
@@ -78,7 +78,7 @@ $ comicpy --type f -p file.rar --check --resize small
 | --type d | Directory. |
 | -p PATH, --path PATH | Path of directory. |
 | --filter {pdf,rar,zip,cbr,cbz,images} | Filter files on directory. Default is "zip". |
-| --motorPDF {pypdf,pymupdf} | PDF library to use. |
+| --motorPDF {pypdf} | PDF library to use. |
 | -c {rar,zip}, --compressor {rar,zip} | Type of compressor to use. Default is "zip".|
 | --check | Check the CBR or CBZ files created. |
 | --join | Join or does not files thath are in the directory. Default is "False". |
