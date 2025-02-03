@@ -26,7 +26,7 @@ def pdf(
                     filename=filename,
                     compressor=compressor,
                     resize=resize,
-                    motor=motor,
+                    # motor=motor
                     # dest=dest
                 )
     if data is not None and check is True:
@@ -109,8 +109,8 @@ def dir(
                     compressor=compressor,
                     join=join,
                     password=password,
-                    resize=resize,
-                    motor=motor,
+                    resize=resize
+                    # motor=motor
                     # dest=dest
                 )
     # print('--> ', data)
@@ -152,12 +152,12 @@ def CliComicPy() -> None:
             default='zip',
             help='Filter files on directory.'
         )
-    main_parser.add_argument(
-            '--motorPDF',
-            choices=['pypdf', 'pymupdf'],
-            default='pypdf',
-            help='PDF library to use.'
-        )
+    # main_parser.add_argument(
+    #         '--motorPDF',
+    #         choices=['pypdf'],
+    #         default='pypdf',
+    #         help='PDF library to use.'
+    #     )
     main_parser.add_argument(
             '-c',
             '--compressor',
@@ -219,7 +219,7 @@ def CliComicPy() -> None:
     resizeImage = args.resize
     path_exec = args.path_exec
     progress = args.progress
-    motorPDF = args.motorPDF
+    # motorPDF = args.motorPDF
 
     # Instance
     comic = ComicPy(
@@ -237,8 +237,8 @@ def CliComicPy() -> None:
                     filename=pathFile,
                     compressor=compressorFile,
                     check=checkFile,
-                    resize=resizeImage,
-                    motor=motorPDF
+                    resize=resizeImage
+                    # motor=motorPDF
                 )
             if extention_.lower() == '.rar' or extention_.lower() == '.cbr':
                 rar(
@@ -269,8 +269,8 @@ def CliComicPy() -> None:
                 compressor=compressorFile,
                 join=joinFile,
                 check=checkFile,
-                resize=resizeImage,
-                motor=motorPDF
+                resize=resizeImage
+                # motor=motorPDF
             )
 
     except KeyboardInterrupt:

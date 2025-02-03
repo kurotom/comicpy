@@ -62,7 +62,7 @@ MEDIUM = TypeVar('medium')
 LARGE = TypeVar('large')
 
 PYPDF = TypeVar('pypdf')
-PYMUPDF = TypeVar('pymupdf')
+# PYMUPDF = TypeVar('pymupdf')
 
 
 class ComicPy:
@@ -255,7 +255,7 @@ class ComicPy:
         dest: str = '.',
         compressor: Union[RAR, ZIP] = 'zip',
         resize: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve',
-        motor: Union[PYPDF, PYMUPDF] = 'pypdf'
+        motor: Union[PYPDF] = 'pypdf'
     ) -> Union[List[dict], None]:
         """
         Process PDF file, load content, extract images.
@@ -265,7 +265,7 @@ class ComicPy:
             dest: destination path of CBZ or CBR files, default is '.'.
             compressor: type of compressor, 'rar' or 'zip', default is 'zip'.
             resize: resize images, default is 'preserve'
-            motor: motor to use, `pypdf` or `pymupdf`, default `pypdf`.
+            motor: motor to use, `pypdf`, default `pypdf`.
 
         Returns:
             list: list of diccionaries with metadata of file/s CBZ or CBR.
@@ -280,7 +280,11 @@ class ComicPy:
 
         self.raiser_error_compressor(compressor_str=compressor)
 
-        self.check_file(currentFile=file_raw)
+        try:
+            self.check_file(currentFile=file_raw)
+        except Exception as e:
+            print(f"\n{e}\n")
+            return None
 
         compressFileData = self.pdfphandler.process_pdf(
                             currentFilePDF=file_raw,
@@ -340,7 +344,11 @@ class ComicPy:
 
         file_raw = self.load_file(filename=filename)
 
-        self.check_file(currentFile=file_raw)
+        try:
+            self.check_file(currentFile=file_raw)
+        except Exception as e:
+            print(f"\n{e}\n")
+            return None
 
         self.check_protectedFile(
                 handler=self.ziphandler,
@@ -423,7 +431,11 @@ class ComicPy:
 
         file_raw = self.load_file(filename=filename)
 
-        self.check_file(currentFile=file_raw)
+        try:
+            self.check_file(currentFile=file_raw)
+        except Exception as e:
+            print(f"\n{e}\n")
+            return None
 
         self.check_protectedFile(
                 handler=self.rarhandler,
@@ -491,7 +503,7 @@ class ComicPy:
         compressor: Union[RAR, ZIP] = 'zip',
         join: bool = False,
         resize: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve',
-        motor: Union[PYPDF, PYMUPDF] = 'pypdf'
+        motor: Union[PYPDF] = 'pypdf'
     ) -> Union[List[dict], None]:
         """
         Searches files in the given directory, searches only PDF, CBZ, CBR
@@ -509,7 +521,7 @@ class ComicPy:
             join: boolean, if `True` all files are consolidated into one,
                   otherwise, if `False` they are kept in individual files.
             resize: string for resizing images, default is 'preserve'.
-            motor: motor to use, `pypdf` or `pymupdf`, default `pypdf`.
+            motor: motor to use, `pypdf`, default `pypdf`.
 
         Returns:
             list: list of diccionaries with metadata of file/s CBR or CBZ.
@@ -645,7 +657,7 @@ class ComicPy:
         join: str,
         resize: str,
         dest: str = '.',
-        motor: Union[PYPDF, PYMUPDF] = 'pypdf'
+        motor: Union[PYPDF] = 'pypdf'
     ) -> Union[List[dict], None]:
         """
         Manages the workflow for PDF, CBR, CBZ, RAR, ZIP files within a
@@ -661,7 +673,7 @@ class ComicPy:
                   otherwise, if `False` they are kept in individual files.
             resize: string for resizing images, default is 'preserve'.
             dest: destination path of CBZ or CBR files, default is '.'.
-            motor: motor to use, `pypdf` or `pymupdf`, default `pypdf`.
+            motor: motor to use, `pypdf`, default `pypdf`.
 
         Returns
             list: list of diccionaries with metadata of file/s CBR or CBZ.
