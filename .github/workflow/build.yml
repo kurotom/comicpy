@@ -1,0 +1,41 @@
+name: Comicpy Actions
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12.5'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          pip install poetry-plugin-shell
+
+      - name: Poetry To PyPi
+        env:
+          TO_PYPI: ${{ secrets.TO_PYPI }}
+        run:
+          poetry config pypi-token.pypi $TO_PYPI
+
+      - name: Build and Publish
+        env:
+          TO_PYPI: ${{ secrets.TO_PYPI }}
+        run: |
+          poetry shell
+          poetry install
+          poetry build
+          poetry publish --username __token__ --password $TO_PYPI
