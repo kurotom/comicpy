@@ -35,14 +35,14 @@ class CheckFile:
                       signature.
         """
         try:
-            extention = currenf_file.extention.replace('.', '')
-            if extention == 'cbr':
-                extention_file = 'rar'
-            elif extention == 'cbz':
-                extention_file = 'zip'
+            extension = currenf_file.extension.replace('.', '')
+            if extension == 'cbr':
+                extension_file = 'rar'
+            elif extension == 'cbz':
+                extension_file = 'zip'
             else:
-                extention_file = extention
-            data = hexSignsDict[extention_file]
+                extension_file = extension
+            data = hexSignsDict[extension_file]
         except KeyError:
             return None
 

@@ -15,24 +15,24 @@ class FileBaseClass:
     Base class
     """
 
-    def get_extention(
+    def get_extension(
         self,
     ) -> None:
         """
-        Gets name and extention from file name.
-        Sets attributes `name` and `extention`.
+        Gets name and extension from file name.
+        Sets attributes `name` and `extension`.
         """
         file_name = os.path.basename(self.filename)
-        name_, extention_ = os.path.splitext(file_name)
+        name_, extension_ = os.path.splitext(file_name)
         self.name = name_
-        if self.extention is None:
-            self.extention = extention_.lower()
+        if self.extension is None:
+            self.extension = extension_.lower()
 
     def get_size(
         self,
     ) -> int:
         """
-        Gets sise of data, and set `size` attribute.
+        Gets size of data, and set `size` attribute.
 
         Returns:
             int: data size value.
@@ -75,7 +75,7 @@ class ImageComicData(FileBaseClass):
         self,
         filename: str,
         bytes_data: io.BytesIO,
-        extention: str = None,
+        extension: str = None,
         unit: str = 'mb'
     ) -> None:
         """
@@ -84,18 +84,18 @@ class ImageComicData(FileBaseClass):
         Args:
             filename: str, file name of image.
             bytes_data: bytes, raw data of image.
-            extention: extention of image.
+            extension: extension of image.
             unit: unit measure of data.
         """
         self.filename = filename
-        self.extention = extention
+        self.extension = extension
         self.bytes_data = bytes_data
         self.name = None
         self.is_comic = False
         self.unit = unit
         self.original_name = None
         self.size = super().get_size()
-        super().get_extention()
+        super().get_extension()
 
     def __str__(self) -> str:
         """
@@ -117,7 +117,7 @@ class CurrentFile(FileBaseClass):
         filename: str,
         bytes_data: io.BytesIO,
         chunk_bytes: bytes = None,
-        extention: str = None,
+        extension: str = None,
         is_comic: bool = False,
         unit: str = 'mb'
     ) -> None:
@@ -128,11 +128,11 @@ class CurrentFile(FileBaseClass):
             filename: name of a file.
             bytes_data: raw data of a file.
             chunk_bytes: first 16 bytes of file data.
-            extention: file extension.
+            extension: file extension.
             unit: unit of measurement of data size.
         """
         self.filename = filename
-        self.extention = extention
+        self.extension = extension
         self.is_comic = is_comic
         self.chunk_bytes = chunk_bytes
         self.bytes_data = bytes_data
@@ -140,7 +140,7 @@ class CurrentFile(FileBaseClass):
         self.path = None
         self.unit = unit
         self.size = super().get_size()
-        super().get_extention()
+        super().get_extension()
 
     def __str__(self) -> str:
         """
@@ -180,7 +180,7 @@ class CompressorFileData(FileBaseClass):
         self.type = type
         self.join = join
         self.items = 0
-        self.extention = None
+        self.extension = None
         self.unit = unit
         self.size = 0
         self.set_items()
@@ -189,19 +189,19 @@ class CompressorFileData(FileBaseClass):
     def set_items(self) -> None:
         self.items = len(self.list_data)
 
-    def setExtention(self) -> str:
+    def setExtension(self) -> str:
         """
-        Sets `extention` attribute.
+        Sets `extension` attribute.
 
         Returns:
-            str: extention.
+            str: extension.
         """
         if self.type[0] != '.':
-            self.extention = '.%s' % (self.type)
+            self.extension = '.%s' % (self.type)
         else:
-            self.extention = self.type
+            self.extension = self.type
 
-    def get_extention(self) -> None:
+    def get_extension(self) -> None:
         """
         Overwrites the parent method, does nothing.
         """

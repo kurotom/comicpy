@@ -12,7 +12,7 @@ from comicpy.models import (
 )
 from comicpy.handlers.baseziprar import BaseZipRarHandler
 
-from comicpy.valid_extentions import ValidExtentions
+from comicpy.valid_extensions import ValidExtensions
 
 from comicpy.exceptionsClasses import BadPassword
 
@@ -52,7 +52,7 @@ class ZipHandler(BaseZipRarHandler):
         self.unit = unit
         self.type = 'zip'
         self.imageshandler = ImagesHandler()
-        self.validextentions = ValidExtentions()
+        self.validextentions = ValidExtensions()
         self.paths = Paths()
         self.number_index = 1
 
@@ -81,7 +81,7 @@ class ZipHandler(BaseZipRarHandler):
             currentFileZip: `CurrentFile` instance with raw data of file ZIP.
 
         Returns:
-            bool: `True` if password protected, otherwise, retuns `False`.
+            bool: `True` if password protected, otherwise, returns `False`.
         """
         try:
             with zipfile.ZipFile(
@@ -98,15 +98,15 @@ class ZipHandler(BaseZipRarHandler):
         currentFileZip: CurrentFile
     ) -> CurrentFile:
         """
-        Add CBZ name and extention of `CurrentFile` instance.
+        Add CBZ name and extension of `CurrentFile` instance.
 
         Args:
             CurrentFile: instance with data ZIP file.
 
         Returns:
-            CurrentFile: same instance with new name and extention.
+            CurrentFile: same instance with new name and extension.
         """
-        currentFileZip.extention = '.cbz'
+        currentFileZip.extension = '.cbz'
         currentFileZip.name = currentFileZip.name.replace(' ', '_')
         return currentFileZip
 
@@ -132,7 +132,7 @@ class ZipHandler(BaseZipRarHandler):
                                 list of ImageComicData instances, type of
                                 compressor.
             int: `-1` if password is incorrect.
-            None: if has an error ocurrs.
+            None: if has an error occurs.
         """
         bytesZipFile = currentFileZip.bytes_data
 
@@ -202,7 +202,7 @@ class ZipHandler(BaseZipRarHandler):
         first_directory = False
         ITEM_DIR_ = None
 
-        name_, extention = self.paths.splitext(
+        name_, extension = self.paths.splitext(
                                 self.paths.get_basename(pathCBZconverted)
                             )
 

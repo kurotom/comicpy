@@ -13,7 +13,7 @@ Options for resize images.
 
 from comicpy.models import ImageComicData
 
-from comicpy.valid_extentions import ValidExtentions
+from comicpy.valid_extensions import ValidExtensions
 
 from PIL import Image
 import io
@@ -28,10 +28,10 @@ class ImagesHandler:
     Class dealing with image issues, such as resizing.
     """
     validFormats = {
-        'JPEG': ValidExtentions.JPEG[1:],
-        'PNG': ValidExtentions.PNG[1:],
-        'JPG': ValidExtentions.JPG[1:],
-        'WEBP': ValidExtentions.WEBP[1:]
+        'JPEG': ValidExtensions.JPEG[1:],
+        'PNG': ValidExtensions.PNG[1:],
+        'JPG': ValidExtensions.JPG[1:],
+        'WEBP': ValidExtensions.WEBP[1:]
     }
     sizeImageDict = {
         'preserve': None,
@@ -45,7 +45,7 @@ class ImagesHandler:
         size: str = 'preserve'
     ) -> tuple:
         """
-        Returns tupe of size.
+        Returns tuple of size.
 
         Args
             size: string indicating the new size of the image.
@@ -60,21 +60,21 @@ class ImagesHandler:
 
     def get_format(
         self,
-        extention_img: str
+        extension_img: str
     ) -> str:
         """
-        Returns image extention.
+        Returns image extension.
 
         Args
-            extention_img: original extention of image.
+            extension_img: original extension of image.
 
         Returns
-            str: image extention.
+            str: image extension.
         """
         try:
-            if extention_img == 'JPG' or extention_img == 'JP2':
-                extention_img = 'JPEG'
-            return ImagesHandler.validFormats[extention_img]
+            if extension_img == 'JPG' or extension_img == 'JP2':
+                extension_img = 'JPEG'
+            return ImagesHandler.validFormats[extension_img]
         except KeyError:
             return ImagesHandler.validFormats['JPEG']
 
@@ -82,7 +82,7 @@ class ImagesHandler:
         self,
         name_image: str,
         currentImage: Union[bytes, ImageInstancePIL],
-        extention: str,
+        extension: str,
         unit: str,
         sizeImage: str = 'preserve',
     ) -> ImageComicData:
@@ -92,7 +92,7 @@ class ImagesHandler:
         Args:
             name_image: name of image.
             currentImage: `PIL` instance with data of original image.
-            extention: extention of original image.
+            extension: extension of original image.
             unit: unit of measure data.
             sizeImage: category of size to resize original image. Default is
                        'small'.
@@ -100,7 +100,7 @@ class ImagesHandler:
         Returns:
             ImageComicData: `ImageComicData` instance with data of image.
         """
-        # print(name_image, extention, type(currentImage))
+        # print(name_image, extension, type(currentImage))
         size_tuple = self.get_size(size=sizeImage)
         newImageIO = io.BytesIO()
 
@@ -120,7 +120,7 @@ class ImagesHandler:
 
         imageResized.save(
                 newImageIO,
-                format=self.get_format(extention_img=extention),
+                format=self.get_format(extension_img=extension),
                 # quality=90
                 quality=100
             )

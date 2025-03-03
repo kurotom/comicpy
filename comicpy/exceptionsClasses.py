@@ -52,16 +52,16 @@ class EmptyFile(ErrorFileBase):
         super().__init__(message)
 
 
-class ExtentionError(ErrorFileBase):
+class ExtensionError(ErrorFileBase):
     def __init__(
         self,
         message: str
     ) -> None:
-        msg = 'Extention must be %s.' % message
+        msg = 'Extension must be %s.' % message
         super().__init__(msg)
 
 
-class FileExtentionNotMatch(ErrorFileBase):
+class FileExtensionNotMatch(ErrorFileBase):
     def __init__(
         self,
         message: str = 'File content does not match with extension of file!\n'

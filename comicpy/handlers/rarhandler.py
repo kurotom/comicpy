@@ -17,7 +17,7 @@ from comicpy.models import (
 
 from comicpy.handlers.baseziprar import BaseZipRarHandler
 
-from comicpy.valid_extentions import ValidExtentions
+from comicpy.valid_extensions import ValidExtensions
 
 from comicpy.exceptionsClasses import BadPassword
 
@@ -59,7 +59,7 @@ class RarHandler(BaseZipRarHandler):
         self.TEMPDIR = tempfile.gettempdir()
         self.type = 'rar'
         self.imageshandler = ImagesHandler()
-        self.validextentions = ValidExtentions()
+        self.validextentions = ValidExtensions()
         self.paths = Paths()
         self.url_page = 'https://www.rarlab.com/download.htm'
         self.number_index = 1
@@ -87,7 +87,7 @@ class RarHandler(BaseZipRarHandler):
             currentFileRar: `CurrentFile` instance with raw data of file RAR.
 
         Returns:
-            bool: `True` if password protected, otherwise, retuns `False`.
+            bool: `True` if password protected, otherwise, returns `False`.
         """
         try:
             with rarfile.RarFile(
@@ -192,7 +192,7 @@ class RarHandler(BaseZipRarHandler):
         if join is False:
             self.reset_names()
 
-        name_, extention = self.paths.splitext(
+        name_, extension = self.paths.splitext(
                                 self.paths.get_basename(pathCBRconverted)
                             )
 

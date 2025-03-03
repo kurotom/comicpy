@@ -4,7 +4,7 @@ Base class for ZIP and RAR handlers.
 """
 
 from comicpy.handlers.imageshandler import ImagesHandler
-from comicpy.valid_extentions import ValidExtentions
+from comicpy.valid_extensions import ValidExtensions
 from comicpy.utils import Paths
 from comicpy.exceptionsClasses import BadPassword
 
@@ -92,8 +92,8 @@ class BaseZipRarHandler:
             bool: `True` if exists files valid in the compressor file,
                   otherwise, `False`.
         """
-        filters_ = self.validextentions.get_images_extentions()
-        filters_ += self.validextentions.get_comic_extentions()
+        filters_ = self.validextentions.get_images_extensions()
+        filters_ += self.validextentions.get_comic_extensions()
         filters_ = tuple(filters_)
         results = [
                 item
@@ -129,7 +129,7 @@ class BaseZipRarHandler:
                                 compressor.
             None: if the process have an error.
         """
-        images_Extentions = self.validextentions.get_images_extentions()
+        images_Extensions = self.validextentions.get_images_extensions()
         listContentData = []
         # imagesCollector = {}
         directory_name = None
@@ -148,10 +148,10 @@ class BaseZipRarHandler:
             name_file = self.paths.get_basename(item)
             # print(name_file, directory_name)
 
-            name_, extention_ = self.paths.splitext(name_file)
-            # print(extention_, images_Extentions)
+            name_, extension_ = self.paths.splitext(name_file)
+            # print(extension_, images_Extensions)
 
-            if extention_.lower() == ValidExtentions.CBR:
+            if extension_.lower() == ValidExtensions.CBR:
 
                 rawDataFile = self.read_file(
                                     instanceCompress=instanceCompress,
@@ -161,7 +161,7 @@ class BaseZipRarHandler:
                 if rawDataFile is None:
                     raise BadPassword
                 else:
-                    name_, extention_ = self.paths.splitext(
+                    name_, extension_ = self.paths.splitext(
                                                     name_file.replace(' ', '_')
                                                 )
                     currentFileCBR = CurrentFile(
@@ -170,10 +170,10 @@ class BaseZipRarHandler:
                                     is_comic=True,
                                     unit=self.unit
                                 )
-                    currentFileCBR.extention = extention_
+                    currentFileCBR.extension = extension_
                     listContentData.append(currentFileCBR)
 
-            elif extention_.lower() == ValidExtentions.CBZ:
+            elif extension_.lower() == ValidExtensions.CBZ:
 
                 rawDataFile = self.read_file(
                                     instanceCompress=instanceCompress,
@@ -183,7 +183,7 @@ class BaseZipRarHandler:
                 if rawDataFile is None:
                     raise BadPassword
                 else:
-                    name_, extention_ = self.paths.splitext(
+                    name_, extension_ = self.paths.splitext(
                                                     name_file.replace(' ', '_')
                                                 )
                     currentFileCBZ = CurrentFile(
@@ -193,13 +193,13 @@ class BaseZipRarHandler:
                                     chunk_bytes=None,
                                     unit=self.unit
                                 )
-                    currentFileCBZ.extention = extention_
+                    currentFileCBZ.extension = extension_
                     listContentData.append(currentFileCBZ)
 
-            elif extention_.lower() in images_Extentions:
+            elif extension_.lower() in images_Extensions:
                 item_name = '%s%s' % (
                     name_.replace(' ', '_'),
-                    extention_.lower()
+                    extension_.lower()
                 )
 
                 file_name = self.paths.build(directory_name, item_name)
@@ -216,7 +216,7 @@ class BaseZipRarHandler:
                     image_comic = self.imageshandler.new_image(
                                             name_image=file_name,
                                             currentImage=rawDataFile,
-                                            extention=extention_[1:].upper(),
+                                            extension=extension_[1:].upper(),
                                             sizeImage=resize,
                                             unit=self.unit
                                         )

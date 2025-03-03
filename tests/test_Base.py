@@ -109,11 +109,11 @@ class BaseTestCase(unittest.TestCase):
         with open(file, 'rb') as fl:
             return fl.read()
 
-    def buid_CurrentFile(
+    def build_CurrentFile(
         self,
         filename: str,
         raw_data: bytes,
-        extention: str = None,
+        extension: str = None,
         return_valid: bool = True
     ) -> CurrentFile:
         currentFile = CurrentFile(
@@ -122,8 +122,8 @@ class BaseTestCase(unittest.TestCase):
                         chunk_bytes=raw_data[:8],
                         unit='mb'
                     )
-        if extention is not None:
-            currentFile.extention = extention
+        if extension is not None:
+            currentFile.extension = extension
         if return_valid is False:
             currentFile.chunk_bytes = raw_data[8:16]
 

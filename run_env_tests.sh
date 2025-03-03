@@ -27,7 +27,7 @@ set_poetry_python_version () {
   poetry env use $1
 }
 
-python_versions=(3.7 3.8 3.9 3.10 3.11)
+python_versions=(3.9 3.10 3.11 3.12)
 current_version_Python=$(python --version | cut -d " " -f 2)
 
 for i in "${python_versions[@]}"; do

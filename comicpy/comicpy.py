@@ -25,17 +25,17 @@ from comicpy.utils import (
 from comicpy.exceptionsClasses import (
     InvalidFile,
     EmptyFile,
-    FileExtentionNotMatch,
+    FileExtensionNotMatch,
     DirectoryPathNotExists,
     DirectoryFilterEmptyFiles,
     DirectoryEmptyFilesValid,
     UnitFileSizeInvalid,
     FilePasswordProtected,
     InvalidCompressor,
-    ExtentionError
+    ExtensionError
 )
 
-from comicpy.valid_extentions import ValidExtentions
+from comicpy.valid_extensions import ValidExtensions
 
 from comicpy.handlers import (
     PdfHandler,
@@ -62,7 +62,7 @@ MEDIUM = TypeVar('medium')
 LARGE = TypeVar('large')
 
 PYPDF = TypeVar('pypdf')
-PYMUPDF = TypeVar('pymupdf')
+# PYMUPDF = TypeVar('pymupdf')
 
 
 class ComicPy:
@@ -95,7 +95,7 @@ class ComicPy:
         self.pdfphandler = PdfHandler(unit=self.unit)
         self.rarhandler = RarHandler(unit=self.unit)
         self.paths = Paths()
-        self.validextentions = ValidExtentions()
+        self.validextentions = ValidExtensions()
 
         self.join_files = False
         self.BASE_DIR_ = None
@@ -172,13 +172,13 @@ class ComicPy:
             bool: boolean if file is valid (True) or not (False).
 
         Raises:
-            FileExtentionNotMatch: if file extention of file is not valid.
-            InvalidFile: if file extention and file signature not match.
+            FileExtensionNotMatch: if file extension of file is not valid.
+            InvalidFile: if file extension and file signature not match.
         """
         is_valid = self.checker.check(currenf_file=currentFile)
         # print('-> check_file ', is_valid)
         if is_valid is False:
-            raise FileExtentionNotMatch()
+            raise FileExtensionNotMatch()
         elif is_valid is None:
             raise InvalidFile()
         else:
@@ -189,7 +189,7 @@ class ComicPy:
         compressor_str: str,
     ) -> None:
         """
-        Check compressor extention given.
+        Check compressor extension given.
 
         Args:
             compressor_str: str -> string of compressor to use.
@@ -199,7 +199,7 @@ class ComicPy:
         """
         compressors = [
                     i.replace('.', '')
-                    for i in self.validextentions.get_compressors_extentions()
+                    for i in self.validextentions.get_compressors_extensions()
                 ]
         if compressor_str not in compressors:
             raise InvalidCompressor
@@ -236,9 +236,9 @@ class ComicPy:
             FilePasswordProtected: if `password` parameters and `is_protected`
                                    are `True`s.
         """
-        if handler.type == ValidExtentions.ZIP[1:]:
+        if handler.type == ValidExtensions.ZIP[1:]:
             is_protected = handler.testZip(currentFileZip=compressCurrentFile)
-        if handler.type == ValidExtentions.RAR[1:]:
+        if handler.type == ValidExtensions.RAR[1:]:
             is_protected = handler.testRar(currentFileRar=compressCurrentFile)
         if is_protected and password is None:
             msg = 'File %s is protected with password.\n' % (
@@ -255,7 +255,7 @@ class ComicPy:
         dest: str = '.',
         compressor: Union[RAR, ZIP] = 'zip',
         resize: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve',
-        motor: Union[PYPDF, PYMUPDF] = 'pypdf'
+        motor: Union[PYPDF] = 'pypdf'
     ) -> Union[List[dict], None]:
         """
         Process PDF file, load content, extract images.
@@ -265,7 +265,7 @@ class ComicPy:
             dest: destination path of CBZ or CBR files, default is '.'.
             compressor: type of compressor, 'rar' or 'zip', default is 'zip'.
             resize: resize images, default is 'preserve'
-            motor: motor to use, `pypdf` or `pymupdf`, default `pypdf`.
+            motor: motor to use, `pypdf`, default `pypdf`.
 
         Returns:
             list: list of diccionaries with metadata of file/s CBZ or CBR.
@@ -280,7 +280,11 @@ class ComicPy:
 
         self.raiser_error_compressor(compressor_str=compressor)
 
-        self.check_file(currentFile=file_raw)
+        try:
+            self.check_file(currentFile=file_raw)
+        except Exception as e:
+            print(f"\n{e}\n")
+            return None
 
         compressFileData = self.pdfphandler.process_pdf(
                             currentFilePDF=file_raw,
@@ -340,7 +344,11 @@ class ComicPy:
 
         file_raw = self.load_file(filename=filename)
 
-        self.check_file(currentFile=file_raw)
+        try:
+            self.check_file(currentFile=file_raw)
+        except Exception as e:
+            print(f"\n{e}\n")
+            return None
 
         self.check_protectedFile(
                 handler=self.ziphandler,
@@ -356,8 +364,8 @@ class ComicPy:
 
         if zipCompressorFileData is None or zipCompressorFileData == -1:
             msg = '\nZIP file not have files with '
-            exts = self.validextentions.get_container_valid_extentions()
-            msg += 'valid Extentions: ' + ', '.join(exts) + '\n'
+            exts = self.validextentions.get_container_valid_extensions()
+            msg += 'valid Extensions: ' + ', '.join(exts) + '\n'
             raise EmptyFile(msg)
 
         if self.directory_path is None:
@@ -423,7 +431,11 @@ class ComicPy:
 
         file_raw = self.load_file(filename=filename)
 
-        self.check_file(currentFile=file_raw)
+        try:
+            self.check_file(currentFile=file_raw)
+        except Exception as e:
+            print(f"\n{e}\n")
+            return None
 
         self.check_protectedFile(
                 handler=self.rarhandler,
@@ -440,8 +452,8 @@ class ComicPy:
 
         if rarCompressorFileData is None or rarCompressorFileData == -1:
             msg = '\nRAR file not have files with '
-            exts = self.validextentions.get_container_valid_extentions()
-            msg += 'valid Extentions: ' + ', '.join(exts) + '\n'
+            exts = self.validextentions.get_container_valid_extensions()
+            msg += 'valid Extensions: ' + ', '.join(exts) + '\n'
             raise EmptyFile(msg)
 
         if self.directory_path is None:
@@ -485,13 +497,13 @@ class ComicPy:
     def process_dir(
         self,
         directory_path: str,
-        extention_filter: Union[RAR, ZIP, PDF, CBZ, CBR, IMAGES],
+        extension_filter: Union[RAR, ZIP, PDF, CBZ, CBR, IMAGES],
         dest: str = '.',
         password: str = None,
         compressor: Union[RAR, ZIP] = 'zip',
         join: bool = False,
         resize: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve',
-        motor: Union[PYPDF, PYMUPDF] = 'pypdf'
+        motor: Union[PYPDF] = 'pypdf'
     ) -> Union[List[dict], None]:
         """
         Searches files in the given directory, searches only PDF, CBZ, CBR
@@ -500,7 +512,7 @@ class ComicPy:
 
         Args:
             directory_path: directory name.
-            extention_filter: 'rar', 'zip', 'pdf', 'cbz', 'cbr', 'jpeg', 'png',
+            extension_filter: 'rar', 'zip', 'pdf', 'cbz', 'cbr', 'jpeg', 'png',
                               'jpg', extension of the file to search in the
                               directory.
             dest: destination path of CBZ or CBR files, default is '.'.
@@ -509,7 +521,7 @@ class ComicPy:
             join: boolean, if `True` all files are consolidated into one,
                   otherwise, if `False` they are kept in individual files.
             resize: string for resizing images, default is 'preserve'.
-            motor: motor to use, `pypdf` or `pymupdf`, default `pypdf`.
+            motor: motor to use, `pypdf`, default `pypdf`.
 
         Returns:
             list: list of diccionaries with metadata of file/s CBR or CBZ.
@@ -529,7 +541,7 @@ class ComicPy:
         # print(self.BASE_DIR_, self.CONVERTED_COMICPY_PATH_)
 
         try:
-            if extention_filter == 'images':
+            if extension_filter == 'images':
                 # handle JPG, PNG, JPEG
                 return self.__images_dir(
                     directory_path=directory_path,
@@ -541,7 +553,7 @@ class ComicPy:
             else:
                 return self.__dir_pdf_rar_zip(
                     directory_path=directory_path,
-                    extention_filter=extention_filter,
+                    extension_filter=extension_filter,
                     password=password,
                     compressor_type=compressor,
                     join=join,
@@ -557,7 +569,7 @@ class ComicPy:
             DirectoryFilterEmptyFiles,
             DirectoryEmptyFilesValid,
             InvalidCompressor,
-            ExtentionError,
+            ExtensionError,
             EmptyFile
         ) as e:
             print('%s\n' % (e))
@@ -639,13 +651,13 @@ class ComicPy:
     def __dir_pdf_rar_zip(
         self,
         directory_path: str,
-        extention_filter: str,
+        extension_filter: str,
         password: str,
         compressor_type: str,
         join: str,
         resize: str,
         dest: str = '.',
-        motor: Union[PYPDF, PYMUPDF] = 'pypdf'
+        motor: Union[PYPDF] = 'pypdf'
     ) -> Union[List[dict], None]:
         """
         Manages the workflow for PDF, CBR, CBZ, RAR, ZIP files within a
@@ -653,7 +665,7 @@ class ComicPy:
 
         Args
             directory_path: directory name.
-            extention_filter: 'rar', 'zip', 'pdf', 'cbz', 'cbr' extension of
+            extension_filter: 'rar', 'zip', 'pdf', 'cbz', 'cbr' extension of
                               the file to search in the directory.
             password: password string of file, default is `None`.
             compressor_type: 'zip', 'rar', extension of the compressor used.
@@ -661,47 +673,47 @@ class ComicPy:
                   otherwise, if `False` they are kept in individual files.
             resize: string for resizing images, default is 'preserve'.
             dest: destination path of CBZ or CBR files, default is '.'.
-            motor: motor to use, `pypdf` or `pymupdf`, default `pypdf`.
+            motor: motor to use, `pypdf`, default `pypdf`.
 
         Returns
             list: list of diccionaries with metadata of file/s CBR or CBZ.
             None: if the list of images is empty, the file has no images.
 
         Raises
-            ExtentionError: if filter extention is not valid.
+            ExtensionError: if filter extension is not valid.
             DirectoryPathNotExists: if directory path not exists.
             DirectoryFilterEmptyFiles: if directory not have valid files.
         """
         data_metadata = []
-        valids_extentions = [
-                    ValidExtentions.PDF[1:],
-                    ValidExtentions.CBZ[1:],
-                    ValidExtentions.CBR[1:],
-                    ValidExtentions.ZIP[1:],
-                    ValidExtentions.RAR[1:]
+        valids_extensions = [
+                    ValidExtensions.PDF[1:],
+                    ValidExtensions.CBZ[1:],
+                    ValidExtensions.CBR[1:],
+                    ValidExtensions.ZIP[1:],
+                    ValidExtensions.RAR[1:]
                 ]
 
-        if extention_filter.lower() not in valids_extentions:
-            raise ExtentionError(message=', '.join(valids_extentions))
+        if extension_filter.lower() not in valids_extensions:
+            raise ExtensionError(message=', '.join(valids_extensions))
 
         self.raiser_error_compressor(compressor_str=compressor_type)
 
         if not self.paths.exists(self.directory_path):
             raise DirectoryPathNotExists(dir_path=directory_path)
 
-        list_extention = [
-                            extention_filter.lower(),
-                            extention_filter.upper()
+        list_extension = [
+                            extension_filter.lower(),
+                            extension_filter.upper()
                         ]
         filesMatch = self.paths.get_files_recursive(
                             directory=self.directory_path,
-                            extentions=list_extention,
+                            extensions=list_extension,
                         )
 
         if len(filesMatch) == 0:
             raise DirectoryFilterEmptyFiles(
                             dir_path=self.directory_path,
-                            filter=extention_filter
+                            filter=extension_filter
                         )
 
         elif len(filesMatch) > 0:
@@ -717,12 +729,12 @@ class ComicPy:
                     if item_path == filesMatch[-1]:
                         self.LAST_ITEM_ = True
 
-                    name_, extention_ = self.paths.splitext(
+                    name_, extension_ = self.paths.splitext(
                                                 path=str(item_path)
                                             )
-                    extention = extention_.lower()
+                    extension = extension_.lower()
 
-                    if extention == '.pdf':
+                    if extension == '.pdf':
                         # print('>> DIR PDF')
                         metadataFiles = self.process_pdf(
                                                 filename=str(item_path),
@@ -730,14 +742,14 @@ class ComicPy:
                                                 resize=resize,
                                                 motor=motor,
                                             )
-                    elif extention == '.zip' or extention == '.cbz':
+                    elif extension == '.zip' or extension == '.cbz':
                         # print('>> DIR ZIP')
                         metadataFiles = self.process_zip(
                                             filename=str(item_path),
                                             password=password,
                                             resize=resize
                                         )
-                    elif extention == '.rar' or extention == '.cbr':
+                    elif extension == '.rar' or extension == '.cbr':
                         # print('>> DIR RAR')
                         metadataFiles = self.process_rar(
                                                 filename=str(item_path),
@@ -860,7 +872,7 @@ class ComicPy:
 
             file_name = '%s%s' % (
                             filename_,
-                            itemCurrent.extention
+                            itemCurrent.extension
                         )
 
             path_output = self.paths.build(
@@ -873,7 +885,7 @@ class ComicPy:
                 file_name = '%s_%s%s' % (
                                 itemCurrent.name,
                                 id(itemCurrent),
-                                itemCurrent.extention
+                                itemCurrent.extension
                             )
                 path_output = self.paths.build(base_path, file_name)
 
@@ -882,12 +894,12 @@ class ComicPy:
             # Sets destine path to CurrentFile instance.
             itemCurrent.path = path_output
 
-            if itemCurrent.extention == ValidExtentions.CBR:
+            if itemCurrent.extension == ValidExtensions.CBR:
                 infoFileRar = self.rarhandler.to_write(
                                             currentFileRar=itemCurrent
                                         )
                 info_list.append(infoFileRar)
-            if itemCurrent.extention == ValidExtentions.CBZ:
+            if itemCurrent.extension == ValidExtensions.CBZ:
                 infoFileZip = self.ziphandler.to_write(
                                             currentFileZip=itemCurrent
                                         )
@@ -909,7 +921,7 @@ class ComicPy:
             show: boolean to print on terminal. Default is `True`.
 
         Returns
-            bool: boolean if file is stored on right place and can be readed.
+            bool: boolean if file is stored on right place and can be read.
         """
         fileCompressed = self.read(filename=filename)
         is_valid = self.checker.check(currenf_file=fileCompressed)
@@ -934,7 +946,7 @@ class ComicPy:
             type: directory ("d") or file ("f").
 
         Returns
-            tuple: filename without extention and path to save CBR or CBZ file.
+            tuple: filename without extension and path to save CBR or CBZ file.
         """
         if type == 'd':
             BASE_DIR_ = self.paths.get_dirname_level(
@@ -947,7 +959,7 @@ class ComicPy:
                 BASE_DIR_ = BASE_DIR_
 
         elif type == 'f':
-            BASE_DIR_, extention_ = self.paths.splitext(
+            BASE_DIR_, extension_ = self.paths.splitext(
                                         self.paths.get_basename(origin)
                                     )
 

@@ -90,13 +90,13 @@ class Paths:
         path: str
     ) -> tuple:
         """
-        Gets name and extention of file.
+        Gets name and extension of file.
 
         Args
             path: string of path
 
         Returns
-            tuple: name and extention of file.
+            tuple: name and extension of file.
         """
         return os.path.splitext(path)
 
@@ -216,21 +216,21 @@ class Paths:
 
     def get_file_glob(
         self,
-        extention: str,
+        extension: str,
         directory: str
     ) -> list:
         """
         Searches for files by extension, ignoring upper and lower case letters.
 
         Args:
-            extension: string of extention of file.
+            extension: string of extension of file.
 
         Returns
             list: list of file names matched.
         """
         results = []
-        for extention_ in [extention.lower(), extention.upper()]:
-            pattern = '*.%s' % (extention_)
+        for extension_ in [extension.lower(), extension.upper()]:
+            pattern = '*.%s' % (extension_)
 
             dir_path = '%s%s' % (directory, self.get_separator())
 
@@ -242,7 +242,7 @@ class Paths:
 
     def get_files_recursive(
         self,
-        extentions: Union[str, list],
+        extensions: Union[str, list],
         directory: str
     ) -> list:
         """
@@ -257,14 +257,14 @@ class Paths:
             list: list of `Path` instances.
         """
         results = []
-        if isinstance(extentions, str):
-            extentions = [extentions]
+        if isinstance(extensions, str):
+            extensions = [extensions]
 
         dirPath = Path(directory)
 
         [
             results.extend(list(dirPath.rglob(f'*{ext}')))
-            for ext in extentions
+            for ext in extensions
         ]
 
         return results
@@ -275,7 +275,7 @@ class Paths:
         unit: str
     ) -> int:
         """
-        Gets sise of data, and set `size` attribute.
+        Gets size of data, and set `size` attribute.
 
         Returns:
             int: data size value.
