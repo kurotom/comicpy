@@ -13,8 +13,8 @@ from comicpy.exceptionsClasses import (
     BadPassword,
     InvalidFile,
     EmptyFile,
-    ExtentionError,
-    FileExtentionNotMatch,
+    ExtensionError,
+    FileExtensionNotMatch,
     DirectoryPathNotExists,
     DirectoryFilterEmptyFiles,
     DirectoryEmptyFilesValid,
@@ -44,7 +44,7 @@ class ComicPyTestCase(BaseTestCase):
     def test_comicpy_check_file_valid(self):
         filename = 'empty.pdf'
         data = self.data[filename]
-        currentFile = self.buid_CurrentFile(
+        currentFile = self.build_CurrentFile(
                                 filename=filename,
                                 raw_data=data,
                                 return_valid=True
@@ -55,23 +55,23 @@ class ComicPyTestCase(BaseTestCase):
     def test_comicpy_check_filenotmatch(self):
         filename = 'empty.pdf'
         data = self.data[filename]
-        currentFile = self.buid_CurrentFile(
+        currentFile = self.build_CurrentFile(
                                 filename=filename,
                                 raw_data=data,
                                 return_valid=False,
-                                extention='pdf'
+                                extension='pdf'
                             )
-        with self.assertRaises(FileExtentionNotMatch):
+        with self.assertRaises(FileExtensionNotMatch):
             self.comicpy_init.check_file(currentFile=currentFile)
 
     def test_comicpy_check_file_invalid(self):
         filename = 'empty.pdf'
         data = self.data[filename]
-        currentFile = self.buid_CurrentFile(
+        currentFile = self.build_CurrentFile(
                                 filename=filename,
                                 raw_data=data,
                                 return_valid=False,
-                                extention='xx'
+                                extension='xx'
                             )
         with self.assertRaises(InvalidFile):
             self.comicpy_init.check_file(currentFile=currentFile)
@@ -83,7 +83,7 @@ class ComicPyTestCase(BaseTestCase):
     def test_comicpy_check_protectedFileZipNoPass(self):
         filename = 'protected_image_dir_2.zip'
         data = self.data[filename]
-        currentFile = self.buid_CurrentFile(
+        currentFile = self.build_CurrentFile(
                                 filename=filename,
                                 raw_data=data
                             )
@@ -98,7 +98,7 @@ class ComicPyTestCase(BaseTestCase):
     def test_comicpy_check_protectedFileRarNoPass(self):
         filename = 'protected_image_dir_2.rar'
         data = self.data[filename]
-        currentFile = self.buid_CurrentFile(
+        currentFile = self.build_CurrentFile(
                                 filename=filename,
                                 raw_data=data
                             )
@@ -117,7 +117,7 @@ class ComicPyTestCase(BaseTestCase):
 
         filename = 'image_dir_2.rar'
         data = self.data[filename]
-        currentFile = self.buid_CurrentFile(
+        currentFile = self.build_CurrentFile(
                                 filename=filename,
                                 raw_data=data
                             )
@@ -132,7 +132,7 @@ class ComicPyTestCase(BaseTestCase):
     def test_comicpy_check_FileZip(self):
         filename = 'image_dir_1.zip'
         data = self.data[filename]
-        currentFile = self.buid_CurrentFile(
+        currentFile = self.build_CurrentFile(
                                 filename=filename,
                                 raw_data=data
                             )
@@ -146,7 +146,7 @@ class ComicPyTestCase(BaseTestCase):
     def test_comicpy_check_FileRar(self):
         filename = 'image_dir_1.rar'
         data = self.data[filename]
-        currentFile = self.buid_CurrentFile(
+        currentFile = self.build_CurrentFile(
                                 filename=filename,
                                 raw_data=data
                             )
@@ -160,7 +160,7 @@ class ComicPyTestCase(BaseTestCase):
     def test_pdfhandler_process_pdf(self):
         filename2 = 'image.pdf'
         data = self.data[filename2]
-        currentFile = self.buid_CurrentFile(
+        currentFile = self.build_CurrentFile(
                                 filename=filename2,
                                 raw_data=data
                             )
@@ -183,11 +183,11 @@ class ComicPyTestCase(BaseTestCase):
         data1 = self.data[filename1]
         data2 = self.data[filename2]
 
-        currentFile1 = self.buid_CurrentFile(
+        currentFile1 = self.build_CurrentFile(
                                 filename=filename1,
                                 raw_data=data1
                             )
-        currentFile2 = self.buid_CurrentFile(
+        currentFile2 = self.build_CurrentFile(
                                 filename=filename2,
                                 raw_data=data2
                             )
@@ -216,7 +216,7 @@ class ComicPyTestCase(BaseTestCase):
     def test_comicpy_process_pdf_MultiImageSorted_PYPDF(self):
         filename = 'image_2.pdf'
         data = self.data[filename]
-        currentFile = self.buid_CurrentFile(
+        currentFile = self.build_CurrentFile(
                                 filename=filename,
                                 raw_data=data
                             )
@@ -237,7 +237,7 @@ class ComicPyTestCase(BaseTestCase):
         # original order must be preserve
         filename = 'comic 1.pdf'
         data = self.data[filename]
-        currentFile = self.buid_CurrentFile(
+        currentFile = self.build_CurrentFile(
                                 filename=filename,
                                 raw_data=data
                             )
@@ -257,7 +257,7 @@ class ComicPyTestCase(BaseTestCase):
     def test_comicpy_process_pdf_empty_images(self):
         filename = 'file.pdf'
         data = self.data[filename]
-        currentFile = self.buid_CurrentFile(
+        currentFile = self.build_CurrentFile(
                                 filename=filename,
                                 raw_data=data
                             )
@@ -272,7 +272,7 @@ class ComicPyTestCase(BaseTestCase):
         filename2 = 'image.pdf'
         path = self.FILES[filename2]
         data = self.data[filename2]
-        currentFile = self.buid_CurrentFile(
+        currentFile = self.build_CurrentFile(
                                 filename=filename2,
                                 raw_data=data
                             )
@@ -317,7 +317,7 @@ class ComicPyTestCase(BaseTestCase):
         fileWpass = 'protected_image_dir_2.rar'
 
         dataWpass = self.data[fileWpass]
-        currentFileWpass = self.buid_CurrentFile(
+        currentFileWpass = self.build_CurrentFile(
                                 filename=fileWpass,
                                 raw_data=dataWpass
                             )
@@ -338,7 +338,7 @@ class ComicPyTestCase(BaseTestCase):
         filename = 'no_image.rar'
 
         data = self.data[filename]
-        currentFile = self.buid_CurrentFile(
+        currentFile = self.build_CurrentFile(
                                 filename=filename,
                                 raw_data=data
                             )
@@ -354,7 +354,7 @@ class ComicPyTestCase(BaseTestCase):
         fileWpass = 'protected_image_dir_2.zip'
 
         dataWpass = self.data[fileWpass]
-        currentFileWpass = self.buid_CurrentFile(
+        currentFileWpass = self.build_CurrentFile(
                                 filename=fileWpass,
                                 raw_data=dataWpass
                             )
@@ -376,7 +376,7 @@ class ComicPyTestCase(BaseTestCase):
         filename = 'no_image.zip'
 
         data = self.data[filename]
-        currentFile = self.buid_CurrentFile(
+        currentFile = self.build_CurrentFile(
                                 filename=filename,
                                 raw_data=data
                             )
@@ -391,7 +391,7 @@ class ComicPyTestCase(BaseTestCase):
     def test_comicpy_process_dir_PDF(self):
         results = self.comicpy_init.process_dir(
                     directory_path=self.pdfs_dir,
-                    extention_filter='pdf',
+                    extension_filter='pdf',
                     compressor='zip',
                     join=False,
                     resize='preserve',
@@ -402,7 +402,7 @@ class ComicPyTestCase(BaseTestCase):
     def test_comicpy_process_dir_RAR(self):
         list_Currentfiles = self.comicpy_init.process_dir(
                     directory_path=self.rars_dir,
-                    extention_filter='rar',
+                    extension_filter='rar',
                     password=None,
                     compressor='rar',
                     join=True,
@@ -415,7 +415,7 @@ class ComicPyTestCase(BaseTestCase):
         print(self.rars_protected)
         results = self.comicpy_init.process_dir(
                     directory_path=self.rars_protected,
-                    extention_filter='rar',
+                    extension_filter='rar',
                     password='password',
                     compressor='rar',
                     join=True,
@@ -436,7 +436,7 @@ class ComicPyTestCase(BaseTestCase):
     def test_comicpy_process_dir_RAR_protected_wrong_pass(self):
         results = self.comicpy_init.process_dir(
                     directory_path=self.rars_protected,
-                    extention_filter='rar',
+                    extension_filter='rar',
                     password='none',
                     compressor='rar',
                     join=True,
@@ -448,7 +448,7 @@ class ComicPyTestCase(BaseTestCase):
     def test_comicpy_process_dir_ZIP(self):
         result = self.comicpy_init.process_dir(
                     directory_path=self.zips_dir,
-                    extention_filter='zip',
+                    extension_filter='zip',
                     password=None,
                     compressor='zip',
                     join=False,
@@ -464,7 +464,7 @@ class ComicPyTestCase(BaseTestCase):
     def test_comicpy_process_dir_ZIP_protected(self):
         result = self.comicpy_init.process_dir(
                     directory_path=self.zips_protected,
-                    extention_filter='zip',
+                    extension_filter='zip',
                     password='password',
                     compressor='zip',
                     join=False,
@@ -476,7 +476,7 @@ class ComicPyTestCase(BaseTestCase):
     def test_comicpy_process_dir_ZIP_protected_wrong_pass(self):
         results = self.comicpy_init.process_dir(
                     directory_path=self.zips_protected,
-                    extention_filter='zip',
+                    extension_filter='zip',
                     password='none',
                     compressor='zip',
                     join=True,
@@ -488,7 +488,7 @@ class ComicPyTestCase(BaseTestCase):
     def test_comicpy_process_dir_PDF_JOIN(self):
         result = self.comicpy_init.process_dir(
                     directory_path=self.pdfs_dir,
-                    extention_filter='pdf',
+                    extension_filter='pdf',
                     password=None,
                     compressor='zip',
                     join=True,
@@ -504,7 +504,7 @@ class ComicPyTestCase(BaseTestCase):
     def test_comicpy_process_dir_ZIP_JOIN(self):
         result = self.comicpy_init.process_dir(
                     directory_path=self.zips_dir,
-                    extention_filter='zip',
+                    extension_filter='zip',
                     password=None,
                     compressor='zip',
                     join=True,
@@ -520,7 +520,7 @@ class ComicPyTestCase(BaseTestCase):
     def test_comicpy_process_dir_RAR_JOIN(self):
         result = self.comicpy_init.process_dir(
                     directory_path=self.rars_dir,
-                    extention_filter='rar',
+                    extension_filter='rar',
                     password=None,
                     compressor='rar',
                     join=True,
@@ -536,7 +536,7 @@ class ComicPyTestCase(BaseTestCase):
     def test_comicpy_dir_cbr(self):
         results = self.comicpy_init.process_dir(
                     directory_path=self.cbr_cbz_dir,
-                    extention_filter='rar',
+                    extension_filter='rar',
                     password=None,
                     compressor='rar',
                     join=False,
@@ -548,7 +548,7 @@ class ComicPyTestCase(BaseTestCase):
     def test_comicpy_dir_cbz(self):
         results = self.comicpy_init.process_dir(
                     directory_path=self.cbr_cbz_dir,
-                    extention_filter='zip',
+                    extension_filter='zip',
                     password=None,
                     compressor='zip',
                     join=False,
@@ -561,7 +561,7 @@ class ComicPyTestCase(BaseTestCase):
         dirname = self.no_image_zip_rar
         result = self.comicpy_init.process_dir(
                         directory_path=dirname,
-                        extention_filter='images',
+                        extension_filter='images',
                         password='password',
                         compressor='zip',
                         join=False,
@@ -574,7 +574,7 @@ class ComicPyTestCase(BaseTestCase):
         dirname = self.images_dir
         results = self.comicpy_init.process_dir(
                     directory_path=dirname,
-                    extention_filter='images',
+                    extension_filter='images',
                     password=None,
                     compressor='zip',
                     join=False,

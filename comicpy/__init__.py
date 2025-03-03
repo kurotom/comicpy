@@ -20,15 +20,15 @@ from comicpy.exceptionsClasses import (
     BadPassword,
     InvalidFile,
     EmptyFile,
-    ExtentionError,
-    FileExtentionNotMatch,
+    ExtensionError,
+    FileExtensionNotMatch,
     DirectoryPathNotExists,
     DirectoryFilterEmptyFiles,
     DirectoryEmptyFilesValid,
     InvalidCompressor
 )
 
-from comicpy.valid_extentions import ValidExtentions
+from comicpy.valid_extensions import ValidExtensions
 
 from comicpy.handlers import (
     PdfHandler,

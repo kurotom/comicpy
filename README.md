@@ -142,7 +142,7 @@ True
 >>>
 >>> metadata = comic.process_dir(
 ...     directory_path=dir,
-...     extention_filter='rar',
+...     extension_filter='rar',
 ...     compressor='rar',
 ...     password=None,
 ...     join=False
@@ -177,7 +177,7 @@ True
 >>>
 >>> metadata = comic.process_dir(
 ...     directory_path=dir,
-...     extention_filter='rar',
+...     extension_filter='rar',
 ...     compressor='rar',
 ...     password=None,
 ...     join=True

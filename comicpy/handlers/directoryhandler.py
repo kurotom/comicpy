@@ -5,7 +5,7 @@ recursively within directories, sorted alphanumerically.
 """
 
 from comicpy.handlers.imageshandler import ImagesHandler
-from comicpy.valid_extentions import ValidExtentions
+from comicpy.valid_extensions import ValidExtensions
 from comicpy.utils import Paths
 
 from comicpy.models import (
@@ -91,10 +91,10 @@ class DirectoryHandler:
             CompressorFileData`: instance with all images in directories.
         """
 
-        imagesExtentions = [
-            ValidExtentions.JPEG,
-            ValidExtentions.PNG,
-            ValidExtentions.JPG
+        imagesExtensions = [
+            ValidExtensions.JPEG,
+            ValidExtensions.PNG,
+            ValidExtensions.JPG
         ]
 
         basenameDirectory = self.paths.get_dirname_level(
@@ -104,7 +104,7 @@ class DirectoryHandler:
 
         filesMatches = self.paths.get_files_recursive(
                 directory=directoryPath,
-                extentions=imagesExtentions,
+                extensions=imagesExtensions,
             )
         filesMatches.sort()
 
@@ -130,17 +130,17 @@ class DirectoryHandler:
                 dataImage = self.read(filename=path_image)
                 # print(basenameDirectory, path_image)
 
-                name_, extention_ = self.paths.splitext(path=file_name)
+                name_, extension_ = self.paths.splitext(path=file_name)
 
                 name_image = 'Image%s%s' % (
                                     str(self.number_image).zfill(4),
-                                    extention_.lower()
+                                    extension_.lower()
                                 )
 
                 image_comic = self.imageshandler.new_image(
                                         name_image=name_image,
                                         currentImage=dataImage,
-                                        extention=extention_[1:].upper(),
+                                        extension=extension_[1:].upper(),
                                         sizeImage=resizeImage,
                                         unit=self.unit
                                     )

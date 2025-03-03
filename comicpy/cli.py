@@ -90,7 +90,7 @@ def zip(
 def dir(
     comicInstance: ComicPy,
     directory_path: str,
-    extention_filter: str,
+    extension_filter: str,
     # dest: str,
     filename: str = None,
     password: str = None,
@@ -105,7 +105,7 @@ def dir(
     """
     data = comicInstance.process_dir(
                     directory_path=directory_path,
-                    extention_filter=extention_filter,
+                    extension_filter=extension_filter,
                     compressor=compressor,
                     join=join,
                     password=password,
@@ -230,8 +230,8 @@ def CliComicPy() -> None:
     try:
         # FILE
         if typeFile == 'f':
-            name_, extention_ = paths.splitext(pathFile)
-            if extention_.lower() == '.pdf':
+            name_, extension_ = paths.splitext(pathFile)
+            if extension_.lower() == '.pdf':
                 pdf(
                     comicInstance=comic,
                     filename=pathFile,
@@ -240,7 +240,7 @@ def CliComicPy() -> None:
                     resize=resizeImage
                     # motor=motorPDF
                 )
-            if extention_.lower() == '.rar' or extention_.lower() == '.cbr':
+            if extension_.lower() == '.rar' or extension_.lower() == '.cbr':
                 rar(
                     comicInstance=comic,
                     filename=pathFile,
@@ -249,7 +249,7 @@ def CliComicPy() -> None:
                     resize=resizeImage
                 )
 
-            if extention_.lower() == '.zip' or extention_.lower() == '.cbz':
+            if extension_.lower() == '.zip' or extension_.lower() == '.cbz':
                 zip(
                     comicInstance=comic,
                     filename=pathFile,
@@ -258,13 +258,13 @@ def CliComicPy() -> None:
                     resize=resizeImage
                 )
 
-        # DIRECOTRY
+        # DIRECTORY
         elif typeFile == 'd':
 
             dir(
                 comicInstance=comic,
                 directory_path=pathFile,
-                extention_filter=filterFile,
+                extension_filter=filterFile,
                 password=password,
                 compressor=compressorFile,
                 join=joinFile,

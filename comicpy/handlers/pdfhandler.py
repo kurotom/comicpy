@@ -162,10 +162,10 @@ class PdfHandler:
                         if hash_image not in uniques_hash:
                             uniques_hash.append(hash_image)
 
-                            name_, extention_ = self.paths.splitext(item.name)
+                            name_, extension_ = self.paths.splitext(item.name)
                             image_comic = self.to_image_instance(
                                 dataImage=item.data,
-                                extentionImage=extention_[1:],
+                                extensionImage=extension_[1:],
                                 resize=resize,
                             )
 
@@ -193,12 +193,12 @@ class PdfHandler:
                                 if hash_image not in uniques_hash:
                                     uniques_hash.append(hash_image)
 
-                                    name_, extention_ = self.paths.splitext(
+                                    name_, extension_ = self.paths.splitext(
                                                                     item.name
                                                                 )
                                     image_comic = self.to_image_instance(
                                         dataImage=item.data,
-                                        extentionImage=extention_[1:],
+                                        extensionImage=extension_[1:],
                                         resize=resize,
                                     )
 
@@ -256,7 +256,7 @@ class PdfHandler:
     def to_image_instance(
         self,
         dataImage: bytes,
-        extentionImage: str,
+        extensionImage: str,
         resize: str,
         current_image: ImageInstancePIL = None,
     ) -> ImageComicData:
@@ -273,13 +273,13 @@ class PdfHandler:
         """
         name_image = 'Image%s.%s' % (
                             str(self.number_image).zfill(4),
-                            extentionImage.lower()
+                            extensionImage.lower()
                         )
         # print(index, current_image.name, name_image)
         image_comic = self.imageshandler.new_image(
                                 name_image=name_image,
                                 currentImage=dataImage,
-                                extention=extentionImage.upper(),
+                                extension=extensionImage.upper(),
                                 sizeImage=resize,
                                 unit=self.unit
                             )
@@ -318,11 +318,11 @@ class PdfHandler:
     #         image_base = pdf_doc.extract_image(refImage[0]["xref"])
     #
     #         image_data = image_base['image']
-    #         image_extention = image_base['ext']
+    #         image_extension = image_base['ext']
     #
     #         image_comic = self.to_image_instance(
     #                 dataImage=image_data,
-    #                 extentionImage=image_extention,
+    #                 extensionImage=image_extension,
     #                 resize=resize,
     #             )
     #
