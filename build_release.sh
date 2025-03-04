@@ -12,7 +12,7 @@ STATUS=0
 
 check_version_input () {
   # check version tag
-  res=$(echo $NEW_VERSION_TAG | grep -e [0-9]\.[0-9]\.[0-9])
+  res=$(echo $NEW_VERSION_TAG | grep -E '[0-9]+\.[0-9]+\.[0-9]+')
   if [[ ! -z $res ]]; then
     STATUS=0
   else
@@ -22,22 +22,12 @@ check_version_input () {
   fi
 }
 
-change_tag_build_yaml () {
-  # changes version on YAML file
-  status_check_code
-
-  echo "File:  $YAML_FILE"
-  sed s"/v[0-9]\.[0-9]\.[0-9]/v$1/" $YAML_FILE -i $YAML_FILE
-
-  status_get_exit_code
-}
-
 change_version_pyproject () {
   # change version of TOML file
   status_check_code
 
   echo "File:  $PYPROJECT_TOML"
-  sed s"/version = \"[0-9]\.[0-9]\.[0-9]\"/version = \"$1\"/" $PYPROJECT_TOML -i $PYPROJECT_TOML
+  sed s"/version = \"[0-9]\+\.[0-9]\+\.[0-9]\+\"/version = \"$1\"/" $PYPROJECT_TOML -i $PYPROJECT_TOML
 
   status_get_exit_code
 }
@@ -117,8 +107,6 @@ if [ $# -eq 1 ] || [ $# -eq 2 ]; then
   if [ $STATUS == 0 ]; then
 
     echo -e "\nTag: $NEW_VERSION_TAG, Commit: $COMMIT_PUSH\n"
-
-    change_tag_build_yaml $NEW_VERSION_TAG
 
     change_version_pyproject $NEW_VERSION_TAG
 
