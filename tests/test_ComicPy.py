@@ -5,7 +5,7 @@ Tests ComicPy
 
 from test_Base import BaseTestCase
 
-from comicpy.comicpy import ComicPy
+from comicpy.comicpycontroller import ComicPy
 from comicpy.exceptionsClasses import (
     UnitFileSizeInvalid,
     ErrorFileBase,

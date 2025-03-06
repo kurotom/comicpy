@@ -3,7 +3,7 @@
 ComicPy app
 """
 
-from comicpy.comicpy import ComicPy
+from comicpy.comicpycontroller import ComicPy
 
 from comicpy.models import (
     ImageComicData,

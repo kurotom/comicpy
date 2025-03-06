@@ -4,25 +4,30 @@ Handler related to files ZIP.
 """
 
 from comicpy.handlers.imageshandler import ImagesHandler
+from comicpy.handlers.pdfhandler_thread import ThreadImage
+
 from comicpy.utils import Paths
 
 from comicpy.models import (
     ImageComicData,
     CurrentFile,
-    CompressorFileData
+    CompressorFileData,
+    RawImage,
 )
 
-from pypdf import PdfReader
-# import fitz
+
 
 from typing import (
     List,
     TypeVar,
-    Union
+    Union,
+    Callable
 )
 
 import re
-from hashlib import md5
+from queue import Queue
+
+import fitz
 
 import logging
 
@@ -33,8 +38,7 @@ MEDIUM = TypeVar('medium')
 LARGE = TypeVar('large')
 ImageInstancePIL = TypeVar("ImageInstancePIL")
 
-PYPDF = TypeVar('pypdf')
-# PYMUPDF = TypeVar('pymupdf')
+PYMUPDF = TypeVar('pymupdf')
 
 
 class PdfHandler:
@@ -54,10 +58,9 @@ class PdfHandler:
         """
         self.unit = unit
         self.imageshandler = ImagesHandler()
-        self.paths = Paths()
         self.number_image = 1
-        # handle log messages PyPDF.
-        self.logger = logging.getLogger("pypdf")
+        # handle log messages PyMuPDF.
+        self.logger = logging.getLogger("pymupdf")
         self.logger.setLevel(logging.ERROR)
 
     def reset_counter(self) -> None:
@@ -72,8 +75,8 @@ class PdfHandler:
         compressor: str,
         is_join: bool = False,
         resizeImage: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve',
-        # motor: Union[PYPDF, PYMUPDF] = 'pypdf'
-        motor: Union[PYPDF] = 'pypdf'
+        motor: Union[PYMUPDF] = 'pymupdf',
+        show_progress: bool = False
     ) -> Union[CompressorFileData, None]:
         """
         Takes the bytes from a PDF file and gets the images.
@@ -83,7 +86,7 @@ class PdfHandler:
                             file.
             compressor: type of compressor to use, RAR or ZIP.
             resizeImage: rescaling image.
-            motor: motor to use, `pypdf` default `pypdf`.
+            motor: motor to use, `pymupdf` default `pymupdf`.
 
         Returns:
             List[ImageComicData]: list of instances of `ImageComicData` with
@@ -94,16 +97,12 @@ class PdfHandler:
         if is_join is False:
             self.reset_counter()
 
-        if motor == 'pypdf':
-            listImageComicData = self.to_pypdf(
+
+        listImageComicData = self.to_pymupdf(
                                         filePDF=currentFilePDF,
-                                        resize=resizeImage
+                                        resize=resizeImage,
+                                        show_progress=show_progress
                                     )
-        # elif motor == 'pymupdf':
-        #     listImageComicData = self.to_pymupdf(
-        #                                 filePDF=currentFilePDF,
-        #                                 resize=resizeImage
-        #                             )
 
         if len(listImageComicData) == 0:
             return None
@@ -116,13 +115,15 @@ class PdfHandler:
                             )
         return pdfFileCompressor
 
-    def to_pypdf(
+    def to_pymupdf(
         self,
         filePDF: CurrentFile,
-        resize: str
+        resize: str,
+        n_threads: int = 4,
+        show_progress: bool = False,
     ) -> Union[List[ImageComicData], list]:
         """
-        Gets images of the pages of a PDF file using PyPDF.
+        Gets images of the pages of a PDF file using PyMuPDF.
         Image comparison is performed by calculating the md5 hash by taking the
         original image name and its raw data. This method avoids duplicate
         images.
@@ -139,133 +140,103 @@ class PdfHandler:
                                   page image data.
         """
         data = []
-        reader = PdfReader(filePDF.bytes_data)
-        pages_pdf = reader.pages
-        n_pages = len(pages_pdf)
-        i = 0
-        dict_images = {}
-        uniques_hash = []
-        prev_images = 0
-        # print(reader.pdf_header, n_pages, reader.metadata)
+        uniques_hash = set()
+        queue_images = Queue()
 
-        while i < n_pages:
-            # print(i, len(pages_pdf[i].images))
+        # minimum images per chunk of the image list, it is arbitrary
+        minimum_images_by_page = 30
 
-            if len(pages_pdf[i].images) > 0:
-                try:
-                    if len(pages_pdf[i].images) == 1:
-                        item = pages_pdf[i].images[0]
-                        hash_image = self.get_hash_md5(
-                                                image_name=item.name,
-                                                image_data=item.data,
-                                            )
-                        if hash_image not in uniques_hash:
-                            uniques_hash.append(hash_image)
+### PYMUPDF
+        pdf_file = fitz.open("pdf", filePDF.bytes_data)
+        # print(pdf_file.page_count, "\n")
+        n_pages = pdf_file.page_count
 
-                            name_, extension_ = self.paths.splitext(item.name)
-                            image_comic = self.to_image_instance(
-                                dataImage=item.data,
-                                extensionImage=extension_[1:],
-                                resize=resize,
+
+#### THREADs
+        for page in pdf_file.pages():
+            if show_progress:
+                print(f"\r>>> Page: {page.number + 1}/{n_pages}", end="", flush=True)
+
+            threads_list = []
+            # sorts the images by number in the names.
+            images = sorted(
+                        page.get_images(),
+                        key=lambda x: self.get_number_image(name=x[7])
+                    )
+
+            # determines the number of images per chunk of the list,
+            # used by the threads.
+
+            n_images = len(images) // n_threads
+
+            if n_images < minimum_images_by_page:
+                th = ThreadImage(
+                            pagesgenerator=images,
+                            uniques_hash=uniques_hash,
+                            queue=queue_images,
+                            pdfDocument=pdf_file,
+                            to_image_instance_method=self.to_image_instance,
+                            resize=resize
+                        )
+                threads_list.append(th)
+                th.start()
+                th.join()
+            else:
+                for i in range(0, len(images) + 1, n_images):
+                    chunk = images[i: i + n_images]
+
+                    th = ThreadImage(
+                                pagesgenerator=chunk,
+                                uniques_hash=uniques_hash,
+                                queue=queue_images,
+                                pdfDocument=pdf_file,
+                                to_image_instance_method=self.to_image_instance,
+                                resize=resize
                             )
+                    threads_list.append(th)
+                    th.start()
 
-                            data.append(image_comic)
+                    # print(">>> threads_list", len(threads_list))
+                    for t in threads_list:
+                        t.join()
 
-                    elif len(pages_pdf[i].images) > 1:
-                        # original order must be preserve
-                        if prev_images != len(pages_pdf[i].images):
-                            list_numeration = self.get_numbers_images(
-                                                list_data=pages_pdf[i].images
-                                            )
-
-                            dict_images = dict(
-                                                zip(
-                                                    list_numeration,
-                                                    pages_pdf[i].images
-                                                )
-                                            )
-                            sorted_dict = dict(sorted(dict_images.items()))
-                            for key, item in sorted_dict.items():
-                                hash_image = self.get_hash_md5(
-                                                        image_name=item.name,
-                                                        image_data=item.data,
-                                                    )
-                                if hash_image not in uniques_hash:
-                                    uniques_hash.append(hash_image)
-
-                                    name_, extension_ = self.paths.splitext(
-                                                                    item.name
-                                                                )
-                                    image_comic = self.to_image_instance(
-                                        dataImage=item.data,
-                                        extensionImage=extension_[1:],
-                                        resize=resize,
-                                    )
-
-                                    data.append(image_comic)
-                        prev_images = len(pages_pdf[i].images)
-                except OSError as e:
-                    # Skip truncated images.
-                    print('Skipped truncated image, page "%d".' % (i))
-                    pass
-
-            i += 1
-
+        list_images_unique = list(queue_images.queue)
+        data = list_images_unique
+#### THREADs
+        if show_progress:
+            print('\n')
         return data
 
-    def get_hash_md5(
+
+    def pdf_get_image_data(
         self,
-        image_name: str,
-        image_data: bytes
-    ) -> str:
+        pdfFile: fitz.Document,
+        xref_image: int,
+    ) -> dict:
         """
-        Calculates hash md5.
-
-        Args
-            image_name: name of image.
-            image_data: raw data of image.
-
-        Returns
-            str: hash md5 string.
         """
-        hash_data = image_name.encode() + image_data
-        return md5(hash_data).hexdigest()
+        return pdfFile.extract_image(xref=xref_image)
 
-    def get_numbers_images(
+    def get_number_image(
         self,
-        list_data: list
-    ) -> list:
+        name: str
+    ) -> int:
         """
-        Gets numeration of images on image names.
-        Records the name and size of the image data to avoid duplicate images.
-
-        Args
-            list: list of images of pages.
-
-        Returns
-            list: list of numbers of images.
         """
-        result = []
-        for item in list_data:
-            r = re.split(r'([0-9]{1,4})', item.name)
-            if r is not None:
-                number = [int(i) for i in r if i.isdigit()][0]
-                result.append(number)
-        return result
+        res = re.search(r"(\d+)", name)
+        return int(res.group(1))
 
     def to_image_instance(
         self,
-        dataImage: bytes,
-        extensionImage: str,
+        rawimage: RawImage,
         resize: str,
-        current_image: ImageInstancePIL = None,
     ) -> ImageComicData:
         """
         Creates an image instance with new dimensions and names, preserving the
         data.
 
         Args
-            current_image: `PIL.Image` instance.
+            rawimage: `RawImage` instance.
             resize: string of new size of image.
 
         Returns
@@ -273,63 +244,16 @@ class PdfHandler:
         """
         name_image = 'Image%s.%s' % (
                             str(self.number_image).zfill(4),
-                            extensionImage.lower()
+                            rawimage.extension.lower()
                         )
-        # print(index, current_image.name, name_image)
+        # print(rawimage)
         image_comic = self.imageshandler.new_image(
                                 name_image=name_image,
-                                currentImage=dataImage,
-                                extension=extensionImage.upper(),
+                                currentImage=rawimage.data,
+                                extension=rawimage.extension.upper(),
                                 sizeImage=resize,
                                 unit=self.unit
                             )
 
         self.number_image += 1
         return image_comic
-
-    # def to_pymupdf(
-    #     self,
-    #     filePDF: CurrentFile,
-    #     resize: str = 'preserve'
-    # ) -> Union[List[ImageComicData], list]:
-    #     """
-    #     Gets images of the pages of a PDF file using PyMuPDF.
-    #
-    #     Args:
-    #         currentFilePDF: Instance of `CurrentFile` with the data of the PDF
-    #                         file.
-    #         resizeImage: rescaling image.
-    #
-    #     Returns:
-    #         List[ImageComicData]: list of `ImageComicData` instances with the
-    #                               page image data.
-    #     """
-    #
-    #     list_images = []
-    #
-    #     pdf_doc = fitz.open(stream=filePDF.bytes_data, filetype='pdf')
-    #     # print(len(pdf_doc))
-    #
-    #     for i in range(len(pdf_doc)):
-    #         page = pdf_doc[i]
-    #
-    #         refImage = page.get_image_info(xrefs=True)
-    #
-    #         image_base = pdf_doc.extract_image(refImage[0]["xref"])
-    #
-    #         image_data = image_base['image']
-    #         image_extension = image_base['ext']
-    #
-    #         image_comic = self.to_image_instance(
-    #                 dataImage=image_data,
-    #                 extensionImage=image_extension,
-    #                 resize=resize,
-    #             )
-    #
-    #         list_images.append(image_comic)
-    #
-    #         self.number_image += 1
-    #
-    #     print(self.number_image)
-    #
-    #     return list_images

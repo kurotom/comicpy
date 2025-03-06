@@ -60,7 +60,6 @@ class RarHandler(BaseZipRarHandler):
         self.type = 'rar'
         self.imageshandler = ImagesHandler()
         self.validextentions = ValidExtensions()
-        self.paths = Paths()
         self.url_page = 'https://www.rarlab.com/download.htm'
         self.number_index = 1
 
@@ -192,8 +191,8 @@ class RarHandler(BaseZipRarHandler):
         if join is False:
             self.reset_names()
 
-        name_, extension = self.paths.splitext(
-                                self.paths.get_basename(pathCBRconverted)
+        name_, extension = Paths.splitext(
+                                Paths.get_basename(pathCBRconverted)
                             )
 
         DIRECTORY_BASE_ = basedir.replace(' ', '_')
@@ -201,7 +200,7 @@ class RarHandler(BaseZipRarHandler):
 
         # Make directory and save all data into `TEMP` `.RAR_TEMP`
         # id_directory = uuid1().hex
-        DIR_RAR_FILES = self.paths.build(
+        DIR_RAR_FILES = Paths.build(
                             self.TEMPDIR,
                             DIRECTORY_BASE_,
                             make=True
@@ -220,13 +219,13 @@ class RarHandler(BaseZipRarHandler):
         for data in data_list:
             if join is True:
                 if first_directory is False:
-                    ITEM_DIR_ = self.paths.get_dirname_level(
+                    ITEM_DIR_ = Paths.get_dirname_level(
                                                 data.filename,
                                                 level=-1
                                             )
                     first_directory = True
             else:
-                ITEM_DIR_ = self.paths.get_dirname_level(
+                ITEM_DIR_ = Paths.get_dirname_level(
                                             data.filename,
                                             level=-1
                                         )
@@ -235,18 +234,18 @@ class RarHandler(BaseZipRarHandler):
 
             ITEM_DIR_ = ITEM_DIR_.replace(' ', '_')
 
-            item_filename = self.paths.get_basename(data.filename)
+            item_filename = Paths.get_basename(data.filename)
             item_data = data.bytes_data.getvalue()
 
             # print(data, ITEM_DIR_, name_, item_filename)
 
-            DIRECTORY_FILES_ = self.paths.build(
+            DIRECTORY_FILES_ = Paths.build(
                             DIR_RAR_FILES,
                             ITEM_DIR_,
                             make=True
                         )
 
-            file_path_ = self.paths.build(DIRECTORY_FILES_, item_filename)
+            file_path_ = Paths.build(DIRECTORY_FILES_, item_filename)
 
             with open(file_path_, 'wb') as fileImage:
                 fileImage.write(item_data)
@@ -260,14 +259,14 @@ class RarHandler(BaseZipRarHandler):
         for name_dir, rar_name in to_rar_directory.items():
             # print(name_dir, rar_name, pathCBRconverted)
 
-            self.FILE_RAR_ = self.paths.build(
+            self.FILE_RAR_ = Paths.build(
                                     DIR_RAR_FILES,
                                     '%s.rar'.replace(' ', '_') % (name_)
                                 )
 
             directory_rar_temp_ = '%s%s' % (
                                         name_dir,
-                                        self.paths.get_separator()
+                                        Paths.get_separator()
                                     )
             # print(directory_rar_temp_)
 
@@ -290,7 +289,7 @@ class RarHandler(BaseZipRarHandler):
                 return []
 
         # print(self.FILE_RAR_, name_, DIR_RAR_FILES)
-        self.FILE_CBR_ = self.paths.build(
+        self.FILE_CBR_ = Paths.build(
                                 DIR_RAR_FILES,
                                 '%s.cbr' % (name_)
                             )
@@ -333,12 +332,12 @@ class RarHandler(BaseZipRarHandler):
         """
         path_CBR_ = None
 
-        destination_path = self.paths.build(
+        destination_path = Paths.build(
                                 self.CONVERTED_COMICPY_PATH_,
                                 make=True
                             )
-        cbr_name = self.paths.get_basename(fileCBR)
-        path_CBR_ = self.paths.build(
+        cbr_name = Paths.get_basename(fileCBR)
+        path_CBR_ = Paths.build(
                                 destination_path,
                                 cbr_name
                             )
@@ -353,7 +352,7 @@ class RarHandler(BaseZipRarHandler):
         try:
             shutil.move(src=fileCBR, dst=destination_path)
         except shutil.Error:
-            is_deleted = self.paths.remove(path=path_CBR_)
+            is_deleted = Paths.remove(path=path_CBR_)
             if is_deleted:
                 shutil.move(src=fileCBR, dst=destination_path)
 

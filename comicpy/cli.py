@@ -6,8 +6,9 @@ CLI comicpy
 import argparse
 import sys
 
-from comicpy.comicpy import ComicPy
+from comicpy.comicpycontroller import ComicPy
 from comicpy.utils import Paths
+from comicpy.version import VERSION
 
 
 def pdf(
@@ -17,7 +18,7 @@ def pdf(
     # dest: str,
     check: bool,
     resize: str = 'preserve',
-    motor: str = 'pypdf'
+    motor: str = 'pymupdf'
 ) -> None:
     """
     Function for PDF file.
@@ -98,7 +99,7 @@ def dir(
     join: bool = False,
     check: bool = False,
     resize: str = 'preserve',
-    motor: str = 'pypdf'
+    motor: str = 'pymupdf'
 ) -> None:
     """
     Function for directories.
@@ -126,8 +127,6 @@ def CliComicPy() -> None:
     """
     Main CLI function.
     """
-    paths = Paths()
-
     main_parser = argparse.ArgumentParser(
                 prog='ComicPy',
                 description='Convert PDF, RAR, ZIP files to CBR or CBZ.',
@@ -137,13 +136,11 @@ def CliComicPy() -> None:
     main_parser.add_argument(
             '--type',
             choices=['f', 'd'],
-            required=True,
             help='File or Directory.'
         )
     main_parser.add_argument(
             '-p',
             '--path',
-            required=True,
             help='Path of file or directory.'
         )
     main_parser.add_argument(
@@ -152,12 +149,7 @@ def CliComicPy() -> None:
             default='zip',
             help='Filter files on directory.'
         )
-    # main_parser.add_argument(
-    #         '--motorPDF',
-    #         choices=['pypdf'],
-    #         default='pypdf',
-    #         help='PDF library to use.'
-    #     )
+
     main_parser.add_argument(
             '-c',
             '--compressor',
@@ -207,6 +199,13 @@ def CliComicPy() -> None:
             help='Shows file in progress.'
         )
 
+    main_parser.add_argument(
+            '--version',
+            default=False,
+            action='store_true',
+            help='Shows version of ComicPy.'
+        )
+
     args = main_parser.parse_args()
     typeFile = args.type
     pathFile = args.path
@@ -219,7 +218,7 @@ def CliComicPy() -> None:
     resizeImage = args.resize
     path_exec = args.path_exec
     progress = args.progress
-    # motorPDF = args.motorPDF
+    version = args.version
 
     # Instance
     comic = ComicPy(
@@ -228,9 +227,16 @@ def CliComicPy() -> None:
                 show_progress=progress
             )
     try:
+        if version:
+            print(f"\ncomicpy version: {VERSION}\n")
         # FILE
-        if typeFile == 'f':
-            name_, extension_ = paths.splitext(pathFile)
+        elif typeFile == 'f':
+
+            if pathFile is None:
+                print("\nNeeds '--path' parameter of the file.\n")
+                return
+
+            name_, extension_ = Paths.splitext(pathFile)
             if extension_.lower() == '.pdf':
                 pdf(
                     comicInstance=comic,
@@ -238,7 +244,6 @@ def CliComicPy() -> None:
                     compressor=compressorFile,
                     check=checkFile,
                     resize=resizeImage
-                    # motor=motorPDF
                 )
             if extension_.lower() == '.rar' or extension_.lower() == '.cbr':
                 rar(
@@ -260,6 +265,9 @@ def CliComicPy() -> None:
 
         # DIRECTORY
         elif typeFile == 'd':
+            if pathFile is None:
+                print("\nNeeds '--path' parameter of the file.\n")
+                return
 
             dir(
                 comicInstance=comic,
@@ -270,7 +278,6 @@ def CliComicPy() -> None:
                 join=joinFile,
                 check=checkFile,
                 resize=resizeImage
-                # motor=motorPDF
             )
 
     except KeyboardInterrupt:

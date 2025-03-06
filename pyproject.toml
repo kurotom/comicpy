@@ -17,11 +17,11 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
-pypdf = {extras = ["image"], version = "^4.1.0"}
 pillow = "^10"
 rarfile = "^4.1"
 pyzipper = "^0.3.6"
 pycryptodome = "^3.20.0"
+pymupdf = "1.25.3"
 
 [tool.poetry.scripts]
 comicpy = 'comicpy.cli:CliComicPy'

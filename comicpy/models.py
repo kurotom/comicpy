@@ -4,10 +4,102 @@ Models
 """
 
 import io
-import os
+import re
+from hashlib import md5
 
-from typing import List, Union
-from comicpy.utils import SizeUnits
+
+from comicpy.utils import (
+    SizeUnits,
+    Paths
+)
+
+
+from typing import List, Union, TypeVar
+
+#
+#  TESTING MODELS -- DELETE IF NECESARY
+#
+
+RawImage = TypeVar("RawImage")
+
+
+
+class RawImage:
+    """
+    """
+    def __init__(
+        self,
+        name: str,
+        xref_image: int,
+        data: Union[bytes, io.BytesIO] = None,
+        page: int = 0
+    ) -> None:
+        """
+        """
+        self.name = name
+        self.extension : str = None
+        self.data = data
+        self.md5 = ""
+        self.page = page
+        self.id = self.get_number_image(name=self.name)
+
+    def get_number_image(
+        self,
+        name: str
+    ) -> int:
+        """
+        """
+        res = re.search(r"(\d+)", name)
+        return int(res.group(1))
+
+    def get_extension(
+        self,
+        name: str
+    ) -> tuple:
+        """
+        """
+        name_, extension_ = Paths.splitext(name)
+        return extension_.lower()[1:]
+
+    def get_md5(
+        self,
+    ) -> str:
+        """
+        """
+        self.md5 = md5(self.data).hexdigest()
+
+    def __lt__(
+        self,
+        other: RawImage
+    ) -> bool:
+        """
+        """
+        return self.id < other.id
+
+    def __hash__(self) -> int:
+        """
+        """
+        return int(self.md5, 16)
+
+    def __eq__(
+        self,
+        other: RawImage
+    ) -> bool:
+        """
+        """
+        if isinstance(other, RawImage):
+            return self.md5 == other.md5
+        return False
+
+    def __str__(self) -> str:
+        """
+        """
+        return "RawImage: %d, %s" % (self.name, self.md5)
+
+    def __repr__(self) -> str:
+        """
+        """
+        return "<[ %s ]>" % self.__str__()
 
 
 class FileBaseClass:
@@ -22,8 +114,8 @@ class FileBaseClass:
         Gets name and extension from file name.
         Sets attributes `name` and `extension`.
         """
-        file_name = os.path.basename(self.filename)
-        name_, extension_ = os.path.splitext(file_name)
+        file_name = Paths.get_basename(self.filename)
+        name_, extension_ = Paths.splitext(file_name)
         self.name = name_
         if self.extension is None:
             self.extension = extension_.lower()
