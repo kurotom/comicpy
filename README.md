@@ -53,13 +53,13 @@ $ comicpy -h
 |-|-|
 | --type f | File. |
 | -p PATH, --path PATH | Path of file. |
-| --motorPDF {pypdf} | PDF library to use. |
 | -c {rar,zip}, --compressor {rar,zip} | Type of compressor to use. |
 | --check | Check the CBR or CBZ files created. |
 | -u {b,kb,mb,gb}, --unit {b,kb,mb,gb} | Unit of measure of data size. Default is "mb". |
 | --password PASSWORD | Password of file protected. |
 | --resize {preserve,small,medium,large} | Resize images. |
 | --progress | Shows file in progress. |
+| --version | Show comicpy version |
 
 ```bash
 $ comicpy --type f -p file.PDF --check -u kb
@@ -78,7 +78,6 @@ $ comicpy --type f -p file.rar --check --resize small
 | --type d | Directory. |
 | -p PATH, --path PATH | Path of directory. |
 | --filter {pdf,rar,zip,cbr,cbz,images} | Filter files on directory. Default is "zip". |
-| --motorPDF {pypdf} | PDF library to use. |
 | -c {rar,zip}, --compressor {rar,zip} | Type of compressor to use. Default is "zip".|
 | --check | Check the CBR or CBZ files created. |
 | --join | Join or does not files thath are in the directory. Default is "False". |
@@ -86,6 +85,7 @@ $ comicpy --type f -p file.rar --check --resize small
 | --password PASSWORD | Password of file protected. |
 | --resize {preserve,small,medium,large} | Resize images. |
 | --progress | Shows file in progress. |
+| --version | Show comicpy version |
 
 
 ```bash
