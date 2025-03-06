@@ -53,7 +53,6 @@ class ZipHandler(BaseZipRarHandler):
         self.type = 'zip'
         self.imageshandler = ImagesHandler()
         self.validextentions = ValidExtensions()
-        self.paths = Paths()
         self.number_index = 1
 
         self.FILE_CBZ_ = None
@@ -202,11 +201,11 @@ class ZipHandler(BaseZipRarHandler):
         first_directory = False
         ITEM_DIR_ = None
 
-        name_, extension = self.paths.splitext(
-                                self.paths.get_basename(pathCBZconverted)
+        name_, extension = Paths.splitext(
+                                Paths.get_basename(pathCBZconverted)
                             )
 
-        self.CONVERTED_COMICPY_PATH_ = self.paths.build(
+        self.CONVERTED_COMICPY_PATH_ = Paths.build(
                                     converted_comicpy_path.replace(' ', '_'),
                                     make=True
                                 )
@@ -217,18 +216,18 @@ class ZipHandler(BaseZipRarHandler):
         # print(self.FILE_CBZ_, self.FILE_ZIP_)
 
         for item in data_list:
-            # names_dir = self.paths.get_dirname(item.filename)
-            # name_item = self.paths.get_basename(item.filename)
+            # names_dir = Paths.get_dirname(item.filename)
+            # name_item = Paths.get_basename(item.filename)
             # print('-> ', name_item)
             if join is True:
                 if first_directory is False:
-                    ITEM_DIR_ = self.paths.get_dirname_level(
+                    ITEM_DIR_ = Paths.get_dirname_level(
                                                 item.filename,
                                                 level=-1
                                             )
                 first_directory = True
             else:
-                ITEM_DIR_ = self.paths.get_dirname_level(
+                ITEM_DIR_ = Paths.get_dirname_level(
                                             item.filename,
                                             level=-1
                                         )

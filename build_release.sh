@@ -5,8 +5,9 @@
 # project.
 #
 #
-YAML_FILE='.github/workflows/build.yml'
-PYPROJECT_TOML='pyproject.toml'
+# YAML_FILE='.github/workflows/build.yml'
+PYPROJECT_TOML=$(realpath 'pyproject.toml')
+VERSION_COMICPY=$(realpath 'comicpy/version.py')
 STATUS=0
 
 
@@ -27,7 +28,10 @@ change_version_pyproject () {
   status_check_code
 
   echo "File:  $PYPROJECT_TOML"
-  sed s"/version = \"[0-9]\+\.[0-9]\+\.[0-9]\+\"/version = \"$1\"/" $PYPROJECT_TOML -i $PYPROJECT_TOML
+  sed s"/version = \"[0-9]\+\.[0-9]\+\.[0-9]\+\"/version = \"$1\"/" "$PYPROJECT_TOML" -i "$PYPROJECT_TOML"
+
+  echo "File:  $VERSION_COMICPY"
+  sed s"/VERSION = \"[0-9]\+\.[0-9]\+\.[0-9]\+\"/VERSION = \"$1\"/" "$VERSION_COMICPY" -i "$VERSION_COMICPY"
 
   status_get_exit_code
 }

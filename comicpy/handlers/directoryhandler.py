@@ -44,9 +44,8 @@ class DirectoryHandler:
         """
         self.unit = unit
         self.imageshandler = ImagesHandler()
-        self.paths = Paths()
         self.number_image = 1
-        self.separator = self.paths.get_separator()
+        self.separator = Paths.get_separator()
 
     def reset_counter(self) -> None:
         """
@@ -97,12 +96,12 @@ class DirectoryHandler:
             ValidExtensions.JPG
         ]
 
-        basenameDirectory = self.paths.get_dirname_level(
+        basenameDirectory = Paths.get_dirname_level(
                                             path=directoryPath,
                                             level=-1
                                         )
 
-        filesMatches = self.paths.get_files_recursive(
+        filesMatches = Paths.get_files_recursive(
                 directory=directoryPath,
                 extensions=imagesExtensions,
             )
@@ -130,7 +129,7 @@ class DirectoryHandler:
                 dataImage = self.read(filename=path_image)
                 # print(basenameDirectory, path_image)
 
-                name_, extension_ = self.paths.splitext(path=file_name)
+                name_, extension_ = Paths.splitext(path=file_name)
 
                 name_image = 'Image%s%s' % (
                                     str(self.number_image).zfill(4),

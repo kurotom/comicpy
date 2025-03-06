@@ -35,6 +35,7 @@ jobs:
         env:
           TO_PYPI: ${{ secrets.TO_PYPI }}
         run: |
+          poetry lock
           poetry install
           poetry build
           poetry publish --username __token__ --password $TO_PYPI

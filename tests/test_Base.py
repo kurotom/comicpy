@@ -4,7 +4,7 @@ Tests Base
 """
 
 
-from comicpy.comicpy import ComicPy
+from comicpy.comicpycontroller import ComicPy
 from comicpy.utils import Paths
 
 from comicpy.models import (
@@ -78,8 +78,7 @@ class BaseTestCase(unittest.TestCase):
         self.zips_protected = BaseTestCase.DIRS['zips_protected']
         self.no_image_zip_rar = BaseTestCase.DIRS['no_image_zip_rar']
 
-        self.paths = Paths()
-        self.custom_path_rar_exec = self.paths.build('tests', 'bin_rar')
+        self.custom_path_rar_exec = Paths.build('tests', 'bin_rar', make=False)
         self.temp_dir = self.make_temp_dir()
 
         self.comicpy = ComicPy
@@ -90,7 +89,7 @@ class BaseTestCase(unittest.TestCase):
         self.loadContent()
 
     def make_temp_dir(self):
-        path = self.paths.build(
+        path = Paths.build(
                     BaseTestCase.TESTS_DIR, BaseTestCase.TEMP_DIR,
                     make=True)
         return path

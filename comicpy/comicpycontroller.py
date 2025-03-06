@@ -61,8 +61,7 @@ SMALL = TypeVar('small')
 MEDIUM = TypeVar('medium')
 LARGE = TypeVar('large')
 
-PYPDF = TypeVar('pypdf')
-# PYMUPDF = TypeVar('pymupdf')
+PYMUPDF = TypeVar('pymupdf')
 
 
 class ComicPy:
@@ -94,7 +93,6 @@ class ComicPy:
         self.ziphandler = ZipHandler(unit=self.unit)
         self.pdfphandler = PdfHandler(unit=self.unit)
         self.rarhandler = RarHandler(unit=self.unit)
-        self.paths = Paths()
         self.validextentions = ValidExtensions()
 
         self.join_files = False
@@ -255,7 +253,7 @@ class ComicPy:
         dest: str = '.',
         compressor: Union[RAR, ZIP] = 'zip',
         resize: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve',
-        motor: Union[PYPDF] = 'pypdf'
+        motor: Union[PYMUPDF] = 'pymupdf'
     ) -> Union[List[dict], None]:
         """
         Process PDF file, load content, extract images.
@@ -265,7 +263,7 @@ class ComicPy:
             dest: destination path of CBZ or CBR files, default is '.'.
             compressor: type of compressor, 'rar' or 'zip', default is 'zip'.
             resize: resize images, default is 'preserve'
-            motor: motor to use, `pypdf`, default `pypdf`.
+            motor: motor to use, `pymupdf`, default `pymupdf`.
 
         Returns:
             list: list of diccionaries with metadata of file/s CBZ or CBR.
@@ -291,7 +289,8 @@ class ComicPy:
                             compressor=compressor,
                             resizeImage=resize,
                             motor=motor,
-                            is_join=self.join_files
+                            is_join=self.join_files,
+                            show_progress=self.show_progress
                         )
         if compressFileData is None:
             raise EmptyFile('File PDF not have images.')
@@ -503,7 +502,7 @@ class ComicPy:
         compressor: Union[RAR, ZIP] = 'zip',
         join: bool = False,
         resize: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve',
-        motor: Union[PYPDF] = 'pypdf'
+        motor: Union[PYMUPDF] = 'pymupdf'
     ) -> Union[List[dict], None]:
         """
         Searches files in the given directory, searches only PDF, CBZ, CBR
@@ -521,7 +520,7 @@ class ComicPy:
             join: boolean, if `True` all files are consolidated into one,
                   otherwise, if `False` they are kept in individual files.
             resize: string for resizing images, default is 'preserve'.
-            motor: motor to use, `pypdf`, default `pypdf`.
+            motor: motor to use, `pymupdf`, default `pymupdf`.
 
         Returns:
             list: list of diccionaries with metadata of file/s CBR or CBZ.
@@ -529,7 +528,7 @@ class ComicPy:
         """
         compressor = compressor.replace('.', '').lower().strip()
 
-        self.directory_path = self.paths.get_abs_path(path=directory_path)
+        self.directory_path = Paths.get_abs_path(path=directory_path)
         self.join_files = join
 
         self.get_base_converted_path(
@@ -657,7 +656,7 @@ class ComicPy:
         join: str,
         resize: str,
         dest: str = '.',
-        motor: Union[PYPDF] = 'pypdf'
+        motor: Union[PYMUPDF] = 'pymupdf'
     ) -> Union[List[dict], None]:
         """
         Manages the workflow for PDF, CBR, CBZ, RAR, ZIP files within a
@@ -673,7 +672,7 @@ class ComicPy:
                   otherwise, if `False` they are kept in individual files.
             resize: string for resizing images, default is 'preserve'.
             dest: destination path of CBZ or CBR files, default is '.'.
-            motor: motor to use, `pypdf`, default `pypdf`.
+            motor: motor to use, `pymupdf`, default `pymupdf`.
 
         Returns
             list: list of diccionaries with metadata of file/s CBR or CBZ.
@@ -698,14 +697,14 @@ class ComicPy:
 
         self.raiser_error_compressor(compressor_str=compressor_type)
 
-        if not self.paths.exists(self.directory_path):
+        if not Paths.exists(self.directory_path):
             raise DirectoryPathNotExists(dir_path=directory_path)
 
         list_extension = [
                             extension_filter.lower(),
                             extension_filter.upper()
                         ]
-        filesMatch = self.paths.get_files_recursive(
+        filesMatch = Paths.get_files_recursive(
                             directory=self.directory_path,
                             extensions=list_extension,
                         )
@@ -723,13 +722,13 @@ class ComicPy:
                 # compressFileData = None
                 # fileCurrentData = None
 
-                if not self.paths.exists(item_path):
+                if not Paths.exists(item_path):
                     pass
                 else:
                     if item_path == filesMatch[-1]:
                         self.LAST_ITEM_ = True
 
-                    name_, extension_ = self.paths.splitext(
+                    name_, extension_ = Paths.splitext(
                                                 path=str(item_path)
                                             )
                     extension = extension_.lower()
@@ -868,26 +867,26 @@ class ComicPy:
         for itemCurrent in listCurrentFiles:
             # print(itemCurrent.filename, itemCurrent.name)
 
-            filename_ = self.paths.get_basename(path=itemCurrent.filename)
+            filename_ = Paths.get_basename(path=itemCurrent.filename)
 
             file_name = '%s%s' % (
                             filename_,
                             itemCurrent.extension
                         )
 
-            path_output = self.paths.build(
+            path_output = Paths.build(
                                 base_path,
                                 file_name,
                                 # make=True
                             )
 
-            if self.paths.exists(path_output):
+            if Paths.exists(path_output):
                 file_name = '%s_%s%s' % (
                                 itemCurrent.name,
                                 id(itemCurrent),
                                 itemCurrent.extension
                             )
-                path_output = self.paths.build(base_path, file_name)
+                path_output = Paths.build(base_path, file_name)
 
             # print(path_output)
 
@@ -925,7 +924,7 @@ class ComicPy:
         """
         fileCompressed = self.read(filename=filename)
         is_valid = self.checker.check(currenf_file=fileCompressed)
-        name_ = self.paths.get_basename(fileCompressed.filename)
+        name_ = Paths.get_basename(fileCompressed.filename)
         if show:
             string = 'File "%s" is valid?:  "%s"' % (name_, is_valid)
             print(string)
@@ -949,7 +948,7 @@ class ComicPy:
             tuple: filename without extension and path to save CBR or CBZ file.
         """
         if type == 'd':
-            BASE_DIR_ = self.paths.get_dirname_level(
+            BASE_DIR_ = Paths.get_dirname_level(
                                     path=origin,
                                     level=-1
                                 )
@@ -959,11 +958,11 @@ class ComicPy:
                 BASE_DIR_ = BASE_DIR_
 
         elif type == 'f':
-            BASE_DIR_, extension_ = self.paths.splitext(
-                                        self.paths.get_basename(origin)
+            BASE_DIR_, extension_ = Paths.splitext(
+                                        Paths.get_basename(origin)
                                     )
 
-        CONVERTED_COMICPY_PATH_ = self.paths.build(
+        CONVERTED_COMICPY_PATH_ = Paths.build(
                                             dest,
                                             ComicPy.PATH_CONVERTED_,
                                             BASE_DIR_.replace(' ', '_'),
@@ -990,12 +989,12 @@ class ComicPy:
             str: name of file CBR or CBZ.
         """
         compressor_ext = {'zip': 'cbz', 'rar': 'cbr'}
-        name_, ext_ = self.paths.splitext(
-                    self.paths.get_basename(filename).replace(' ', '_')
+        name_, ext_ = Paths.splitext(
+                    Paths.get_basename(filename).replace(' ', '_')
                 )
         if self.join_files:
             if self.FILE_CBR_CBZ_ is None:
-                path_name_cbr_cbz = self.paths.build(
+                path_name_cbr_cbz = Paths.build(
                             self.CONVERTED_COMICPY_PATH_,
                             '%s.%s' % (
                                 name_,
@@ -1004,7 +1003,7 @@ class ComicPy:
                         )
                 self.FILE_CBR_CBZ_ = path_name_cbr_cbz
         else:
-            path_name_cbr_cbz = self.paths.build(
+            path_name_cbr_cbz = Paths.build(
                             self.CONVERTED_COMICPY_PATH_,
                             '%s.%s' % (
                                 name_,
@@ -1020,9 +1019,9 @@ class ComicPy:
         file: str
     ) -> None:
         if self.show_progress:
-            if self.paths.isdir(path=file):
+            if Paths.isdir(path=file):
                 print('Current directory:  %s' % file)
-            elif self.paths.isfile(path=file):
+            elif Paths.isfile(path=file):
                 print('Current file:  %s' % file)
 
     def __str__(self) -> str:

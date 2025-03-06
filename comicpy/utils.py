@@ -30,14 +30,13 @@ class Paths:
     HOME_DIR = os.path.expanduser('~')
     ROOT_PATH = os.path.join(HOME_DIR, DIR)
 
-    def get_separator(self) -> str:
+    def get_separator() -> str:
         """
         Returns the separator used in the operating system.
         """
         return os.sep
 
     def remove(
-        self,
         path
     ) -> bool:
         """
@@ -56,7 +55,6 @@ class Paths:
             return False
 
     def isfile(
-        self,
         path
     ) -> bool:
         """
@@ -71,7 +69,6 @@ class Paths:
         return os.path.isfile(path)
 
     def isdir(
-        self,
         path
     ) -> bool:
         """
@@ -86,7 +83,6 @@ class Paths:
         return os.path.isdir(path)
 
     def splitext(
-        self,
         path: str
     ) -> tuple:
         """
@@ -101,7 +97,6 @@ class Paths:
         return os.path.splitext(path)
 
     def get_basename(
-        self,
         path: str
     ) -> str:
         """
@@ -116,7 +111,6 @@ class Paths:
         return os.path.basename(path)
 
     def get_dirname(
-        self,
         path: str
     ) -> str:
         """
@@ -131,7 +125,6 @@ class Paths:
         return os.path.dirname(path)
 
     def exists(
-        self,
         path: str
     ) -> bool:
         """
@@ -146,7 +139,6 @@ class Paths:
         return os.path.exists(path)
 
     def get_abs_path(
-        self,
         path: str
     ) -> str:
         """
@@ -161,7 +153,6 @@ class Paths:
         return os.path.abspath(path)
 
     def build(
-        self,
         *path: Union[str, Tuple[str]],
         make: bool = False
     ) -> str:
@@ -176,11 +167,10 @@ class Paths:
         """
         path_ = os.path.join(*path)
         if make:
-            self.check_and_create(path=path_)
+            Paths.check_and_create(path=path_)
         return path_
 
     def check_and_create(
-        self,
         path: str
     ) -> None:
         """
@@ -189,11 +179,10 @@ class Paths:
         Args
             path: string of path
         """
-        if not self.exists(path):
+        if not Paths.exists(path):
             os.makedirs(path)
 
     def get_dirname_level(
-        self,
         path: str,
         level: int = None
     ) -> str:
@@ -207,15 +196,14 @@ class Paths:
         Returns
             str: string of path.
         """
-        dirname = self.get_dirname(path)
-        levels_dir = os.path.normpath(dirname).split(self.get_separator())
+        dirname = Paths.get_dirname(path)
+        levels_dir = os.path.normpath(dirname).split(Paths.get_separator())
         if level is None:
             return levels_dir
         else:
             return levels_dir[level]
 
     def get_file_glob(
-        self,
         extension: str,
         directory: str
     ) -> list:
@@ -232,7 +220,7 @@ class Paths:
         for extension_ in [extension.lower(), extension.upper()]:
             pattern = '*.%s' % (extension_)
 
-            dir_path = '%s%s' % (directory, self.get_separator())
+            dir_path = '%s%s' % (directory, Paths.get_separator())
 
             full_pattern = '%s%s' % (dir_path, pattern)
 
@@ -241,7 +229,6 @@ class Paths:
         return results
 
     def get_files_recursive(
-        self,
         extensions: Union[str, list],
         directory: str
     ) -> list:
@@ -262,15 +249,14 @@ class Paths:
 
         dirPath = Path(directory)
 
-        [
-            results.extend(list(dirPath.rglob(f'*{ext}')))
-            for ext in extensions
-        ]
+        for ext in extensions:
+            results += list(dirPath.rglob(f'*{ext}'))
+
+        results = list(set(results))
 
         return results
 
     def get_size(
-        self,
         path: str,
         unit: str
     ) -> int:
@@ -315,8 +301,7 @@ class VarEnviron:
         """
         plat = sys.platform
 
-        paths = Paths()
-        path_rar_comicpy = paths.build(
+        path_rar_comicpy = Paths.build(
                                         os.getcwd(),
                                         VarEnviron.bin_rar_path[0],
                                         VarEnviron.bin_rar_path[1]

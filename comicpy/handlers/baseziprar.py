@@ -37,7 +37,8 @@ class BaseZipRarHandler:
     """
 
     def __init__(self) -> None:
-        self.paths = Paths()
+        """
+        """
         self.imageshandler = ImagesHandler()
 
     def reset_counter(self) -> None:
@@ -143,12 +144,13 @@ class BaseZipRarHandler:
         # if join is False:
         #     self.reset_counter()
 
+        items = 0
         for item in instanceCompress.namelist():
-            directory_name = self.paths.get_dirname(item).replace(' ', '_')
-            name_file = self.paths.get_basename(item)
+            directory_name = Paths.get_dirname(item).replace(' ', '_')
+            name_file = Paths.get_basename(item)
             # print(name_file, directory_name)
 
-            name_, extension_ = self.paths.splitext(name_file)
+            name_, extension_ = Paths.splitext(name_file)
             # print(extension_, images_Extensions)
 
             if extension_.lower() == ValidExtensions.CBR:
@@ -161,7 +163,7 @@ class BaseZipRarHandler:
                 if rawDataFile is None:
                     raise BadPassword
                 else:
-                    name_, extension_ = self.paths.splitext(
+                    name_, extension_ = Paths.splitext(
                                                     name_file.replace(' ', '_')
                                                 )
                     currentFileCBR = CurrentFile(
@@ -183,7 +185,7 @@ class BaseZipRarHandler:
                 if rawDataFile is None:
                     raise BadPassword
                 else:
-                    name_, extension_ = self.paths.splitext(
+                    name_, extension_ = Paths.splitext(
                                                     name_file.replace(' ', '_')
                                                 )
                     currentFileCBZ = CurrentFile(
@@ -202,7 +204,7 @@ class BaseZipRarHandler:
                     extension_.lower()
                 )
 
-                file_name = self.paths.build(directory_name, item_name)
+                file_name = Paths.build(directory_name, item_name)
 
                 rawDataFile = self.read_file(
                                     instanceCompress=instanceCompress,
@@ -283,9 +285,9 @@ class BaseZipRarHandler:
             dict: directory with name and size of file.
         """
         meta = {
-                'name': self.paths.get_basename(path),
+                'name': Paths.get_basename(path),
                 'size': '%.2f %s' % (
-                            self.paths.get_size(
+                            Paths.get_size(
                                     path=path,
                                     unit=self.unit
                             ),
