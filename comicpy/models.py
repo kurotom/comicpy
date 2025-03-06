@@ -16,16 +16,13 @@ from comicpy.utils import (
 
 from typing import List, Union, TypeVar
 
-#
-#  TESTING MODELS -- DELETE IF NECESARY
-#
 
 RawImage = TypeVar("RawImage")
 
 
-
 class RawImage:
     """
+    Class in charge for keep data of a raw image.
     """
     def __init__(
         self,
@@ -48,6 +45,7 @@ class RawImage:
         name: str
     ) -> int:
         """
+        Gets number of image in name.
         """
         res = re.search(r"(\d+)", name)
         return int(res.group(1))
@@ -57,14 +55,16 @@ class RawImage:
         name: str
     ) -> tuple:
         """
+        Gets extension of image.
         """
         name_, extension_ = Paths.splitext(name)
         return extension_.lower()[1:]
 
     def get_md5(
         self,
-    ) -> str:
+    ) -> None:
         """
+        Sets the md5 attribute from the RawImage instance data.
         """
         self.md5 = md5(self.data).hexdigest()
 
@@ -73,11 +73,15 @@ class RawImage:
         other: RawImage
     ) -> bool:
         """
+        Returns
+            bool: if self is less than other `RawImage`.
         """
         return self.id < other.id
 
     def __hash__(self) -> int:
         """
+        Returns
+            int: integer calculated from the md5 hash.
         """
         return int(self.md5, 16)
 
@@ -86,6 +90,8 @@ class RawImage:
         other: RawImage
     ) -> bool:
         """
+        Returns
+            bool: if self and other `RawImage` is equal.
         """
         if isinstance(other, RawImage):
             return self.md5 == other.md5
@@ -93,11 +99,17 @@ class RawImage:
 
     def __str__(self) -> str:
         """
+        Returns
+            str: represents instance.
         """
         return "RawImage: %d, %s" % (self.name, self.md5)
 
     def __repr__(self) -> str:
         """
+        Representation of instance.
+
+        Returns
+            str: represents instance.
         """
         return "<[ %s ]>" % self.__str__()
 
@@ -126,7 +138,7 @@ class FileBaseClass:
         """
         Gets size of data, and set `size` attribute.
 
-        Returns:
+        Returns
             int: data size value.
         """
         try:
@@ -139,7 +151,7 @@ class FileBaseClass:
 
     def __str__(self) -> str:
         """
-        Returns:
+        Returns
             str: represents instance.
         """
         return self.__repr__()
@@ -148,7 +160,7 @@ class FileBaseClass:
         """
         Representation of instance.
 
-        Returns:
+        Returns
             str: represents instance.
         """
         return '<[Filename: "%s", Size: "%.2f %s"]>' % (
@@ -193,7 +205,7 @@ class ImageComicData(FileBaseClass):
         """
         Representation of instance.
 
-        Returns:
+        Returns
             str: represents instance.
         """
         return super().__str__()
@@ -238,7 +250,7 @@ class CurrentFile(FileBaseClass):
         """
         Representation of instance.
 
-        Returns:
+        Returns
             str: represents instance.
         """
         return super().__str__()
@@ -285,7 +297,7 @@ class CompressorFileData(FileBaseClass):
         """
         Sets `extension` attribute.
 
-        Returns:
+        Returns
             str: extension.
         """
         if self.type[0] != '.':
@@ -304,7 +316,7 @@ class CompressorFileData(FileBaseClass):
         Calculates the size of the information based on the established unit of
         measurement.
 
-        Returns:
+        Returns
             int: size of file.
 
         Raises:
@@ -328,7 +340,7 @@ class CompressorFileData(FileBaseClass):
 
     def __str__(self) -> str:
         """
-        Returns:
+        Returns
             str: represents instance.
         """
         return self.__repr__()
@@ -337,7 +349,7 @@ class CompressorFileData(FileBaseClass):
         """
         Representation of instance.
 
-        Returns:
+        Returns
             str: represents instance.
         """
         return '<[Filename: "%s", Size: "%.2f %s", Items: "%s"]>' % (

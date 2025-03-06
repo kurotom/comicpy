@@ -45,7 +45,7 @@ class Paths:
         Args
             path: path of file.
 
-        Returns:
+        Returns
             bool: boolean if file has deleted successfully.
         """
         try:
@@ -63,7 +63,7 @@ class Paths:
         Args
             path: path of file.
 
-        Returns:
+        Returns
             bool: boolean if path is file or not.
         """
         return os.path.isfile(path)
@@ -77,7 +77,7 @@ class Paths:
         Args
             path: path of directory.
 
-        Returns:
+        Returns
             bool: boolean if path is directory or not.
         """
         return os.path.isdir(path)
@@ -210,7 +210,7 @@ class Paths:
         """
         Searches for files by extension, ignoring upper and lower case letters.
 
-        Args:
+        Args
             extension: string of extension of file.
 
         Returns
@@ -263,7 +263,7 @@ class Paths:
         """
         Gets size of data, and set `size` attribute.
 
-        Returns:
+        Returns
             int: data size value.
         """
         try:

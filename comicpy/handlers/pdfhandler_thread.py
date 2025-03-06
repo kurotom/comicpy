@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 """
+Class in charge of getting the images from the page and converting them.
+
+Used by PdfHandler.
 """
 
 from comicpy.models import RawImage
@@ -38,6 +41,7 @@ class ThreadImage(Thread):
 
     def run(self) -> None:
         """
+        Obtains the images and converts them.
         """
         raw_images= []
         for item in self.pagesgenerator:

@@ -131,9 +131,12 @@ class PdfHandler:
         in case of multiple images on a single page.
 
         Args:
-            currentFilePDF: Instance of `CurrentFile` with the data of the PDF
-                            file.
-            resizeImage: rescaling image.
+            filePDF: Instance of `CurrentFile` with the PDF file data.
+            resize: string to resize the image.
+            n_threads: number of threads to get the images of the PDF pages,
+                       default 4.
+            show_progress: boolean to show the progress of the current PDF file,
+                           default False.
 
         Returns:
             List[ImageComicData]: list of `ImageComicData` instances with the
@@ -207,21 +210,18 @@ class PdfHandler:
             print('\n')
         return data
 
-
-    def pdf_get_image_data(
-        self,
-        pdfFile: fitz.Document,
-        xref_image: int,
-    ) -> dict:
-        """
-        """
-        return pdfFile.extract_image(xref=xref_image)
-
     def get_number_image(
         self,
         name: str
     ) -> int:
         """
+        Gets number of image in name.
+
+        Args
+            name: string of name of image.
+
+        Returns
+            int: integer of name of image.
         """
         res = re.search(r"(\d+)", name)
         return int(res.group(1))
