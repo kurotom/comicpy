@@ -20,15 +20,9 @@ import io
 
 from typing import (
     Union,
-    TypeVar
+    TypeVar,
+    Literal
 )
-
-ZIP = TypeVar('zip')
-RAR = TypeVar('rar')
-PRESERVE = TypeVar('preserve')
-SMALL = TypeVar('small')
-MEDIUM = TypeVar('medium')
-LARGE = TypeVar('large')
 
 
 class BaseZipRarHandler:
@@ -112,7 +106,7 @@ class BaseZipRarHandler:
         type_compress: str,
         join: bool,
         password: str = None,
-        resize: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve'
+        resize: Literal['preserve', 'small', 'medium', 'large'] = 'preserve',
     ) -> Union[CompressorFileData, None]:
         """
         Iterates over files of RAR or ZIP files, read their data.

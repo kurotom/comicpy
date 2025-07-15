@@ -46,10 +46,13 @@ class CheckFile:
         except KeyError:
             return None
 
+        # print(data)
+
         match_bool = False
         list_hexsigns = data['hexsigns']
         byteoffet = data['byteoffet']
         hexsign_file = self.to_hexsign(raw_data=currenf_file.chunk_bytes)
+        # print(hexsign_file)
 
         string_hexsign_file = ' '.join(hexsign_file)
 

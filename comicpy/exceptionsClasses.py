@@ -67,7 +67,8 @@ class FileExtensionNotMatch(ErrorFileBase):
         message: str = 'File content does not match with extension of file!\n'
     ) -> None:
         message += '''
-        Possibly the extension of the original file has changed manually.
+        1. The original file extension may have been changed manually.
+        2. The file may be corrupted and needs to be repaired.\n
         '''
         super().__init__(message)
 

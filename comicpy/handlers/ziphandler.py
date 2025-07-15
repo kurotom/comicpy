@@ -25,12 +25,7 @@ import zipfile
 
 import warnings
 
-from typing import List, Union, TypeVar
-
-PRESERVE = TypeVar('preserve')
-SMALL = TypeVar('small')
-MEDIUM = TypeVar('medium')
-LARGE = TypeVar('large')
+from typing import List, Union, Literal
 
 
 class ZipHandler(BaseZipRarHandler):
@@ -41,7 +36,7 @@ class ZipHandler(BaseZipRarHandler):
 
     def __init__(
         self,
-        unit: str
+        unit: Literal['b', 'kb', 'mb', 'gb'] = 'mb',
     ) -> None:
         """
         Constructor.
@@ -114,7 +109,7 @@ class ZipHandler(BaseZipRarHandler):
         currentFileZip: CurrentFile,
         password: str = None,
         is_join: bool = False,
-        resizeImage: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve'
+        resizeImage: Literal['preserve', 'small', 'medium', 'large'] = 'preserve',
     ) -> Union[CompressorFileData, None, int]:
         """
         Extract images from ZIP file.

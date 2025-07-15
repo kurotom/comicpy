@@ -46,22 +46,7 @@ from comicpy.handlers import (
 
 import io
 
-from typing import List, TypeVar, Union
-
-
-IMAGES = TypeVar('images')
-RAR = TypeVar('rar')
-ZIP = TypeVar('zip')
-PDF = TypeVar('pdf')
-CBZ = TypeVar('cbz')
-CBR = TypeVar('cbr')
-
-PRESERVE = TypeVar('preserve')
-SMALL = TypeVar('small')
-MEDIUM = TypeVar('medium')
-LARGE = TypeVar('large')
-
-PYMUPDF = TypeVar('pymupdf')
+from typing import List, TypeVar, Literal, Union
 
 
 class ComicPy:
@@ -73,7 +58,7 @@ class ComicPy:
 
     def __init__(
         self,
-        unit: str = 'mb',
+        unit: Literal['b', 'kb', 'mb', 'gb'] = 'mb',
         exec_path_rar: str = None,
         show_progress: bool = False
     ) -> None:
@@ -251,9 +236,9 @@ class ComicPy:
         self,
         filename: str,
         dest: str = '.',
-        compressor: Union[RAR, ZIP] = 'zip',
-        resize: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve',
-        motor: Union[PYMUPDF] = 'pymupdf'
+        compressor: Literal['rar', 'zip'] = 'zip',
+        resize: Literal['preserve', 'small', 'medium', 'large'] = 'preserve',
+        motor: Literal['pymupdf'] = 'pymupdf'
     ) -> Union[List[dict], None]:
         """
         Process PDF file, load content, extract images.
@@ -323,7 +308,7 @@ class ComicPy:
         filename: str,
         dest: str = '.',
         password: str = None,
-        resize: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve'
+        resize: Literal['preserve', 'small', 'medium', 'large'] = 'preserve',
     ) -> Union[List[dict], None]:
         """
         Process ZIP files.
@@ -410,7 +395,7 @@ class ComicPy:
         filename: str,
         dest: str = '.',
         password: str = None,
-        resize: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve'
+        resize: Literal['preserve', 'small', 'medium', 'large'] = 'preserve',
     ) -> Union[List[dict], None]:
         """
         Process RAR files.
@@ -496,13 +481,13 @@ class ComicPy:
     def process_dir(
         self,
         directory_path: str,
-        extension_filter: Union[RAR, ZIP, PDF, CBZ, CBR, IMAGES],
+        extension_filter: Literal['rar', 'zip', 'pdf', 'cbz', 'cbr', 'images'],
         dest: str = '.',
         password: str = None,
-        compressor: Union[RAR, ZIP] = 'zip',
+        compressor: Literal['rar', 'zip'] = 'zip',
         join: bool = False,
-        resize: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve',
-        motor: Union[PYMUPDF] = 'pymupdf'
+        resize: Literal['preserve', 'small', 'medium', 'large'] = 'preserve',
+        motor: Literal['pymupdf'] = 'pymupdf'
     ) -> Union[List[dict], None]:
         """
         Searches files in the given directory, searches only PDF, CBZ, CBR
@@ -656,7 +641,7 @@ class ComicPy:
         join: str,
         resize: str,
         dest: str = '.',
-        motor: Union[PYMUPDF] = 'pymupdf'
+        motor: Literal['pymupdf'] = 'pymupdf'
     ) -> Union[List[dict], None]:
         """
         Manages the workflow for PDF, CBR, CBZ, RAR, ZIP files within a
@@ -794,7 +779,7 @@ class ComicPy:
         filename: str = None,
         basedir: str = None,
         dest: str = None,
-        compressor: Union[RAR, ZIP] = 'zip',
+        compressor: Literal['rar', 'zip'] = 'zip',
     ) -> List[dict]:
         """
         Convert data of list of CompressorFileData to only RAR or ZIP file.

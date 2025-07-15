@@ -18,7 +18,7 @@ from comicpy.valid_extensions import ValidExtensions
 from PIL import Image
 import io
 
-from typing import TypeVar, Union
+from typing import TypeVar, Union, Literal
 
 ImageInstancePIL = TypeVar("ImageInstancePIL")
 
@@ -42,7 +42,7 @@ class ImagesHandler:
 
     def get_size(
         self,
-        size: str = 'preserve'
+        size: Literal['preserve', 'small', 'medium', 'large'] = 'preserve',
     ) -> tuple:
         """
         Returns tuple of size.
@@ -60,7 +60,7 @@ class ImagesHandler:
 
     def get_format(
         self,
-        extension_img: str
+        extension_img: Literal['jpeg', 'png', 'jpg', 'webp']
     ) -> str:
         """
         Returns image extension.
@@ -84,7 +84,7 @@ class ImagesHandler:
         currentImage: Union[bytes, ImageInstancePIL],
         extension: str,
         unit: str,
-        sizeImage: str = 'preserve',
+        sizeImage: Literal['preserve', 'small', 'medium', 'large'] = 'preserve',
     ) -> ImageComicData:
         """
         Resize image.

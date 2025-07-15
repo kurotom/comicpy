@@ -53,7 +53,7 @@ $ comicpy -h
 |-|-|
 | --type f | File. |
 | -p PATH, --path PATH | Path of file. |
-| -c {rar,zip}, --compressor {rar,zip} | Type of compressor to use. |
+| -c {rar,zip}, --compressor {rar,zip} | Type of compressor to use. Default is "zip".|
 | --check | Check the CBR or CBZ files created. |
 | -u {b,kb,mb,gb}, --unit {b,kb,mb,gb} | Unit of measure of data size. Default is "mb". |
 | --password PASSWORD | Password of file protected. |
@@ -62,13 +62,13 @@ $ comicpy -h
 | --version | Show comicpy version |
 
 ```bash
-$ comicpy --type f -p file.PDF --check -u kb
+$ comicpy --type f -p file.pdf -u kb --check
 $
 $ comicpy --type f -p file.rar --check
 $
-$ comicpy --type f -p file.zip --check --password PASS
+$ comicpy --type f -p file.zip --password PASS --check
 $
-$ comicpy --type f -p file.rar --check --resize small
+$ comicpy --type f -p file.rar --resize small --check
 ```
 
 ### Directory usage
@@ -89,15 +89,18 @@ $ comicpy --type f -p file.rar --check --resize small
 
 
 ```bash
-$ comicpy --type d -p rars_dir --filter rar -c rar --check --join -o prefix_final_ --password PASS
+$ comicpy --type d -p rars_dir --filter rar -c rar --join -o prefix_final_ --password PASS --check
+$
 $ for i in $(ls -d Zip_Dir_*/); do
-> comicpy --type d -p "$i" --filter zip -c zip --check -o ${i: 0:-1} --join
+> comicpy --type d -p "$i" --filter zip -c zip -o ${i: 0:-1} --join --check
 > done
-$ comicpy --type d -p rars_dir --filter rar -c rar --check --join -o prefix_final_ --password PASS --resize preserve
-$ comicpy --type d -p Comic_vol1/ --compress zip --filter images --check --progress --join
+$
+$ comicpy --type d -p rars_dir --filter rar -c rar --join -o prefix_final_ --password PASS --resize preserve --check
+$
+$ comicpy --type d -p Comic_vol1/ --compress zip --filter images --progress --join --check
 ```
 
-
+<br>
 
 ## Development - usage
 
@@ -210,5 +213,5 @@ poetry shell
 
 poetry install
 
-. run_tests.sh
+./run_tests.sh
 ```

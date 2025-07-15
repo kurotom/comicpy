@@ -31,12 +31,7 @@ from rarfile import (
     RarCannotExec
 )
 
-from typing import List, Union, TypeVar
-
-PRESERVE = TypeVar('preserve')
-SMALL = TypeVar('small')
-MEDIUM = TypeVar('medium')
-LARGE = TypeVar('large')
+from typing import List, Union, TypeVar, Literal
 
 
 class RarHandler(BaseZipRarHandler):
@@ -47,7 +42,7 @@ class RarHandler(BaseZipRarHandler):
 
     def __init__(
         self,
-        unit: str
+        unit: Literal['b', 'kb', 'mb', 'gb'] = 'mb',
     ) -> None:
         """
         Constructor.
@@ -106,7 +101,7 @@ class RarHandler(BaseZipRarHandler):
         currentFileRar: CurrentFile,
         password: str = None,
         is_join: bool = False,
-        resizeImage: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve'
+        resizeImage: Literal['preserve', 'small', 'medium', 'large'] = 'preserve',
     ) -> Union[CompressorFileData, None, int]:
         """
         Extract images from RAR file.

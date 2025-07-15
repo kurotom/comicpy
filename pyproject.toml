@@ -1,11 +1,12 @@
 [tool.poetry]
 name = "comicpy"
-version = "0.1.40"
+version = "0.1.41"
 description = "Tool to create CBR or CBZ files, supports PDF, ZIP, RAR files."
 authors = ["kurotom <55354389+kurotom@users.noreply.github.com>"]
 readme = "README.md"
 packages = [{include = 'comicpy'}]
 keywords = ["comic", "cbz", "cbr", "manga"]
+license = "MIT"
 repository = "https://github.com/kurotom/comicpy"
 classifiers = [
 "Operating System :: OS Independent",
@@ -17,7 +18,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
-pillow = "^10"
+pillow = "^11"
 rarfile = "^4.1"
 pyzipper = "^0.3.6"
 pycryptodome = "^3.20.0"

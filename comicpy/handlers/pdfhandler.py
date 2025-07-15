@@ -16,12 +16,10 @@ from comicpy.models import (
 )
 
 
-
 from typing import (
     List,
-    TypeVar,
     Union,
-    Callable
+    Literal
 )
 
 import re
@@ -32,15 +30,6 @@ import fitz
 import logging
 
 
-PRESERVE = TypeVar('preserve')
-SMALL = TypeVar('small')
-MEDIUM = TypeVar('medium')
-LARGE = TypeVar('large')
-ImageInstancePIL = TypeVar("ImageInstancePIL")
-
-PYMUPDF = TypeVar('pymupdf')
-
-
 class PdfHandler:
     """
     Class in charge of extract images from PDF file.
@@ -48,7 +37,7 @@ class PdfHandler:
 
     def __init__(
         self,
-        unit: str
+        unit: Literal['b', 'kb', 'mb', 'gb'] = 'mb',
     ) -> None:
         """
         Constructor.
@@ -74,8 +63,8 @@ class PdfHandler:
         currentFilePDF: CurrentFile,
         compressor: str,
         is_join: bool = False,
-        resizeImage: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve',
-        motor: Union[PYMUPDF] = 'pymupdf',
+        resizeImage: Literal['preserve', 'small', 'medium', 'large'] = 'preserve',
+        motor: Literal['pymupdf'] = 'pymupdf',
         show_progress: bool = False
     ) -> Union[CompressorFileData, None]:
         """
@@ -147,7 +136,7 @@ class PdfHandler:
         queue_images = Queue()
 
         # minimum images per chunk of the image list, it is arbitrary
-        minimum_images_by_page = 30
+        minimum_images_by_page = 24
 
 ### PYMUPDF
         pdf_file = fitz.open("pdf", filePDF.bytes_data)

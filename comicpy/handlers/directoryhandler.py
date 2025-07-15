@@ -14,15 +14,9 @@ from comicpy.models import (
 
 from typing import (
     TypeVar,
-    Union
+    Union,
+    Literal
 )
-
-
-PRESERVE = TypeVar('preserve')
-SMALL = TypeVar('small')
-MEDIUM = TypeVar('medium')
-LARGE = TypeVar('large')
-ImageInstancePIL = TypeVar("ImageInstancePIL")
 
 
 class DirectoryHandler:
@@ -34,7 +28,7 @@ class DirectoryHandler:
 
     def __init__(
         self,
-        unit: str
+        unit: Literal['b', 'kb', 'mb', 'gb'] = 'mb',
     ) -> None:
         """
         Constructor.
@@ -74,7 +68,7 @@ class DirectoryHandler:
         directoryPath: str,
         compressor: str,
         join: bool,
-        resizeImage: Union[PRESERVE, SMALL, MEDIUM, LARGE] = 'preserve'
+        resizeImage: Literal['preserve', 'small', 'medium', 'large'] = 'preserve',
     ) -> Union[CompressorFileData, None]:
         """
         Takes a directory path, search for images and return of
