@@ -74,6 +74,8 @@ class ImagesHandler:
         try:
             if extension_img == 'JPG' or extension_img == 'JP2':
                 extension_img = 'JPEG'
+            elif extension_img == 'WEBP':
+                extension_img = 'JPEG'
             return ImagesHandler.validFormats[extension_img]
         except KeyError:
             return ImagesHandler.validFormats['JPEG']
@@ -117,6 +119,9 @@ class ImagesHandler:
                                 )
         else:
             imageResized = currentImage
+
+        if '.webp' in name_image.lower():
+            name_image = name_image.replace(".webp", ".jpeg")
 
         imageResized.save(
                 newImageIO,

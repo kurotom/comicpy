@@ -2,4 +2,4 @@
 """
 Version of comicpy.
 """
-VERSION = "0.1.41"
+VERSION = "0.1.42"

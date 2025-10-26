@@ -87,7 +87,8 @@ class DirectoryHandler:
         imagesExtensions = [
             ValidExtensions.JPEG,
             ValidExtensions.PNG,
-            ValidExtensions.JPG
+            ValidExtensions.JPG,
+            ValidExtensions.WEBP
         ]
 
         basenameDirectory = Paths.get_dirname_level(
