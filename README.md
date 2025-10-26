@@ -80,7 +80,7 @@ $ comicpy --type f -p file.rar --resize small --check
 | --filter {pdf,rar,zip,cbr,cbz,images} | Filter files on directory. Default is "zip". |
 | -c {rar,zip}, --compressor {rar,zip} | Type of compressor to use. Default is "zip".|
 | --check | Check the CBR or CBZ files created. |
-| --join | Join or does not files thath are in the directory. Default is "False". |
+| --join | Join files that are in the directory. Default is "False". |
 | -u {b,kb,mb,gb}, --unit {b,kb,mb,gb} | Unit of measure of data size. Default is "mb". |
 | --password PASSWORD | Password of file protected. |
 | --resize {preserve,small,medium,large} | Resize images. |
